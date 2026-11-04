@@ -1,6 +1,7 @@
 # .gitignore for CARDS & CHAOS (Roblox Luau / Rojo)
 check_xml.py
 print_part.py
+verify_syntax.py
 
 # OS / Editor
 .DS_Store

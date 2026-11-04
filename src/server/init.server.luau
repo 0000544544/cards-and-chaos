@@ -45,6 +45,12 @@ Players.PlayerAdded:Connect(function(player: Player)
     end)
 end)
 
+for _, player in ipairs(Players:GetPlayers()) do
+    task.spawn(function()
+        DataManager.LoadProfile(player)
+    end)
+end
+
 Players.PlayerRemoving:Connect(function(player: Player)
     DataManager.ReleaseProfile(player)
 end)

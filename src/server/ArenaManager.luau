@@ -15,8 +15,8 @@ local DataManager = require(script.Parent.DataManager)
 
 local ArenaManager = {}
 
-local ARENA_SPAWN_PLAYER = Vector3.new(0, 103, 35)
-local ARENA_SPAWN_BOT = Vector3.new(0, 103, -35)
+local ARENA_SPAWN_PLAYER = Vector3.new(400, 54, 35)
+local ARENA_SPAWN_BOT = Vector3.new(400, 54, -35)
 local LOBBY_SPAWN = Vector3.new(0, 3, 0)
 
 -- Lance un duel compétitif contre le Bot Duelliste IA
@@ -43,6 +43,7 @@ function ArenaManager.StartBotDuel(player: Player)
     botHrp.Size = Vector3.new(2, 2, 1)
     botHrp.CFrame = CFrame.lookAt(ARENA_SPAWN_BOT, ARENA_SPAWN_PLAYER)
     botHrp.CanCollide = false
+    botHrp.Anchored = true
     botHrp.Transparency = 1
     botHrp.Parent = botModel
 
@@ -52,6 +53,8 @@ function ArenaManager.StartBotDuel(player: Player)
     botTorso.CFrame = botHrp.CFrame
     botTorso.Material = Enum.Material.Slate
     botTorso.Color = Color3.fromRGB(145, 40, 255)
+    botTorso.CanCollide = true
+    botTorso.Anchored = true
     botTorso.Parent = botModel
 
     local botHead = Instance.new("Part")
@@ -61,6 +64,8 @@ function ArenaManager.StartBotDuel(player: Player)
     botHead.CFrame = botHrp.CFrame * CFrame.new(0, 2.5, 0)
     botHead.Material = Enum.Material.Neon
     botHead.Color = Color3.fromRGB(239, 68, 68)
+    botHead.CanCollide = true
+    botHead.Anchored = true
     botHead.Parent = botModel
 
     local botHum = Instance.new("Humanoid")
@@ -85,35 +90,57 @@ function ArenaManager.StartBotDuel(player: Player)
         local isMatchActive = true
         local timer = 75
 
-        -- Comportement du Bot IA : Traque et lance des sorts toutes les 3s
+        -- Comportement du Bot IA : Déplacement CFrame régulier pour ne jamais traverser le sol
         local aiThread = task.spawn(function()
             while isMatchActive and botHum.Health > 0 and hum.Health > 0 do
-                task.wait(2.5)
-                if hrp and botHrp then
-                    botHum:MoveTo(hrp.Position)
-                    local dist = (hrp.Position - botHrp.Position).Magnitude
-                    if dist <= 45 then
-                        -- Lancement d'un projectile de magma vers le joueur
-                        local orb = Instance.new("Part")
-                        orb.Shape = Enum.PartType.Ball
-                        orb.Material = Enum.Material.Neon
-                        orb.Color = Color3.fromRGB(255, 85, 0)
-                        orb.Size = Vector3.new(2.5, 2.5, 2.5)
-                        orb.Anchored = true
-                        orb.CanCollide = false
-                        orb.CFrame = botHrp.CFrame * CFrame.new(0, 1, -2)
-                        orb.Parent = workspace
+                task.wait(0.15)
+                if hrp and botHrp and botTorso and botHead then
+                    local targetPos = Vector3.new(hrp.Position.X, 54, hrp.Position.Z)
+                    local currentPos = botHrp.Position
+                    local dir = (targetPos - currentPos)
+                    local dist = dir.Magnitude
 
-                        local endPos = hrp.Position
-                        local tween = TweenService:Create(orb, TweenInfo.new(0.6), { Position = endPos })
-                        tween:Play()
-                        tween.Completed:Connect(function()
-                            if hum and hum.Health > 0 and (hrp.Position - orb.Position).Magnitude <= 10 then
-                                hum:TakeDamage(20)
-                            end
-                            orb:Destroy()
-                        end)
+                    if dist > 14 then
+                        local step = math.min(1.4, dist)
+                        local newPos = currentPos + (dir.Unit * step)
+                        local newCFrame = CFrame.lookAt(newPos, Vector3.new(hrp.Position.X, newPos.Y, hrp.Position.Z))
+                        botHrp.CFrame = newCFrame
+                        botTorso.CFrame = newCFrame
+                        botHead.CFrame = newCFrame * CFrame.new(0, 2.5, 0)
+                    else
+                        local newCFrame = CFrame.lookAt(currentPos, Vector3.new(hrp.Position.X, currentPos.Y, hrp.Position.Z))
+                        botHrp.CFrame = newCFrame
+                        botTorso.CFrame = newCFrame
+                        botHead.CFrame = newCFrame * CFrame.new(0, 2.5, 0)
                     end
+                end
+            end
+        end)
+
+        -- Boucle d'attaque du Bot : lance des projectiles toutes les 2.5s
+        local shootThread = task.spawn(function()
+            while isMatchActive and botHum.Health > 0 and hum.Health > 0 do
+                task.wait(2.5)
+                if hrp and botHrp and (hrp.Position - botHrp.Position).Magnitude <= 55 then
+                    local orb = Instance.new("Part")
+                    orb.Shape = Enum.PartType.Ball
+                    orb.Material = Enum.Material.Neon
+                    orb.Color = Color3.fromRGB(255, 85, 0)
+                    orb.Size = Vector3.new(2.5, 2.5, 2.5)
+                    orb.Anchored = true
+                    orb.CanCollide = false
+                    orb.CFrame = botHrp.CFrame * CFrame.new(0, 1, -2)
+                    orb.Parent = workspace
+
+                    local endPos = hrp.Position
+                    local tween = TweenService:Create(orb, TweenInfo.new(0.6), { Position = endPos })
+                    tween:Play()
+                    tween.Completed:Connect(function()
+                        if hum and hum.Health > 0 and (hrp.Position - orb.Position).Magnitude <= 10 then
+                            hum:TakeDamage(20)
+                        end
+                        orb:Destroy()
+                    end)
                 end
             end
         end)
@@ -128,6 +155,7 @@ function ArenaManager.StartBotDuel(player: Player)
 
         isMatchActive = false
         task.cancel(aiThread)
+        task.cancel(shootThread)
 
         local isVictory = (botHum.Health <= 0) or (hum.Health > botHum.Health)
         if isVictory then

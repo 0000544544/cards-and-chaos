@@ -15,6 +15,9 @@ import time
 import requests
 from pathlib import Path
 from PIL import Image
+from dotenv import load_dotenv
+
+load_dotenv()
 
 COMFYUI_URL = os.getenv("COMFYUI_URL", "http://127.0.0.1:8188")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
@@ -40,12 +43,50 @@ def generate_and_upload_roblox_card(prompt: str, card_name: str, rarity: str = "
     # Tentative de génération via ComfyUI local
     img = None
     try:
-        # Simple test de connectivité ComfyUI
+        # Test de connectivité ComfyUI
         resp = requests.get(f"{COMFYUI_URL}/system_stats", timeout=2)
         if resp.status_code == 200:
-            # Envoi du prompt à ComfyUI
-            print(f"[ComfyUI] Envoi du workflow pour {card_name}...")
-            # Si ComfyUI répond, génère l'image
+            print(f"[ComfyUI] Serveur local détecté sur {COMFYUI_URL}. Envoi du workflow pour {card_name}...")
+            workflow = {
+                "3": {
+                    "class_type": "KSampler",
+                    "inputs": {
+                        "cfg": 7,
+                        "denoise": 1,
+                        "latent_image": ["5", 0],
+                        "model": ["4", 0],
+                        "negative": ["7", 0],
+                        "positive": ["6", 0],
+                        "sampler_name": "euler",
+                        "scheduler": "normal",
+                        "seed": int(time.time()),
+                        "steps": 20
+                    }
+                },
+                "4": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": "v1-5-pruned-emaonly.safetensors"}},
+                "5": {"class_type": "EmptyLatentImage", "inputs": {"batch_size": 1, "height": 512, "width": 512}},
+                "6": {"class_type": "CLIPTextEncode", "inputs": {"clip": ["4", 1], "text": full_prompt}},
+                "7": {"class_type": "CLIPTextEncode", "inputs": {"clip": ["4", 1], "text": "blurry, low quality, deformed, text, watermark"}},
+                "8": {"class_type": "VAEDecode", "inputs": {"samples": ["3", 0], "vae": ["4", 2]}},
+                "9": {"class_type": "SaveImage", "inputs": {"filename_prefix": f"card_{safe_name}", "images": ["8", 0]}}
+            }
+            prompt_res = requests.post(f"{COMFYUI_URL}/prompt", json={"prompt": workflow}, timeout=5)
+            if prompt_res.status_code == 200:
+                prompt_data = prompt_res.json()
+                prompt_id = prompt_data.get("prompt_id")
+                print(f"[ComfyUI] Tâche envoyée avec succès (Prompt ID: {prompt_id}). En attente de rendu...")
+                for _ in range(5):
+                    time.sleep(2)
+                    hist_res = requests.get(f"{COMFYUI_URL}/history/{prompt_id}", timeout=2)
+                    if hist_res.status_code == 200 and prompt_id in hist_res.json():
+                        outputs = hist_res.json()[prompt_id].get("outputs", {})
+                        if "9" in outputs and "images" in outputs["9"]:
+                            img_info = outputs["9"]["images"][0]
+                            view_res = requests.get(f"{COMFYUI_URL}/view?filename={img_info['filename']}&subfolder={img_info.get('subfolder', '')}&type={img_info.get('type', 'output')}", timeout=5)
+                            if view_res.status_code == 200:
+                                img = Image.open(io.BytesIO(view_res.content)).convert("RGBA")
+                                print(f"[ComfyUI] Image générée et récupérée avec succès pour {card_name} !")
+                                break
     except Exception as e:
         print(f"[ComfyUI] Mode local indisponible ({e}). Génération du gabarit stylisé...")
 

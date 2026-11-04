@@ -95,7 +95,7 @@ function UIManager.RefreshHUD()
     end
 
     -- Mise à jour de la Hotbar (Slots 1 à 4 + Slot 5 Dash)
-    local slotHotkeys = { "1 [A]", "2 [Z]", "3 [E]", "4 [R]", "5 [Dash]" }
+    local slotHotkeys = { "1 [F]", "2 [G]", "3 [C]", "4 [V]", "5 [Shift]" }
     for i = 1, 4 do
         local cardId = CachedProfile.EquippedDeck[i] or CardsDatabase.StarterDeck[i]
         local cardDef = CardsDatabase.GetCard(cardId)
@@ -781,7 +781,7 @@ function UIManager.Init()
     ApplyCorner(HotbarFrame, 8)
     ApplyStroke(HotbarFrame, Color3.fromRGB(71, 85, 105), 1)
 
-    local hotbarLabels = { "1 [A]\nMétéore", "2 [Z]\nNova", "3 [E]\nÉclair", "4 [R]\nÉgide", "5 [Q]\nDash" }
+    local hotbarLabels = { "1 [F]\nMétéore", "2 [G]\nNova", "3 [C]\nÉclair", "4 [V]\nÉgide", "5 [Shift]\nDash" }
     for slot = 1, 5 do
         local sBtn = CreateUI("TextButton", {
             Name = "Slot_" .. slot,

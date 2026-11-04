@@ -3,17 +3,17 @@
     <Properties>
       <string name="Name">Lighting</string>
       <Color3 name="Ambient">
-        <R>0.15</R>
-        <G>0.12</G>
-        <B>0.2</B>
+        <R>0.47</R>
+        <G>0.49</G>
+        <B>0.59</B>
       </Color3>
-      <float name="Brightness">1.8</float>
-      <float name="ClockTime">21</float>
+      <float name="Brightness">2.5</float>
+      <float name="ClockTime">14.5</float>
       <bool name="GlobalShadows">true</bool>
       <Color3 name="OutdoorAmbient">
-        <R>0.2</R>
-        <G>0.16</G>
-        <B>0.28</B>
+        <R>0.55</R>
+        <G>0.57</G>
+        <B>0.69</B>
       </Color3>
       <token name="Technology">1</token>
     </Properties>
@@ -451,6 +451,12 @@ Players.PlayerAdded:Connect(function(player: Player)
     end)
 end)
 
+for _, player in ipairs(Players:GetPlayers()) do
+    task.spawn(function()
+        DataManager.LoadProfile(player)
+    end)
+end
+
 Players.PlayerRemoving:Connect(function(player: Player)
     DataManager.ReleaseProfile(player)
 end)
@@ -499,8 +505,8 @@ local DataManager = require(script.Parent.DataManager)
 
 local ArenaManager = {}
 
-local ARENA_SPAWN_PLAYER = Vector3.new(0, 103, 35)
-local ARENA_SPAWN_BOT = Vector3.new(0, 103, -35)
+local ARENA_SPAWN_PLAYER = Vector3.new(400, 54, 35)
+local ARENA_SPAWN_BOT = Vector3.new(400, 54, -35)
 local LOBBY_SPAWN = Vector3.new(0, 3, 0)
 
 -- Lance un duel compétitif contre le Bot Duelliste IA
@@ -527,6 +533,7 @@ function ArenaManager.StartBotDuel(player: Player)
     botHrp.Size = Vector3.new(2, 2, 1)
     botHrp.CFrame = CFrame.lookAt(ARENA_SPAWN_BOT, ARENA_SPAWN_PLAYER)
     botHrp.CanCollide = false
+    botHrp.Anchored = true
     botHrp.Transparency = 1
     botHrp.Parent = botModel
 
@@ -536,6 +543,8 @@ function ArenaManager.StartBotDuel(player: Player)
     botTorso.CFrame = botHrp.CFrame
     botTorso.Material = Enum.Material.Slate
     botTorso.Color = Color3.fromRGB(145, 40, 255)
+    botTorso.CanCollide = true
+    botTorso.Anchored = true
     botTorso.Parent = botModel
 
     local botHead = Instance.new("Part")
@@ -545,6 +554,8 @@ function ArenaManager.StartBotDuel(player: Player)
     botHead.CFrame = botHrp.CFrame * CFrame.new(0, 2.5, 0)
     botHead.Material = Enum.Material.Neon
     botHead.Color = Color3.fromRGB(239, 68, 68)
+    botHead.CanCollide = true
+    botHead.Anchored = true
     botHead.Parent = botModel
 
     local botHum = Instance.new("Humanoid")
@@ -569,35 +580,57 @@ function ArenaManager.StartBotDuel(player: Player)
         local isMatchActive = true
         local timer = 75
 
-        -- Comportement du Bot IA : Traque et lance des sorts toutes les 3s
+        -- Comportement du Bot IA : Déplacement CFrame régulier pour ne jamais traverser le sol
         local aiThread = task.spawn(function()
             while isMatchActive and botHum.Health > 0 and hum.Health > 0 do
-                task.wait(2.5)
-                if hrp and botHrp then
-                    botHum:MoveTo(hrp.Position)
-                    local dist = (hrp.Position - botHrp.Position).Magnitude
-                    if dist <= 45 then
-                        -- Lancement d'un projectile de magma vers le joueur
-                        local orb = Instance.new("Part")
-                        orb.Shape = Enum.PartType.Ball
-                        orb.Material = Enum.Material.Neon
-                        orb.Color = Color3.fromRGB(255, 85, 0)
-                        orb.Size = Vector3.new(2.5, 2.5, 2.5)
-                        orb.Anchored = true
-                        orb.CanCollide = false
-                        orb.CFrame = botHrp.CFrame * CFrame.new(0, 1, -2)
-                        orb.Parent = workspace
+                task.wait(0.15)
+                if hrp and botHrp and botTorso and botHead then
+                    local targetPos = Vector3.new(hrp.Position.X, 54, hrp.Position.Z)
+                    local currentPos = botHrp.Position
+                    local dir = (targetPos - currentPos)
+                    local dist = dir.Magnitude
 
-                        local endPos = hrp.Position
-                        local tween = TweenService:Create(orb, TweenInfo.new(0.6), { Position = endPos })
-                        tween:Play()
-                        tween.Completed:Connect(function()
-                            if hum and hum.Health > 0 and (hrp.Position - orb.Position).Magnitude <= 10 then
-                                hum:TakeDamage(20)
-                            end
-                            orb:Destroy()
-                        end)
+                    if dist > 14 then
+                        local step = math.min(1.4, dist)
+                        local newPos = currentPos + (dir.Unit * step)
+                        local newCFrame = CFrame.lookAt(newPos, Vector3.new(hrp.Position.X, newPos.Y, hrp.Position.Z))
+                        botHrp.CFrame = newCFrame
+                        botTorso.CFrame = newCFrame
+                        botHead.CFrame = newCFrame * CFrame.new(0, 2.5, 0)
+                    else
+                        local newCFrame = CFrame.lookAt(currentPos, Vector3.new(hrp.Position.X, currentPos.Y, hrp.Position.Z))
+                        botHrp.CFrame = newCFrame
+                        botTorso.CFrame = newCFrame
+                        botHead.CFrame = newCFrame * CFrame.new(0, 2.5, 0)
                     end
+                end
+            end
+        end)
+
+        -- Boucle d'attaque du Bot : lance des projectiles toutes les 2.5s
+        local shootThread = task.spawn(function()
+            while isMatchActive and botHum.Health > 0 and hum.Health > 0 do
+                task.wait(2.5)
+                if hrp and botHrp and (hrp.Position - botHrp.Position).Magnitude <= 55 then
+                    local orb = Instance.new("Part")
+                    orb.Shape = Enum.PartType.Ball
+                    orb.Material = Enum.Material.Neon
+                    orb.Color = Color3.fromRGB(255, 85, 0)
+                    orb.Size = Vector3.new(2.5, 2.5, 2.5)
+                    orb.Anchored = true
+                    orb.CanCollide = false
+                    orb.CFrame = botHrp.CFrame * CFrame.new(0, 1, -2)
+                    orb.Parent = workspace
+
+                    local endPos = hrp.Position
+                    local tween = TweenService:Create(orb, TweenInfo.new(0.6), { Position = endPos })
+                    tween:Play()
+                    tween.Completed:Connect(function()
+                        if hum and hum.Health > 0 and (hrp.Position - orb.Position).Magnitude <= 10 then
+                            hum:TakeDamage(20)
+                        end
+                        orb:Destroy()
+                    end)
                 end
             end
         end)
@@ -612,6 +645,7 @@ function ArenaManager.StartBotDuel(player: Player)
 
         isMatchActive = false
         task.cancel(aiThread)
+        task.cancel(shootThread)
 
         local isVictory = (botHum.Health <= 0) or (hum.Health > botHum.Health)
         if isVictory then
@@ -1043,6 +1077,12 @@ local DataStoreInstance: DataStore? = nil
 
 -- Initialisation du DataStore avec fallback mémoire pour Studio
 local function InitDataStore()
+    if game.PlaceId == 0 or game.JobId == "" then
+        DataStoreInstance = nil
+        print("[DataManager] Mode Studio local détecté (PlaceId == 0). Utilisation du cache mémoire instantané.")
+        return
+    end
+
     local success, store = pcall(function()
         return DataStoreService:GetDataStore(DATASTORE_NAME)
     end)
@@ -1087,30 +1127,29 @@ end
 
 -- Création du Starter Pack garanti (2500 Or + 4 Sorts équipés)
 local function CreateStarterProfile(userId: number): PlayerProfile
-    local starterCards = {
-        DataManager.CreateCardItem("pyro_meteor")!,
-        DataManager.CreateCardItem("void_chain")!,
-        DataManager.CreateCardItem("thunder_step")!,
-        DataManager.CreateCardItem("sovereign_aegis")!,
-        DataManager.CreateCardItem("blade_flurry")!,
-        DataManager.CreateCardItem("crimson_slash")!,
-    }
-
-    return {
-        UserId = userId,
-        Coins = 2500,       -- 2500 Or offerts pour tester immédiatement les tirages et le marché !
-        Merit = 1000,       -- 1000 Elo de base
-        Rank = "Bronze",
-        Inventory = starterCards,
-        EquippedDeck = { "pyro_meteor", "void_chain", "thunder_step", "sovereign_aegis" },
-        ClaimedRewards = {},
-        Stats = {
-            PacksOpened = 0,
-            DuelsWon = 0,
-            DuelsLost = 0,
-            WinStreak = 0,
-        },
-    }
+	local starterIds = { "pyro_meteor", "void_chain", "thunder_step", "sovereign_aegis", "blade_flurry", "crimson_slash" }
+	local starterCards: { CardItem } = {}
+	for _, id in ipairs(starterIds) do
+		local item = DataManager.CreateCardItem(id)
+		if item then
+			table.insert(starterCards, item)
+		end
+	end
+	return {
+		UserId = userId,
+		Coins = 2500,
+		Merit = 1000,
+		Rank = "Bronze",
+		Inventory = starterCards,
+		EquippedDeck = { "pyro_meteor", "void_chain", "thunder_step", "sovereign_aegis" },
+		ClaimedRewards = {},
+		Stats = {
+			PacksOpened = 0,
+			DuelsWon = 0,
+			DuelsLost = 0,
+			WinStreak = 0,
+		},
+	}
 end
 
 function DataManager.LoadProfile(player: Player): PlayerProfile
@@ -1167,8 +1206,11 @@ function DataManager.ReleaseProfile(player: Player)
     Profiles[player] = nil
 end
 
-function DataManager.GetProfile(player: Player): PlayerProfile?
-    return Profiles[player]
+function DataManager.GetProfile(player: Player): PlayerProfile
+	if not Profiles[player] then
+		Profiles[player] = CreateStarterProfile(player.UserId)
+	end
+	return Profiles[player]
 end
 
 function DataManager.AddCoins(player: Player, amount: number)
@@ -1270,7 +1312,10 @@ function GachaManager.OpenPack(player: Player, packId: string)
         return { Success = false, Error = "Profil non chargé." }
     end
 
-    local pack = PackConfig.GetPack(packId) or PackConfig.GetPack("pack_souverain")!
+    local pack = PackConfig.GetPack(packId) or PackConfig.GetPack("pack_souverain")
+    if not pack then
+        return { Success = false, Error = "Pack introuvable." }
+    end
 
     -- Vérification et déduction atomique de l'or
     if prof.Coins < pack.CostCoins then
@@ -1372,18 +1417,25 @@ local MapBuilder = {}
 local function CreatePart(props: { [string]: any }): Part
     local part = Instance.new("Part")
     part.Anchored = true
+    part.CanCollide = true
+    local targetParent = props.Parent
     for k, v in pairs(props) do
-        (part :: any)[k] = v
+        if k ~= "Parent" then
+            (part :: any)[k] = v
+        end
+    end
+    if targetParent then
+        part.Parent = targetParent
     end
     return part
 end
 
 function MapBuilder.BuildEnvironment()
-    -- Configuration de l'ambiance et de l'éclairage Dark Fantasy
-    Lighting.Brightness = 1.8
-    Lighting.ClockTime = 21.0
-    Lighting.OutdoorAmbient = Color3.fromRGB(35, 30, 50)
-    Lighting.Ambient = Color3.fromRGB(25, 20, 35)
+    -- Configuration de l'ambiance et de l'éclairage clair et visible
+    Lighting.Brightness = 2.5
+    Lighting.ClockTime = 14.5
+    Lighting.Ambient = Color3.fromRGB(120, 125, 150)
+    Lighting.OutdoorAmbient = Color3.fromRGB(140, 145, 175)
 
     -- Nettoyage de tout ancien dossier de map pour garantir un monde propre
     local oldHub = Workspace:FindFirstChild("SovereignHub")
@@ -1395,23 +1447,52 @@ function MapBuilder.BuildEnvironment()
     hubFolder.Name = "SovereignHub"
     hubFolder.Parent = Workspace
 
-    -- 1. SOL DU HUB (Dalles d'ardoise sombre élégante)
+    -- 1. SOL DU HUB (Dalles gris-bleu clair bien visibles)
     CreatePart({
         Name = "LobbyFloor",
         Size = Vector3.new(160, 2, 160),
         Position = Vector3.new(0, 0, 0),
         Material = Enum.Material.Slate,
-        Color = Color3.fromRGB(22, 24, 30),
+        Color = Color3.fromRGB(70, 78, 98),
         Parent = hubFolder,
     })
 
-    -- Bordure fine discrète (Gris anthracite / Bleu nuit, AUCUN JAUNE FLUO)
+    -- 4 vrais murets de bordure autour du Hub (au lieu d'un bloc chevauchant)
+    local wallColor = Color3.fromRGB(45, 52, 70)
+    -- Muret Nord
     CreatePart({
-        Name = "LobbyBorder",
-        Size = Vector3.new(164, 2.2, 164),
-        Position = Vector3.new(0, -0.1, 0),
+        Name = "LobbyWall_North",
+        Size = Vector3.new(160, 4, 2),
+        Position = Vector3.new(0, 2, -80),
         Material = Enum.Material.Cobblestone,
-        Color = Color3.fromRGB(35, 40, 55),
+        Color = wallColor,
+        Parent = hubFolder,
+    })
+    -- Muret Sud
+    CreatePart({
+        Name = "LobbyWall_South",
+        Size = Vector3.new(160, 4, 2),
+        Position = Vector3.new(0, 2, 80),
+        Material = Enum.Material.Cobblestone,
+        Color = wallColor,
+        Parent = hubFolder,
+    })
+    -- Muret Ouest
+    CreatePart({
+        Name = "LobbyWall_West",
+        Size = Vector3.new(2, 4, 160),
+        Position = Vector3.new(-80, 2, 0),
+        Material = Enum.Material.Cobblestone,
+        Color = wallColor,
+        Parent = hubFolder,
+    })
+    -- Muret Est
+    CreatePart({
+        Name = "LobbyWall_East",
+        Size = Vector3.new(2, 4, 160),
+        Position = Vector3.new(80, 2, 0),
+        Material = Enum.Material.Cobblestone,
+        Color = wallColor,
         Parent = hubFolder,
     })
 
@@ -1582,21 +1663,21 @@ function MapBuilder.BuildEnvironment()
     eldrinRoot:SetAttribute("TargetUI", "NPC_Eldrin")
 
     -- =========================================================================
-    -- 6. COLISÉE CÉLESTE 1V1 (À 100 STUDS D'ALTITUDE)
+    -- 6. COLISÉE CÉLESTE 1V1 (DÉCALÉ EN X = 400 POUR PROTÉGER LE SPAWN)
     -- =========================================================================
     CreatePart({
         Name = "ColosseumFloor",
         Size = Vector3.new(120, 3, 120),
-        Position = Vector3.new(0, 100, 0),
+        Position = Vector3.new(400, 50, 0),
         Material = Enum.Material.DiamondPlate,
-        Color = Color3.fromRGB(15, 18, 24),
+        Color = Color3.fromRGB(40, 45, 60),
         Parent = hubFolder,
     })
 
     CreatePart({
         Name = "ColosseumBorder",
         Size = Vector3.new(124, 3.2, 124),
-        Position = Vector3.new(0, 100.1, 0),
+        Position = Vector3.new(400, 50.1, 0),
         Material = Enum.Material.Neon,
         Color = Color3.fromRGB(239, 68, 68),
         Transparency = 0.5,
@@ -1849,12 +1930,6 @@ print("[Client] Prêt ! Lancez vos sorts avec 1-4 ou A/Z/E/R (ou clic souris sur
           <Properties>
             <string name="Name">CombatController</string>
             <string name="Source"><![CDATA[--!strict
---[[
-    CARDS & CHAOS - CONTRÔLEUR DE COMBAT & ENTRÉES SORTS (CLIENT)
-    Visée à la souris, support clavier universel (QWERTY + AZERTY A/Z/E/R/F + Pavé Numérique),
-    et support clic direct sur les boutons de la barre de sorts (Hotbar).
-]]
-
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -1867,46 +1942,42 @@ local mouse = player:GetMouse()
 local CombatController = {}
 
 function CombatController.TriggerSpell(slotIndex: number)
-    local char = player.Character
-    if not char then return end
-    local root = char:FindFirstChild("HumanoidRootPart") :: BasePart?
-    if not root then return end
+	local char = player.Character
+	if not char then return end
+	local root = char:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not root then return end
 
-    local targetPos = mouse.Hit and mouse.Hit.Position or (root.Position + root.CFrame.LookVector * 30)
-    local castRE = NetworkEvents.GetEvent("CastSpell")
-    castRE:FireServer(slotIndex, targetPos)
+	-- Visée horizontale propre devant le personnage ou vers le pointeur souris
+	local lookPos = root.Position + root.CFrame.LookVector * 35
+	if mouse.Hit then
+		local hitPos = mouse.Hit.Position
+		if (hitPos - root.Position).Magnitude <= 180 then
+			lookPos = Vector3.new(hitPos.X, root.Position.Y, hitPos.Z)
+		end
+	end
+
+	local castRE = NetworkEvents.GetEvent("CastSpell")
+	castRE:FireServer(slotIndex, lookPos)
 end
 
 function CombatController.Init()
-    -- Écouteur des entrées clavier
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed then return end
+	UserInputService.InputBegan:Connect(function(input, gameProcessed)
+		if gameProcessed then return end
+		local kc = input.KeyCode
 
-        local kc = input.KeyCode
-
-        -- SLOT 1 : Météore Solaire
-        if kc == Enum.KeyCode.One or kc == Enum.KeyCode.KeypadOne or kc == Enum.KeyCode.A then
-            CombatController.TriggerSpell(1)
-
-        -- SLOT 2 : Nova du Néant
-        elseif kc == Enum.KeyCode.Two or kc == Enum.KeyCode.KeypadTwo or kc == Enum.KeyCode.Z or kc == Enum.KeyCode.W then
-            CombatController.TriggerSpell(2)
-
-        -- SLOT 3 : Pas Éclair
-        elseif kc == Enum.KeyCode.Three or kc == Enum.KeyCode.KeypadThree or kc == Enum.KeyCode.E then
-            CombatController.TriggerSpell(3)
-
-        -- SLOT 4 : Égide du Souverain
-        elseif kc == Enum.KeyCode.Four or kc == Enum.KeyCode.KeypadFour or kc == Enum.KeyCode.R then
-            CombatController.TriggerSpell(4)
-
-        -- SLOT 5 : Dash Éclair (I-Frame)
-        elseif kc == Enum.KeyCode.Five or kc == Enum.KeyCode.KeypadFive or kc == Enum.KeyCode.Q or kc == Enum.KeyCode.F or kc == Enum.KeyCode.Space then
-            CombatController.TriggerSpell(5)
-        end
-    end)
-
-    print("[CombatController] Contrôles QWERTY / AZERTY / Clic Souris activés.")
+		-- Touches 1-5 (Haut du clavier + Pavé numérique) + Raccourcis de combat F, G, C, V, LeftShift (ZÉRO conflit avec ZQSD/WASD/Espace/E)
+		if kc == Enum.KeyCode.One or kc == Enum.KeyCode.KeypadOne or kc == Enum.KeyCode.F then
+			CombatController.TriggerSpell(1)
+		elseif kc == Enum.KeyCode.Two or kc == Enum.KeyCode.KeypadTwo or kc == Enum.KeyCode.G then
+			CombatController.TriggerSpell(2)
+		elseif kc == Enum.KeyCode.Three or kc == Enum.KeyCode.KeypadThree or kc == Enum.KeyCode.C then
+			CombatController.TriggerSpell(3)
+		elseif kc == Enum.KeyCode.Four or kc == Enum.KeyCode.KeypadFour or kc == Enum.KeyCode.V then
+			CombatController.TriggerSpell(4)
+		elseif kc == Enum.KeyCode.Five or kc == Enum.KeyCode.KeypadFive or kc == Enum.KeyCode.LeftShift then
+			CombatController.TriggerSpell(5)
+		end
+	end)
 end
 
 return CombatController
@@ -2255,7 +2326,7 @@ function UIManager.RefreshHUD()
     end
 
     -- Mise à jour de la Hotbar (Slots 1 à 4 + Slot 5 Dash)
-    local slotHotkeys = { "1 [A]", "2 [Z]", "3 [E]", "4 [R]", "5 [Dash]" }
+    local slotHotkeys = { "1 [F]", "2 [G]", "3 [C]", "4 [V]", "5 [Shift]" }
     for i = 1, 4 do
         local cardId = CachedProfile.EquippedDeck[i] or CardsDatabase.StarterDeck[i]
         local cardDef = CardsDatabase.GetCard(cardId)
@@ -2941,7 +3012,7 @@ function UIManager.Init()
     ApplyCorner(HotbarFrame, 8)
     ApplyStroke(HotbarFrame, Color3.fromRGB(71, 85, 105), 1)
 
-    local hotbarLabels = { "1 [A]\nMétéore", "2 [Z]\nNova", "3 [E]\nÉclair", "4 [R]\nÉgide", "5 [Q]\nDash" }
+    local hotbarLabels = { "1 [F]\nMétéore", "2 [G]\nNova", "3 [C]\nÉclair", "4 [V]\nÉgide", "5 [Shift]\nDash" }
     for slot = 1, 5 do
         local sBtn = CreateUI("TextButton", {
             Name = "Slot_" .. slot,
@@ -3046,14 +3117,13 @@ return UIManager
   <Item class="Workspace" referent="24">
     <Properties>
       <string name="Name">Workspace</string>
-      <bool name="FilteringEnabled">true</bool>
       <bool name="NeedsPivotMigration">false</bool>
     </Properties>
     <Item class="Part" referent="25">
       <Properties>
         <string name="Name">Baseplate</string>
         <bool name="Anchored">true</bool>
-        <Color3uint8 name="Color3uint8">1710623</Color3uint8>
+        <Color3uint8 name="Color3uint8">4212569</Color3uint8>
         <bool name="Locked">true</bool>
         <Vector3 name="Position">
           <X>0</X>

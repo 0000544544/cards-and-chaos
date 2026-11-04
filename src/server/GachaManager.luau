@@ -22,7 +22,10 @@ function GachaManager.OpenPack(player: Player, packId: string)
         return { Success = false, Error = "Profil non chargé." }
     end
 
-    local pack = PackConfig.GetPack(packId) or PackConfig.GetPack("pack_souverain")!
+    local pack = PackConfig.GetPack(packId) or PackConfig.GetPack("pack_souverain")
+    if not pack then
+        return { Success = false, Error = "Pack introuvable." }
+    end
 
     -- Vérification et déduction atomique de l'or
     if prof.Coins < pack.CostCoins then

@@ -48,6 +48,12 @@ local DataStoreInstance: DataStore? = nil
 
 -- Initialisation du DataStore avec fallback mémoire pour Studio
 local function InitDataStore()
+    if game.PlaceId == 0 or game.JobId == "" then
+        DataStoreInstance = nil
+        print("[DataManager] Mode Studio local détecté (PlaceId == 0). Utilisation du cache mémoire instantané.")
+        return
+    end
+
     local success, store = pcall(function()
         return DataStoreService:GetDataStore(DATASTORE_NAME)
     end)
@@ -92,30 +98,29 @@ end
 
 -- Création du Starter Pack garanti (2500 Or + 4 Sorts équipés)
 local function CreateStarterProfile(userId: number): PlayerProfile
-    local starterCards = {
-        DataManager.CreateCardItem("pyro_meteor")!,
-        DataManager.CreateCardItem("void_chain")!,
-        DataManager.CreateCardItem("thunder_step")!,
-        DataManager.CreateCardItem("sovereign_aegis")!,
-        DataManager.CreateCardItem("blade_flurry")!,
-        DataManager.CreateCardItem("crimson_slash")!,
-    }
-
-    return {
-        UserId = userId,
-        Coins = 2500,       -- 2500 Or offerts pour tester immédiatement les tirages et le marché !
-        Merit = 1000,       -- 1000 Elo de base
-        Rank = "Bronze",
-        Inventory = starterCards,
-        EquippedDeck = { "pyro_meteor", "void_chain", "thunder_step", "sovereign_aegis" },
-        ClaimedRewards = {},
-        Stats = {
-            PacksOpened = 0,
-            DuelsWon = 0,
-            DuelsLost = 0,
-            WinStreak = 0,
-        },
-    }
+	local starterIds = { "pyro_meteor", "void_chain", "thunder_step", "sovereign_aegis", "blade_flurry", "crimson_slash" }
+	local starterCards: { CardItem } = {}
+	for _, id in ipairs(starterIds) do
+		local item = DataManager.CreateCardItem(id)
+		if item then
+			table.insert(starterCards, item)
+		end
+	end
+	return {
+		UserId = userId,
+		Coins = 2500,
+		Merit = 1000,
+		Rank = "Bronze",
+		Inventory = starterCards,
+		EquippedDeck = { "pyro_meteor", "void_chain", "thunder_step", "sovereign_aegis" },
+		ClaimedRewards = {},
+		Stats = {
+			PacksOpened = 0,
+			DuelsWon = 0,
+			DuelsLost = 0,
+			WinStreak = 0,
+		},
+	}
 end
 
 function DataManager.LoadProfile(player: Player): PlayerProfile
@@ -172,8 +177,11 @@ function DataManager.ReleaseProfile(player: Player)
     Profiles[player] = nil
 end
 
-function DataManager.GetProfile(player: Player): PlayerProfile?
-    return Profiles[player]
+function DataManager.GetProfile(player: Player): PlayerProfile
+	if not Profiles[player] then
+		Profiles[player] = CreateStarterProfile(player.UserId)
+	end
+	return Profiles[player]
 end
 
 function DataManager.AddCoins(player: Player, amount: number)

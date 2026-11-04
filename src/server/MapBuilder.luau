@@ -13,18 +13,25 @@ local MapBuilder = {}
 local function CreatePart(props: { [string]: any }): Part
     local part = Instance.new("Part")
     part.Anchored = true
+    part.CanCollide = true
+    local targetParent = props.Parent
     for k, v in pairs(props) do
-        (part :: any)[k] = v
+        if k ~= "Parent" then
+            (part :: any)[k] = v
+        end
+    end
+    if targetParent then
+        part.Parent = targetParent
     end
     return part
 end
 
 function MapBuilder.BuildEnvironment()
-    -- Configuration de l'ambiance et de l'éclairage Dark Fantasy
-    Lighting.Brightness = 1.8
-    Lighting.ClockTime = 21.0
-    Lighting.OutdoorAmbient = Color3.fromRGB(35, 30, 50)
-    Lighting.Ambient = Color3.fromRGB(25, 20, 35)
+    -- Configuration de l'ambiance et de l'éclairage clair et visible
+    Lighting.Brightness = 2.5
+    Lighting.ClockTime = 14.5
+    Lighting.Ambient = Color3.fromRGB(120, 125, 150)
+    Lighting.OutdoorAmbient = Color3.fromRGB(140, 145, 175)
 
     -- Nettoyage de tout ancien dossier de map pour garantir un monde propre
     local oldHub = Workspace:FindFirstChild("SovereignHub")
@@ -36,23 +43,52 @@ function MapBuilder.BuildEnvironment()
     hubFolder.Name = "SovereignHub"
     hubFolder.Parent = Workspace
 
-    -- 1. SOL DU HUB (Dalles d'ardoise sombre élégante)
+    -- 1. SOL DU HUB (Dalles gris-bleu clair bien visibles)
     CreatePart({
         Name = "LobbyFloor",
         Size = Vector3.new(160, 2, 160),
         Position = Vector3.new(0, 0, 0),
         Material = Enum.Material.Slate,
-        Color = Color3.fromRGB(22, 24, 30),
+        Color = Color3.fromRGB(70, 78, 98),
         Parent = hubFolder,
     })
 
-    -- Bordure fine discrète (Gris anthracite / Bleu nuit, AUCUN JAUNE FLUO)
+    -- 4 vrais murets de bordure autour du Hub (au lieu d'un bloc chevauchant)
+    local wallColor = Color3.fromRGB(45, 52, 70)
+    -- Muret Nord
     CreatePart({
-        Name = "LobbyBorder",
-        Size = Vector3.new(164, 2.2, 164),
-        Position = Vector3.new(0, -0.1, 0),
+        Name = "LobbyWall_North",
+        Size = Vector3.new(160, 4, 2),
+        Position = Vector3.new(0, 2, -80),
         Material = Enum.Material.Cobblestone,
-        Color = Color3.fromRGB(35, 40, 55),
+        Color = wallColor,
+        Parent = hubFolder,
+    })
+    -- Muret Sud
+    CreatePart({
+        Name = "LobbyWall_South",
+        Size = Vector3.new(160, 4, 2),
+        Position = Vector3.new(0, 2, 80),
+        Material = Enum.Material.Cobblestone,
+        Color = wallColor,
+        Parent = hubFolder,
+    })
+    -- Muret Ouest
+    CreatePart({
+        Name = "LobbyWall_West",
+        Size = Vector3.new(2, 4, 160),
+        Position = Vector3.new(-80, 2, 0),
+        Material = Enum.Material.Cobblestone,
+        Color = wallColor,
+        Parent = hubFolder,
+    })
+    -- Muret Est
+    CreatePart({
+        Name = "LobbyWall_East",
+        Size = Vector3.new(2, 4, 160),
+        Position = Vector3.new(80, 2, 0),
+        Material = Enum.Material.Cobblestone,
+        Color = wallColor,
         Parent = hubFolder,
     })
 
@@ -223,21 +259,21 @@ function MapBuilder.BuildEnvironment()
     eldrinRoot:SetAttribute("TargetUI", "NPC_Eldrin")
 
     -- =========================================================================
-    -- 6. COLISÉE CÉLESTE 1V1 (À 100 STUDS D'ALTITUDE)
+    -- 6. COLISÉE CÉLESTE 1V1 (DÉCALÉ EN X = 400 POUR PROTÉGER LE SPAWN)
     -- =========================================================================
     CreatePart({
         Name = "ColosseumFloor",
         Size = Vector3.new(120, 3, 120),
-        Position = Vector3.new(0, 100, 0),
+        Position = Vector3.new(400, 50, 0),
         Material = Enum.Material.DiamondPlate,
-        Color = Color3.fromRGB(15, 18, 24),
+        Color = Color3.fromRGB(40, 45, 60),
         Parent = hubFolder,
     })
 
     CreatePart({
         Name = "ColosseumBorder",
         Size = Vector3.new(124, 3.2, 124),
-        Position = Vector3.new(0, 100.1, 0),
+        Position = Vector3.new(400, 50.1, 0),
         Material = Enum.Material.Neon,
         Color = Color3.fromRGB(239, 68, 68),
         Transparency = 0.5,

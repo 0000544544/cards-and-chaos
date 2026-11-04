@@ -27,14 +27,11 @@ project = {
         },
         "Workspace": {
             "$className": "Workspace",
-            "$properties": {
-                "FilteringEnabled": True
-            },
             "Baseplate": {
                 "$className": "Part",
                 "$properties": {
                     "Anchored": True,
-                    "Color": [0.10, 0.10, 0.12],
+                    "Color": [0.25, 0.28, 0.35],
                     "Locked": True,
                     "Position": [0, -5, 0],
                     "Size": [512, 10, 512]
@@ -44,10 +41,10 @@ project = {
         "Lighting": {
             "$className": "Lighting",
             "$properties": {
-                "Ambient": [0.15, 0.12, 0.20],
-                "OutdoorAmbient": [0.20, 0.16, 0.28],
-                "Brightness": 1.8,
-                "ClockTime": 21.0,
+                "Ambient": [0.47, 0.49, 0.59],
+                "OutdoorAmbient": [0.55, 0.57, 0.69],
+                "Brightness": 2.5,
+                "ClockTime": 14.5,
                 "GlobalShadows": True,
                 "Technology": "Voxel"
             }
@@ -61,7 +58,9 @@ project = {
     }
 }
 
-with open("roblox-card-dominion/default.project.json", "w", encoding="utf-8") as f:
+from pathlib import Path
+output_file = Path(__file__).parent / "default.project.json"
+with open(output_file, "w", encoding="utf-8") as f:
     json.dump(project, f, indent=2)
 
 print("default.project.json généré proprement (sans aucun bloc jaune fluo) !")
