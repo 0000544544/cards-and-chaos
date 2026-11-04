@@ -1,5 +1,4 @@
 import json
-import math
 
 project = {
     "name": "roblox-card-dominion",
@@ -35,282 +34,20 @@ project = {
                 "$className": "Part",
                 "$properties": {
                     "Anchored": True,
-                    "Color": [0.12, 0.12, 0.15],
+                    "Color": [0.10, 0.10, 0.12],
                     "Locked": True,
                     "Position": [0, -5, 0],
                     "Size": [512, 10, 512]
-                }
-            },
-            "SovereignHub": {
-                "$className": "Folder",
-                "LobbyFloor": {
-                    "$className": "Part",
-                    "$properties": {
-                        "Anchored": True,
-                        "Color": [0.08, 0.09, 0.12],
-                        "Material": "Slate",
-                        "Position": [0, 0.5, 0],
-                        "Size": [160, 2, 160]
-                    }
-                },
-                "RuneRing": {
-                    "$className": "Part",
-                    "$properties": {
-                        "Anchored": True,
-                        "Color": [0.96, 0.62, 0.05],
-                        "Material": "Neon",
-                        "Position": [0, 0.6, 0],
-                        "Size": [168, 2.1, 168],
-                        "Transparency": 0.4
-                    }
-                },
-                "MainSpawn": {
-                    "$className": "SpawnLocation",
-                    "$properties": {
-                        "Anchored": True,
-                        "Color": [0.38, 0.4, 0.95],
-                        "Material": "Neon",
-                        "Position": [0, 1.8, 0],
-                        "Size": [16, 1, 16],
-                        "Duration": 0
-                    }
-                },
-                # Autel Gacha
-                "Autel_Gacha_Base": {
-                    "$className": "Part",
-                    "$properties": {
-                        "Anchored": True,
-                        "Color": [0.15, 0.15, 0.22],
-                        "Material": "Cobblestone",
-                        "Position": [0, 2.5, -45],
-                        "Size": [12, 4, 12]
-                    },
-                    "$attributes": {
-                        "TargetUI": "Gacha"
-                    },
-                    "Prompt": {
-                        "$className": "ProximityPrompt",
-                        "$properties": {
-                            "ActionText": "Tirer des Cartes",
-                            "ObjectText": "Autel du Destin (Gacha)",
-                            "HoldDuration": 0,
-                            "MaxActivationDistance": 16
-                        }
-                    }
-                },
-                "Autel_Gacha_Crystal": {
-                    "$className": "Part",
-                    "$properties": {
-                        "Anchored": True,
-                        "Color": [0.65, 0.35, 0.95],
-                        "Material": "Neon",
-                        "Position": [0, 7.5, -45],
-                        "Size": [3.5, 6, 3.5]
-                    },
-                    "PointLight": {
-                        "$className": "PointLight",
-                        "$properties": {
-                            "Color": [0.85, 0.35, 1.0],
-                            "Range": 25,
-                            "Brightness": 3
-                        }
-                    }
-                },
-                # Autel Marché
-                "Autel_Market_Base": {
-                    "$className": "Part",
-                    "$properties": {
-                        "Anchored": True,
-                        "Color": [0.12, 0.18, 0.16],
-                        "Material": "Cobblestone",
-                        "Position": [45, 2.5, 0],
-                        "Size": [12, 4, 12]
-                    },
-                    "$attributes": {
-                        "TargetUI": "Market"
-                    },
-                    "Prompt": {
-                        "$className": "ProximityPrompt",
-                        "$properties": {
-                            "ActionText": "Consulter la Bourse",
-                            "ObjectText": "Hôtel des Ventes (Marché)",
-                            "HoldDuration": 0,
-                            "MaxActivationDistance": 16
-                        }
-                    }
-                },
-                "Autel_Market_Crystal": {
-                    "$className": "Part",
-                    "$properties": {
-                        "Anchored": True,
-                        "Color": [0.06, 0.72, 0.5],
-                        "Material": "Neon",
-                        "Position": [45, 7.5, 0],
-                        "Size": [3.5, 6, 3.5]
-                    },
-                    "PointLight": {
-                        "$className": "PointLight",
-                        "$properties": {
-                            "Color": [0.2, 0.9, 0.6],
-                            "Range": 25,
-                            "Brightness": 3
-                        }
-                    }
-                },
-                # Autel Arène
-                "Autel_Arena_Base": {
-                    "$className": "Part",
-                    "$properties": {
-                        "Anchored": True,
-                        "Color": [0.22, 0.14, 0.14],
-                        "Material": "Cobblestone",
-                        "Position": [0, 2.5, 45],
-                        "Size": [12, 4, 12]
-                    },
-                    "$attributes": {
-                        "TargetUI": "Arena"
-                    },
-                    "Prompt": {
-                        "$className": "ProximityPrompt",
-                        "$properties": {
-                            "ActionText": "Rejoindre la File 1v1",
-                            "ObjectText": "Porte de l'Arène Compétitive",
-                            "HoldDuration": 0,
-                            "MaxActivationDistance": 16
-                        }
-                    }
-                },
-                "Autel_Arena_Crystal": {
-                    "$className": "Part",
-                    "$properties": {
-                        "Anchored": True,
-                        "Color": [0.93, 0.27, 0.27],
-                        "Material": "Neon",
-                        "Position": [0, 7.5, 45],
-                        "Size": [3.5, 6, 3.5]
-                    },
-                    "PointLight": {
-                        "$className": "PointLight",
-                        "$properties": {
-                            "Color": [1.0, 0.3, 0.3],
-                            "Range": 25,
-                            "Brightness": 3
-                        }
-                    }
-                },
-                # Autel Mérite
-                "Autel_Merit_Base": {
-                    "$className": "Part",
-                    "$properties": {
-                        "Anchored": True,
-                        "Color": [0.22, 0.18, 0.12],
-                        "Material": "Cobblestone",
-                        "Position": [-45, 2.5, 0],
-                        "Size": [12, 4, 12]
-                    },
-                    "$attributes": {
-                        "TargetUI": "Merit"
-                    },
-                    "Prompt": {
-                        "$className": "ProximityPrompt",
-                        "$properties": {
-                            "ActionText": "Transcender une Carte",
-                            "ObjectText": "Sanctuaire du Mérite",
-                            "HoldDuration": 0,
-                            "MaxActivationDistance": 16
-                        }
-                    }
-                },
-                "Autel_Merit_Crystal": {
-                    "$className": "Part",
-                    "$properties": {
-                        "Anchored": True,
-                        "Color": [0.98, 0.8, 0.1],
-                        "Material": "Neon",
-                        "Position": [-45, 7.5, 0],
-                        "Size": [3.5, 6, 3.5]
-                    },
-                    "PointLight": {
-                        "$className": "PointLight",
-                        "$properties": {
-                            "Color": [1.0, 0.85, 0.2],
-                            "Range": 25,
-                            "Brightness": 3
-                        }
-                    }
-                },
-                # Mannequins
-                "Mannequin_DPS_Body": {
-                    "$className": "Part",
-                    "$properties": {
-                        "Anchored": True,
-                        "Color": [0.65, 0.45, 0.3],
-                        "Material": "WoodPlanks",
-                        "Position": [25, 4.5, 25],
-                        "Size": [2.5, 5, 2]
-                    }
-                },
-                "Mannequin_DPS_Head": {
-                    "$className": "Part",
-                    "$properties": {
-                        "Anchored": True,
-                        "Color": [0.95, 0.95, 1.0],
-                        "Material": "Neon",
-                        "Position": [25, 7.8, 25],
-                        "Size": [2, 2, 2]
-                    }
-                },
-                "Garde_Parry_Body": {
-                    "$className": "Part",
-                    "$properties": {
-                        "Anchored": True,
-                        "Color": [0.75, 0.2, 0.2],
-                        "Material": "Slate",
-                        "Position": [-25, 4.5, 25],
-                        "Size": [2.5, 5, 2]
-                    }
-                },
-                "Garde_Parry_Head": {
-                    "$className": "Part",
-                    "$properties": {
-                        "Anchored": True,
-                        "Color": [0.98, 0.8, 0.1],
-                        "Material": "Neon",
-                        "Position": [-25, 7.8, 25],
-                        "Size": [2, 2, 2]
-                    }
-                },
-                # Colisée Céleste 1v1
-                "Colosseum_Floor": {
-                    "$className": "Part",
-                    "$properties": {
-                        "Anchored": True,
-                        "Color": [0.06, 0.07, 0.1],
-                        "Material": "DiamondPlate",
-                        "Position": [0, 100, 0],
-                        "Size": [130, 3, 130]
-                    }
-                },
-                "Colosseum_Border": {
-                    "$className": "Part",
-                    "$properties": {
-                        "Anchored": True,
-                        "Color": [0.93, 0.27, 0.27],
-                        "Material": "Neon",
-                        "Position": [0, 100.2, 0],
-                        "Size": [136, 3.2, 136],
-                        "Transparency": 0.4
-                    }
                 }
             }
         },
         "Lighting": {
             "$className": "Lighting",
             "$properties": {
-                "Ambient": [0.12, 0.1, 0.18],
-                "OutdoorAmbient": [0.18, 0.14, 0.24],
-                "Brightness": 2,
-                "ClockTime": 20.5,
+                "Ambient": [0.15, 0.12, 0.20],
+                "OutdoorAmbient": [0.20, 0.16, 0.28],
+                "Brightness": 1.8,
+                "ClockTime": 21.0,
                 "GlobalShadows": True,
                 "Technology": "Voxel"
             }
@@ -324,23 +61,7 @@ project = {
     }
 }
 
-# 8 Piliers lumineux du Colisée
-for angle in range(0, 360, 45):
-    rad = math.radians(angle)
-    px = round(math.cos(rad) * 60, 2)
-    pz = round(math.sin(rad) * 60, 2)
-    project["tree"]["Workspace"]["SovereignHub"][f"Colosseum_Pillar_{angle}"] = {
-        "$className": "Part",
-        "$properties": {
-            "Anchored": True,
-            "Color": [0.96, 0.62, 0.05],
-            "Material": "Neon",
-            "Position": [px, 115, pz],
-            "Size": [4, 30, 4]
-        }
-    }
-
 with open("roblox-card-dominion/default.project.json", "w", encoding="utf-8") as f:
     json.dump(project, f, indent=2)
 
-print("default.project.json mis a jour avec succes avec tous les ProximityPrompts et Lumieres !")
+print("default.project.json généré proprement (sans aucun bloc jaune fluo) !")

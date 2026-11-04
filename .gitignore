@@ -6,6 +6,7 @@ print_part.py
 .DS_Store
 Thumbs.db
 *.tmp
+*.lock
 .vscode/
 .idea/
 

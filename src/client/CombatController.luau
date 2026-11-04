@@ -1,94 +1,62 @@
 --!strict
 --[[
-    COMBAT CONTROLLER (COMMANDES JOUEUR, COMBOS, DASH & PARADE)
-    Gestion des entrées clavier (1-4 pour les compétences, A/Q pour le Dash, F pour le Parry),
-    retour visuel et sonore immédiat, et synchronisation des effets de combat.
+    CARDS & CHAOS - CONTRÔLEUR DE COMBAT & ENTRÉES SORTS (CLIENT)
+    Visée à la souris, support clavier universel (QWERTY + AZERTY A/Z/E/R/F + Pavé Numérique),
+    et support clic direct sur les boutons de la barre de sorts (Hotbar).
 ]]
 
-local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local Debris = game:GetService("Debris")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Network = require(game.ReplicatedStorage.Shared.NetworkEvents)
+local NetworkEvents = require(ReplicatedStorage.Shared.NetworkEvents)
 
 local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+
 local CombatController = {}
 
-local Cooldowns: { [number]: number } = {
-    [1] = 0,
-    [2] = 0,
-    [3] = 0,
-    [4] = 0,
-    Dash = 0,
-    Parry = 0,
-}
+function CombatController.TriggerSpell(slotIndex: number)
+    local char = player.Character
+    if not char then return end
+    local root = char:FindFirstChild("HumanoidRootPart") :: BasePart?
+    if not root then return end
 
--- Effet visuel local d'onde de choc / flash
-local function CreateShockwave(pos: Vector3, color: Color3)
-    local p = Instance.new("Part")
-    p.Shape = Enum.PartType.Cylinder
-    p.Size = Vector3.new(0.5, 2, 2)
-    p.CFrame = CFrame.new(pos) * CFrame.Angles(0, 0, math.rad(90))
-    p.Material = Enum.Material.Neon
-    p.Color = color
-    p.Anchored = true
-    p.CanCollide = false
-    p.Parent = workspace
-
-    local tween = TweenService:Create(p, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        Size = Vector3.new(0.2, 35, 35),
-        Transparency = 1,
-    })
-    tween:Play()
-    Debris:AddItem(p, 0.45)
+    local targetPos = mouse.Hit and mouse.Hit.Position or (root.Position + root.CFrame.LookVector * 30)
+    local castRE = NetworkEvents.GetEvent("CastSpell")
+    castRE:FireServer(slotIndex, targetPos)
 end
 
 function CombatController.Init()
-    local castSkillRE = Network.GetEvent("CastSkill")
-    local performActionRE = Network.GetEvent("PerformAction")
-    local combatVfxRE = Network.GetEvent("CombatVFX")
-
-    -- Écouteur des touches clavier
+    -- Écouteur des entrées clavier
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
 
-        local now = os.clock()
+        local kc = input.KeyCode
 
-        -- Touches 1, 2, 3, 4 : Compétences actives
-        if input.KeyCode == Enum.KeyCode.One then
-            castSkillRE:FireServer(1)
-        elseif input.KeyCode == Enum.KeyCode.Two then
-            castSkillRE:FireServer(2)
-        elseif input.KeyCode == Enum.KeyCode.Three then
-            castSkillRE:FireServer(3)
-        elseif input.KeyCode == Enum.KeyCode.Four then
-            castSkillRE:FireServer(4)
-        -- Touche Q ou A : Dash (I-frame)
-        elseif input.KeyCode == Enum.KeyCode.Q or input.KeyCode == Enum.KeyCode.A then
-            if (now - Cooldowns.Dash) >= 3.0 then
-                Cooldowns.Dash = now
-                performActionRE:FireServer("Dash")
-            end
-        -- Touche F : Parade / Parry
-        elseif input.KeyCode == Enum.KeyCode.F then
-            if (now - Cooldowns.Parry) >= 2.0 then
-                Cooldowns.Parry = now
-                performActionRE:FireServer("Parry")
-            end
+        -- SLOT 1 : Météore Solaire
+        if kc == Enum.KeyCode.One or kc == Enum.KeyCode.KeypadOne or kc == Enum.KeyCode.A then
+            CombatController.TriggerSpell(1)
+
+        -- SLOT 2 : Nova du Néant
+        elseif kc == Enum.KeyCode.Two or kc == Enum.KeyCode.KeypadTwo or kc == Enum.KeyCode.Z or kc == Enum.KeyCode.W then
+            CombatController.TriggerSpell(2)
+
+        -- SLOT 3 : Pas Éclair
+        elseif kc == Enum.KeyCode.Three or kc == Enum.KeyCode.KeypadThree or kc == Enum.KeyCode.E then
+            CombatController.TriggerSpell(3)
+
+        -- SLOT 4 : Égide du Souverain
+        elseif kc == Enum.KeyCode.Four or kc == Enum.KeyCode.KeypadFour or kc == Enum.KeyCode.R then
+            CombatController.TriggerSpell(4)
+
+        -- SLOT 5 : Dash Éclair (I-Frame)
+        elseif kc == Enum.KeyCode.Five or kc == Enum.KeyCode.KeypadFive or kc == Enum.KeyCode.Q or kc == Enum.KeyCode.F or kc == Enum.KeyCode.Space then
+            CombatController.TriggerSpell(5)
         end
     end)
 
-    -- Réception des effets visuels envoyés par le serveur
-    combatVfxRE.OnClientEvent:Connect(function(data)
-        if data.Type == "ParrySuccess" and data.Position then
-            CreateShockwave(data.Position, Color3.fromRGB(250, 204, 21))
-        elseif data.Type == "Dash" and data.Position then
-            CreateShockwave(data.Position, Color3.fromRGB(56, 189, 248))
-        elseif data.Position and data.Color then
-            CreateShockwave(data.Position, data.Color)
-        end
-    end)
+    print("[CombatController] Contrôles QWERTY / AZERTY / Clic Souris activés.")
 end
 
 return CombatController

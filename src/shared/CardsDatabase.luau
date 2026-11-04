@@ -1,228 +1,214 @@
 --!strict
 --[[
-    CARDS & CHAOS - BASE DE DONNÉES DES CARTES & SKILLS
-    Définition des cartes/compétences avec types (Offensive, Defensive, Buff),
-    raretés (Common à Legendary), puissances de base et AssetIds pour les illustrations (ComfyUI).
+    CARDS & CHAOS - BASE DE DONNÉES UNIQUE DES CARTES & SPELLS
+    12 Cartes / Compétences d'arène avec types de sorts 3D (Projectile, AoE, DashStrike, ShieldBuff).
 ]]
 
+export type SpellType = "Projectile" | "AoE" | "DashStrike" | "ShieldBuff"
 export type CardRarity = "Common" | "Rare" | "Epic" | "Legendary"
-export type CardType = "Offensive" | "Defensive" | "Buff"
 
-export type CardBlueprint = {
-    CardId: string,
+export type CardDefinition = {
+    Id: string,
     Name: string,
     Rarity: CardRarity,
-    Type: CardType,
-    BasePower: number,          -- Puissance de base (Dégâts, Bouclier ou Boost %)
-    Cooldown: number,           -- Temps de recharge en secondes
-    AssetId: string,            -- Image Decal / Texture (générée via ComfyUI)
+    SpellType: SpellType,
+    BasePower: number,
+    Cooldown: number,
+    Speed: number?,
+    Radius: number?,
+    Range: number?,
+    Color: Color3,
     Description: string,
-    Lore: string,
-    VFXColor: Color3,
+    Image: string,
+    ManaCost: number?,
 }
 
-local Cards: { [string]: CardBlueprint } = {
-    -- =========================================================================
-    -- PALIER COMMUN (60% de base)
-    -- =========================================================================
-    strike_of_iron = {
-        CardId = "strike_of_iron",
-        Name = "Frappe d'Acier",
-        Rarity = "Common",
-        Type = "Offensive",
-        BasePower = 30,
+local CardsDatabase = {}
+
+CardsDatabase.Cards = {
+    -- 4 SORTS DU STARTER DECK
+    ["pyro_meteor"] = {
+        Id = "pyro_meteor",
+        Name = "Météore Solaire",
+        Rarity = "Legendary",
+        SpellType = "Projectile",
+        BasePower = 45,
         Cooldown = 3.0,
-        AssetId = "rbxassetid://13880479100", -- Placeholder ComfyUI Decal
-        Description = "Coup tranchant rapide infligeant des dégâts physiques directs.",
-        Lore = "L'escrime de base enseignée dans les casernes de la capitale.",
-        VFXColor = Color3.fromRGB(200, 205, 215),
+        Speed = 95,
+        Radius = 12,
+        Color = Color3.fromRGB(255, 85, 0),
+        Description = "Lance une sphère de magma qui explose à l'impact.",
+        Image = "rbxassetid://13880479100",
+        ManaCost = 20,
     },
-    wooden_parry = {
-        CardId = "wooden_parry",
-        Name = "Parade du Garde",
-        Rarity = "Common",
-        Type = "Defensive",
-        BasePower = 40,
-        Cooldown = 5.0,
-        AssetId = "rbxassetid://13880479100",
-        Description = "Déploie une posture défensive absorbant 40 dégâts.",
-        Lore = "Un bouclier solide forgé dans le chêne noir des marais.",
-        VFXColor = Color3.fromRGB(140, 110, 80),
+    ["void_chain"] = {
+        Id = "void_chain",
+        Name = "Nova du Néant",
+        Rarity = "Epic",
+        SpellType = "AoE",
+        BasePower = 35,
+        Cooldown = 4.5,
+        Radius = 18,
+        Color = Color3.fromRGB(145, 40, 255),
+        Description = "Déchaîne une onde de choc gravitationnelle autour du lanceur.",
+        Image = "rbxassetid://13880479100",
+        ManaCost = 25,
     },
-    inner_focus = {
-        CardId = "inner_focus",
-        Name = "Concentration Martiale",
-        Rarity = "Common",
-        Type = "Buff",
-        BasePower = 15, -- +15% Vitesse / Dégâts
-        Cooldown = 8.0,
-        AssetId = "rbxassetid://13880479100",
-        Description = "Augmente votre vitesse de déplacement de 15% pendant 4s.",
-        Lore = "Une respiration mesurée qui apaise l'esprit avant le choc.",
-        VFXColor = Color3.fromRGB(96, 165, 250),
-    },
-    ember_spark = {
-        CardId = "ember_spark",
-        Name = "Étincelle de Braise",
-        Rarity = "Common",
-        Type = "Offensive",
-        BasePower = 32,
-        Cooldown = 3.5,
-        AssetId = "rbxassetid://13880479100",
-        Description = "Lance une boule de feu explosive à courte portée.",
-        Lore = "Un résidu de magma canalisé au bout des doigts.",
-        VFXColor = Color3.fromRGB(249, 115, 22),
-    },
-
-    -- =========================================================================
-    -- PALIER RARE (25% de base)
-    -- =========================================================================
-    blade_flurry = {
-        CardId = "blade_flurry",
-        Name = "Rafale des Lames",
+    ["thunder_step"] = {
+        Id = "thunder_step",
+        Name = "Pas Éclair",
         Rarity = "Rare",
-        Type = "Offensive",
-        BasePower = 65,
+        SpellType = "DashStrike",
+        BasePower = 28,
+        Cooldown = 2.5,
+        Range = 35,
+        Color = Color3.fromRGB(0, 215, 255),
+        Description = "Téléportation éclair vers l'avant qui électrocute les cibles sur le passage.",
+        Image = "rbxassetid://13880479100",
+        ManaCost = 15,
+    },
+    ["sovereign_aegis"] = {
+        Id = "sovereign_aegis",
+        Name = "Égide du Souverain",
+        Rarity = "Epic",
+        SpellType = "ShieldBuff",
+        BasePower = 30,
         Cooldown = 6.0,
-        AssetId = "rbxassetid://13880479100",
-        Description = "Enchaîne 3 taillades ultra-rapides lacérant l'armure ennemie.",
-        Lore = "Une technique d'assassin raffinée dans les arènes clandestines.",
-        VFXColor = Color3.fromRGB(56, 189, 248),
-    },
-    crystalline_barrier = {
-        CardId = "crystalline_barrier",
-        Name = "Barrière de Cristal",
-        Rarity = "Rare",
-        Type = "Defensive",
-        BasePower = 90,
-        Cooldown = 9.0,
-        AssetId = "rbxassetid://13880479100",
-        Description = "Érige un rempart cristallin absorbant 90 dégâts et renvoyant 15% à l'impact.",
-        Lore = "Les facettes du cristal réfractent même les sorts les plus violents.",
-        VFXColor = Color3.fromRGB(125, 211, 252),
-    },
-    berserker_rage = {
-        CardId = "berserker_rage",
-        Name = "Rage Sanguinaire",
-        Rarity = "Rare",
-        Type = "Buff",
-        BasePower = 25, -- +25% Dégâts
-        Cooldown = 12.0,
-        AssetId = "rbxassetid://13880479100",
-        Description = "Augmente les dégâts de toutes vos cartes de 25% pendant 6s.",
-        Lore = "La douleur se transmute en pure férocité au cœur du carnage.",
-        VFXColor = Color3.fromRGB(220, 38, 38),
-    },
-    frost_nova = {
-        CardId = "frost_nova",
-        Name = "Onde Glaciale",
-        Rarity = "Rare",
-        Type = "Offensive",
-        BasePower = 58,
-        Cooldown = 7.0,
-        AssetId = "rbxassetid://13880479100",
-        Description = "Fige le sol et ralentit l'adversaire de 30% pendant 2.5s.",
-        Lore = "Le froid polaire immobilise même les combattants les plus agiles.",
-        VFXColor = Color3.fromRGB(6, 182, 212),
+        Radius = 10,
+        Color = Color3.fromRGB(255, 215, 50),
+        Description = "Restaure 30 PV et entoure le joueur d'une aura dorée protectrice.",
+        Image = "rbxassetid://13880479100",
+        ManaCost = 30,
     },
 
-    -- =========================================================================
-    -- PALIER ÉPIQUE (11% de base)
-    -- =========================================================================
-    void_rift = {
-        CardId = "void_rift",
-        Name = "Déchirure du Néant",
-        Rarity = "Epic",
-        Type = "Offensive",
-        BasePower = 115,
-        Cooldown = 9.5,
-        AssetId = "rbxassetid://13880479100",
-        Description = "Ouvre une faille gravitationnelle aspirant et compressant l'adversaire.",
-        Lore = "L'écho de l'antimatière réclame son tribut de matière vivante.",
-        VFXColor = Color3.fromRGB(168, 85, 247),
+    -- 8 CARTES ADDITIONNELLES POUR LE GACHA & LE MARCHÉ
+    ["frost_nova"] = {
+        Id = "frost_nova",
+        Name = "Onde de Givre",
+        Rarity = "Rare",
+        SpellType = "AoE",
+        BasePower = 25,
+        Cooldown = 3.5,
+        Radius = 15,
+        Color = Color3.fromRGB(120, 220, 255),
+        Description = "Congèle le sol et inflige des dégâts de froid aux ennemis proches.",
+        Image = "rbxassetid://13880479100",
+        ManaCost = 15,
     },
-    celestial_aegis = {
-        CardId = "celestial_aegis",
-        Name = "Égide Céleste",
-        Rarity = "Epic",
-        Type = "Defensive",
-        BasePower = 160,
-        Cooldown = 13.0,
-        AssetId = "rbxassetid://13880479100",
-        Description = "Invoque la bénédiction des étoiles. Immunité aux étourdissements pendant 3s.",
-        Lore = "Un fragment de comète scellé dans un médaillon de platine.",
-        VFXColor = Color3.fromRGB(250, 204, 21),
+    ["blade_flurry"] = {
+        Id = "blade_flurry",
+        Name = "Rafale d'Acier",
+        Rarity = "Common",
+        SpellType = "DashStrike",
+        BasePower = 22,
+        Cooldown = 2.0,
+        Range = 25,
+        Color = Color3.fromRGB(200, 210, 225),
+        Description = "Entaille rapide en avant touchant tous les ennemis sur la trajectoire.",
+        Image = "rbxassetid://13880479100",
+        ManaCost = 10,
     },
-    chrono_warp = {
-        CardId = "chrono_warp",
-        Name = "Distorsion Temporelle",
-        Rarity = "Epic",
-        Type = "Buff",
-        BasePower = 35, -- -35% Cooldowns
-        Cooldown = 15.0,
-        AssetId = "rbxassetid://13880479100",
-        Description = "Réduit instantanément tous les temps de recharge actifs de 35%.",
-        Lore = "Le temps n'est plus une ligne droite mais un méandre que l'on court-circuite.",
-        VFXColor = Color3.fromRGB(147, 51, 234),
+    ["crimson_slash"] = {
+        Id = "crimson_slash",
+        Name = "Lame Sanglante",
+        Rarity = "Common",
+        SpellType = "Projectile",
+        BasePower = 24,
+        Cooldown = 2.2,
+        Speed = 90,
+        Radius = 8,
+        Color = Color3.fromRGB(220, 38, 38),
+        Description = "Projette un arc d'énergie tranchante couleur sang.",
+        Image = "rbxassetid://13880479100",
+        ManaCost = 10,
     },
-
-    -- =========================================================================
-    -- PALIER LÉGENDAIRE (4% de base - ALERTE MONDIALE)
-    -- =========================================================================
-    judgment_of_chaos = {
-        CardId = "judgment_of_chaos",
-        Name = "Le Jugement du Chaos",
+    ["chaos_strike"] = {
+        Id = "chaos_strike",
+        Name = "Impact du Chaos",
+        Rarity = "Rare",
+        SpellType = "Projectile",
+        BasePower = 34,
+        Cooldown = 3.0,
+        Speed = 85,
+        Radius = 10,
+        Color = Color3.fromRGB(217, 70, 239),
+        Description = "Boule d'énergie chaotique provoquant une violente déflagration.",
+        Image = "rbxassetid://13880479100",
+        ManaCost = 18,
+    },
+    ["celestial_beam"] = {
+        Id = "celestial_beam",
+        Name = "Rayon Primordial",
         Rarity = "Legendary",
-        Type = "Offensive",
-        BasePower = 220,
-        Cooldown = 16.0,
-        AssetId = "rbxassetid://13880479100",
-        Description = "Abat un pilier de feu sombre dévastateur ignorant 40% de l'armure de la cible.",
-        Lore = "La première sentence prononcée lorsque le monde bascula dans le désordre primordial.",
-        VFXColor = Color3.fromRGB(239, 68, 68),
+        SpellType = "DashStrike",
+        BasePower = 52,
+        Cooldown = 5.0,
+        Range = 50,
+        Color = Color3.fromRGB(250, 204, 21),
+        Description = "Traverse l'arène dans un faisceau de lumière divine dévastateur.",
+        Image = "rbxassetid://13880479100",
+        ManaCost = 35,
     },
-    primordial_avatar = {
-        CardId = "primordial_avatar",
-        Name = "Éveil de l'Avatar Souverain",
-        Rarity = "Legendary",
-        Type = "Buff",
-        BasePower = 50, -- +50% Stats globales
-        Cooldown = 22.0,
-        AssetId = "rbxassetid://13880479100",
-        Description = "Déchaîne l'aura de l'Avatar : +50% dégâts, vitesse accrue et régénération rapide pendant 6s.",
-        Lore = "Quand l'élu s'éveille, les lois mortelles s'effacent devant sa souveraineté.",
-        VFXColor = Color3.fromRGB(245, 158, 11),
+    ["shadow_warp"] = {
+        Id = "shadow_warp",
+        Name = "Éclipse Ténébreuse",
+        Rarity = "Common",
+        SpellType = "AoE",
+        BasePower = 20,
+        Cooldown = 3.0,
+        Radius = 14,
+        Color = Color3.fromRGB(75, 45, 110),
+        Description = "Pousse un cri d'ombre repoussant et endommageant les ennemis.",
+        Image = "rbxassetid://13880479100",
+        ManaCost = 12,
     },
-    absolute_sanctuary = {
-        CardId = "absolute_sanctuary",
-        Name = "Sanctuaire Absolu",
-        Rarity = "Legendary",
-        Type = "Defensive",
-        BasePower = 280,
-        Cooldown = 18.0,
-        AssetId = "rbxassetid://13880479100",
-        Description = "Crée un dôme inviolable absorbant 280 dégâts et repoussant tous les assaillants.",
-        Lore = "Ni le fer, ni le feu, ni la haine ne franchissent ce seuil sacré.",
-        VFXColor = Color3.fromRGB(253, 224, 71),
+    ["abyssal_shield"] = {
+        Id = "abyssal_shield",
+        Name = "Rempart Abyssal",
+        Rarity = "Rare",
+        SpellType = "ShieldBuff",
+        BasePower = 25,
+        Cooldown = 5.0,
+        Radius = 8,
+        Color = Color3.fromRGB(99, 102, 241),
+        Description = "Restaure 25 PV et octroie une protection du néant.",
+        Image = "rbxassetid://13880479100",
+        ManaCost = 20,
+    },
+    ["berserk_fury"] = {
+        Id = "berserk_fury",
+        Name = "Fureur Déchaînée",
+        Rarity = "Epic",
+        SpellType = "Projectile",
+        BasePower = 40,
+        Cooldown = 4.0,
+        Speed = 100,
+        Radius = 14,
+        Color = Color3.fromRGB(239, 68, 68),
+        Description = "Orbe de pure rage explosive projetant les cibles au loin.",
+        Image = "rbxassetid://13880479100",
+        ManaCost = 25,
     },
 }
 
--- Indexation par rareté pour un tirage Gacha instantané
-local CardsByRarity: { [CardRarity]: { CardBlueprint } } = {
+CardsDatabase.StarterDeck = { "pyro_meteor", "void_chain", "thunder_step", "sovereign_aegis" }
+
+-- Regroupement par rareté pour le Gacha
+CardsDatabase.CardsByRarity = {
     Common = {},
     Rare = {},
     Epic = {},
     Legendary = {},
 }
 
-for _, card in pairs(Cards) do
-    table.insert(CardsByRarity[card.Rarity], card)
+for _, card in pairs(CardsDatabase.Cards) do
+    if CardsDatabase.CardsByRarity[card.Rarity] then
+        table.insert(CardsDatabase.CardsByRarity[card.Rarity], card)
+    end
 end
 
-return {
-    Cards = Cards,
-    CardsByRarity = CardsByRarity,
-    GetCard = function(cardId: string): CardBlueprint?
-        return Cards[cardId]
-    end,
-}
+function CardsDatabase.GetCard(cardId: string): CardDefinition?
+    return CardsDatabase.Cards[cardId]
+end
+
+return CardsDatabase

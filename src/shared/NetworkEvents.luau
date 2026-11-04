@@ -1,7 +1,7 @@
 --!strict
 --[[
-    NETWORK REMOTES & RPC CONTRACT
-    Définition et initialisation des RemoteEvents et RemoteFunctions pour la réplication réseau client/serveur.
+    CARDS & CHAOS - RÉSEAU RPC & REMOTES (CLIENT / SERVEUR)
+    Contrat unique des RemoteFunctions et RemoteEvents.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -9,36 +9,25 @@ local RunService = game:GetService("RunService")
 
 local RemoteFunctions = {
     "GetPlayerData",
-    "RollGacha",
-    "EquipDeck",
+    "RequestOpenPack",
+    "EquipCard",
     "GetMarketListings",
     "ListMarketItem",
     "BuyMarketItem",
-    "CancelMarketItem",
-    "SendTradeRequest",
-    "RespondTradeRequest",
-    "ConfirmTrade",
+    "ClaimRankReward",
     "JoinArenaQueue",
     "LeaveArenaQueue",
-    "PrestigeCard",
-    "RecycleCard",
-    "DevAction",
-    "RequestOpenPack",
+    "TalkToNPC",
 }
 
 local RemoteEvents = {
-    "CastSkill",
-    "PerformAction",        -- Dash (Q) / Parry (F)
-    "UpdateTradeOffer",
-    "CancelTrade",
-    "ServerAnnouncement",   -- Broadcast mondial pour les cartes mythiques/divines
-    "MatchStateChanged",    -- Info match (Countdown, VS, Round, Victory/Defeat)
-    "CombatVFX",            -- Sync visuels d'impact, trails, explosions
-    "ToastNotify",          -- Messages de succès/erreur au joueur
-    "DamageIndicator",      -- Chiffres de dégâts 3D au-dessus de la cible
+    "CastSpell",            -- Déclenchement d'un sort ou du dash (Slot 1-5 + TargetPos)
+    "ToastNotify",          -- Notifications de feedback joueur (Succès/Erreur)
+    "ServerAnnouncement",   -- Alerte mondiale (Tirage Légendaire, etc.)
+    "MatchStateChanged",    -- États du duel d'arène (VS, Countdown, Fight, Victory, Defeat)
 }
 
-local Network = {}
+local NetworkEvents = {}
 
 local function GetFolder(): Folder
     local folder = ReplicatedStorage:FindFirstChild("NetworkRemotes") :: Folder?
@@ -54,8 +43,7 @@ local function GetFolder(): Folder
     return folder :: Folder
 end
 
--- Initialisation côté Serveur
-function Network.InitServer()
+function NetworkEvents.InitServer()
     local folder = GetFolder()
     for _, name in ipairs(RemoteFunctions) do
         if not folder:FindFirstChild(name) then
@@ -73,20 +61,18 @@ function Network.InitServer()
     end
 end
 
--- Récupération d'une RemoteFunction
-function Network.GetFunction(name: string): RemoteFunction
+function NetworkEvents.GetFunction(name: string): RemoteFunction
     local folder = GetFolder()
     local rf = folder:WaitForChild(name, 10)
-    assert(rf and rf:IsA("RemoteFunction"), "RemoteFunction absente: " .. name)
+    assert(rf and rf:IsA("RemoteFunction"), "RemoteFunction absente : " .. name)
     return rf :: RemoteFunction
 end
 
--- Récupération d'un RemoteEvent
-function Network.GetEvent(name: string): RemoteEvent
+function NetworkEvents.GetEvent(name: string): RemoteEvent
     local folder = GetFolder()
     local re = folder:WaitForChild(name, 10)
-    assert(re and re:IsA("RemoteEvent"), "RemoteEvent absent: " .. name)
+    assert(re and re:IsA("RemoteEvent"), "RemoteEvent absent : " .. name)
     return re :: RemoteEvent
 end
 
-return Network
+return NetworkEvents

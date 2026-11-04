@@ -1,31 +1,29 @@
 --!strict
 --[[
-    SOVEREIGN: CARDS & DOMINION - CLIENT PRINCIPAL
-    Point d'entrée côté joueur : initialise l'interface utilisateur (HUD, Codex, Gacha, Marché, Arène),
-    le contrôleur de combat réactif (clavier/mobile) et la détection des autels interactifs.
+    CARDS & CHAOS - INITIALISATION CLIENT
+    Point d'entrée côté joueur : initialise le contrôleur de sorts (touches QWERTY/AZERTY & clic souris),
+    l'interface graphique complète et les autels interactifs (touche E).
 ]]
 
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local UIManager = require(script.ui.UIManager)
 local CombatController = require(script.CombatController)
 local InteractionController = require(script.InteractionController)
 
 print("========================================================")
-print("  SOVEREIGN: CARDS & DOMINION (ROBLOX CLIENT)")
-print("  Initialisation du client...")
+print("  CARDS & CHAOS - LANCEMENT DU CLIENT")
 print("========================================================")
 
--- Initialisation de l'interface graphique procédurale
-UIManager.Init()
-
--- Initialisation des contrôles de combat (1-4 compétences, Q Dash, F Parry)
+-- 1. Initialisation des contrôles de combat (Sorts 1-5, visée souris, AZERTY A/Z/E/R/F)
 CombatController.Init()
 
--- Initialisation des interactions physiques avec les autels du Hub
+-- 2. Initialisation de l'interface graphique (Hotbar, TopBar, et 5 fenêtres interactives)
+UIManager.Init()
+
+-- 3. Initialisation des interactions physiques avec les autels (touche E)
 InteractionController.Init(function(tabName: string)
     UIManager.OpenTab(tabName)
 end)
 
-print("[Client] Prêt au combat ! Utilisez les touches 1 à 4 pour vos cartes, Q pour esquiver et F pour parer.")
+print("[Client] Prêt ! Lancez vos sorts avec 1-4 ou A/Z/E/R (ou clic souris sur la Hotbar).")
