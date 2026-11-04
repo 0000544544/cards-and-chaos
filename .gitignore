@@ -1,0 +1,13 @@
+# .gitignore for CARDS & CHAOS (Roblox Luau / Rojo)
+check_xml.py
+print_part.py
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.tmp
+.vscode/
+.idea/
+
+# Logs
+*.log
