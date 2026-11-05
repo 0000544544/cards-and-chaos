@@ -1,0 +1,128 @@
+================================================================================
+                    CARDS & CHAOS (SOVEREIGN DOMINION)
+         DOCUMENT DE CONCEPTION DU JEU (GAME DESIGN & CONCEPT DOCUMENT)
+================================================================================
+
+1. VISION GLOBALE & IDENTITÉ DU JEU
+--------------------------------------------------------------------------------
+Genre       : Action-RPG / Card Battler Multijoueur 3D Compétitif
+Plateforme  : Roblox (Moteur Luau / Rojo)
+Ambiance    : Dark Fantasy mystique et arcanique
+Objectif    : Devenir le "Souverain Suprême" de l'arène (Rang Légende) en construisant
+              le deck de compétences magiques le plus puissant et le plus rare du jeu.
+
+Le jeu combine la frénésie des combats en temps réel (type Battlegrounds / PvP) avec
+la profondeur stratégique du Deckbuilding, l'excitation des ouvertures de packs (Gacha),
+un classement compétitif au mérite (Ladder Elo) et une économie libre d'achat-revente.
+
+
+2. LA BOUCLE DE JEU FONDAMENTALE (CORE GAMEPLAY LOOP)
+--------------------------------------------------------------------------------
+           +-------------------------------------------------------+
+           |                 1. COMBATTRE EN ARÈNE                 |
+           |         (Duels 1v1 PvP ou contre Bot IA)              |
+           +---------------------------+---------------------------+
+                                       |
+                                       v
+           +-------------------------------------------------------+
+           |              2. RÉCOLTER OR & MÉRIQUE                 |
+           |    (+150 Or & +25 Mérite par victoire, bonus de rang) |
+           +---------------------------+---------------------------+
+                                       |
+                                       v
+           +-------------------------------------------------------+
+           |             3. TIRER OU ACHETER DES SORTS             |
+           |      (Autel Gacha du Destin ou Hôtel des Ventes)      |
+           +---------------------------+---------------------------+
+                                       |
+                                       v
+           +-------------------------------------------------------+
+           |                 4. OPTIMISER SON DECK                 |
+           |     (4 Sorts actifs + 1 Dash, synergies & combos)     |
+           |     (Revendre les doublons sur le Marché Libre)       |
+           +---------------------------+---------------------------+
+                                       |
+                                       +---> Retour à l'étape 1
+
+
+3. LES 4 PILIERS DE GAMEPLAY
+--------------------------------------------------------------------------------
+
+A. PILIER 1 : CARTES, SORTS & COMBAT EN TEMPS RÉEL
+   - Chaque joueur dispose d'une barre de 5 compétences :
+     * Slots 1 à 4 : 4 Cartes de sorts équipées depuis le Codex.
+     * Slot 5 : Dash / Esquive universelle (I-frame, mobilité).
+   - Les Sorts se divisent en 4 grands archétypes :
+     1. Projectiles : Boules de feu, météores, éclairs directionnels avec explosion à l'impact.
+     2. AoE (Aire d'effet) : Novas gravitationnelles, ondes de choc au sol.
+     3. DashStrike : Téléportation offensive éclair traversant l'adversaire.
+     4. Buff / Défense : Boucliers ForceField et soins d'urgence.
+   - Système de Raretés :
+     * Commune (Gris/Bleu clair)
+     * Rare (Bleu électrique)
+     * Épique (Violet néon)
+     * Légendaire (Doré / Magma)
+
+B. PILIER 2 : LE GACHA ÉTHIQUE (GAMBLING & TIRAGES DE PACKS)
+   - Les joueurs dépensent l'Or gagné en jeu pour invoquer des sorts à l'Autel du Destin.
+   - Probabilités publiques et transparentes (conformité Roblox) :
+     * Pack Souverain (Prix modéré, ex: 250 Or) : 60% Commune, 25% Rare, 11% Épique, 4% Légendaire.
+     * Pack Chaos / Élite (Prix élevé, ex: 1000 Or) : 35% Rare, 45% Épique, 20% Légendaire.
+   - Système de Pity (Garantie) : Obtention d'un sort de haute rareté garanti après X tirages sans Légendaire.
+   - Annonces mondiales : Bannière et alerte sonore lors du tirage d'une carte Légendaire.
+
+C. PILIER 3 : LE MÉRITE & CLASSEMENT COMPÉTITIF (RANKED 1V1)
+   - Système Elo basé sur le Mérite (score de départ : 1000) :
+     * Bronze    : 0 - 1199 Mérite
+     * Argent    : 1200 - 1499 Mérite
+     * Or        : 1500 - 1799 Mérite
+     * Maître    : 1800 - 2099 Mérite
+     * Légende   : 2100+ Mérite
+   - Récompenses de rang : Prime d'Or substantielle à chaque nouveau palier atteint.
+   - Matchmaking & Arène : Colisée Céleste 1v1 déporté dans l'espace avec compte à rebours 3-2-1.
+     Accessible en PvP ou en mode Entraînement contre un Bot Duelliste IA.
+
+D. PILIER 4 : L'ACHAT-REVENTE & ÉCONOMIE LIBRE (MARKETPLACE)
+   - Hôtel des Ventes où les joueurs peuvent lister librement leurs cartes au prix de leur choix.
+   - Déduction d'une taxe économique de 5 % sur chaque vente pour limiter l'inflation.
+   - Métagame de trading : Acheter des cartes sous-évaluées, spéculer sur la rareté et revendre pour amasser une fortune.
+
+
+4. ARCHITECTURE DE LA MAP & ESPACES DU JEU
+--------------------------------------------------------------------------------
+1. LE HUB CENTRAL (LOBBY DARK FANTASY) :
+   - Éclairage soigné (ambiance lisible et contrastée).
+   - 3 Autels Interactifs avec ProximityPrompt (Touche E) :
+     * Autel du Destin (Gacha / Tirages)
+     * Hôtel des Ventes (Comptoir du Marché)
+     * Porte du Colisée (File d'attente Arène 1v1)
+   - PNJ Guide & Sage : Maître Eldrin (Dialogue lore et conseils stratégiques).
+   - Zone d'Entraînement : 3 Mannequins réactifs face au spawn (1000 PV, régénération, pop-ups de dégâts 3D).
+
+2. LE COLISÉE CÉLESTE (ARÈNE 1V1) :
+   - Zone de duel séparée, décalée (ex: X = 400), évitant toute interférence avec le Hub.
+   - Arène circulaire avec barrière de confinement et spawns symétriques pour les duellistes.
+
+
+5. INFRASTRUCTURE TECHNIQUE & OUTILS DU PIPELINE
+--------------------------------------------------------------------------------
+- Roblox Luau & Rojo : Code source synchronisé avec contrôle de version Git.
+- Sécurité Serveur : Autorité totale du serveur sur les profils, monnaies, inventaires et transactions (zéro triche client).
+- Compatibilité Clavier & Contrôles : Zéro conflit avec le déplacement ZQSD / WASD / Espace.
+  Boutons Hotbar cliquables à la souris + raccourcis clavier 1-5 et touches de combat F, G, C, V, Shift.
+- Pipeline IA Externe (Ressources locales & APIs) :
+  * ComfyUI (Local RTX 5070) : Génération des illustrations 512x512 de cartes Dark Fantasy / Anime.
+  * Groq (Llama 3.3 70B) : Réponses dynamiques et immersives du PNJ Maître Eldrin.
+  * Supabase : Sauvegarde d'audit externe et historisation des grosses transactions du marché.
+
+
+6. PLAN DE RECONSTRUCTION ÉTAPE PAR ÉTAPE (STEP-BY-STEP)
+--------------------------------------------------------------------------------
+Étape 1 : Baseplate propre, structure des dossiers (`src/shared`, `src/server`, `src/client`) et `default.project.json` minimaliste.
+Étape 2 : Base de données des sorts (`CardsDatabase.luau`) avec définitions claires et équilibrées.
+Étape 3 : Gestionnaire de profil joueur (`DataManager.luau`) : Or, Mérite, Inventaire, Deck de départ et sauvegarde propre.
+Étape 4 : Système de combat & sorts 3D simples et fonctionnels (`CombatService.luau` & `CombatController.luau`).
+Étape 5 : Map et Hub interactif (`MapBuilder.luau`) : Sol, Mannequins d'entraînement réactifs et Autels.
+Étape 6 : Interface utilisateur HUD (`UIManager.luau`) : Barre de sorts, argent, et fenêtres de menu interactives.
+Étape 7 : Gacha, Arène 1v1 et Hôtel des Ventes connectés.
+================================================================================
