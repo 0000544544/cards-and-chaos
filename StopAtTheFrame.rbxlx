@@ -22,12 +22,215 @@
     <Properties>
       <string name="Name">ReplicatedStorage</string>
     </Properties>
+    <Item class="ModuleScript" referent="2">
+      <Properties>
+        <string name="Name">CarBuilder</string>
+        <string name="Source"><![CDATA[--!strict
+--[[
+    STOP AT THE FRAME - CAR BUILDER (MODULE SCRIPT)
+    Génère procéduralement la voiture de rallye compacte "Lotus Rally" :
+    carrosserie rouge vif, vitres noir brillant, 4 roues avec jantes,
+    phares Neon, RootPart invisible et soudures WeldConstraint.
+]]
+
+local CarBuilder = {}
+
+local function createPart(name: string, size: Vector3, cf: CFrame, mat: Enum.Material, col: Color3, parent: Instance): Part
+    local p = Instance.new("Part")
+    p.Name = name
+    p.Size = size
+    p.CFrame = cf
+    p.Material = mat
+    p.Color = col
+    p.Anchored = false
+    p.CanCollide = false
+    p.Parent = parent
+    return p
+end
+
+local function weldParts(part0: BasePart, part1: BasePart)
+    local weld = Instance.new("WeldConstraint")
+    weld.Part0 = part0
+    weld.Part1 = part1
+    weld.Parent = part1
+end
+
+function CarBuilder.CreateLotusRally(): Model
+    local car = Instance.new("Model")
+    car.Name = "LotusRally"
+
+    -- 1. RootPart invisible centrée
+    local root = Instance.new("Part")
+    root.Name = "RootPart"
+    root.Size = Vector3.new(1, 1, 1)
+    root.Transparency = 1
+    root.CanCollide = false
+    root.Anchored = true
+    root.CFrame = CFrame.new(0, 0, 0)
+    root.Parent = car
+    car.PrimaryPart = root
+
+    local RED = Color3.fromRGB(225, 24, 32) -- Rouge rallye éclatant
+    local DARK_RED = Color3.fromRGB(180, 16, 22)
+    local BLACK_GLOSS = Color3.fromRGB(18, 20, 24) -- Vitres noir brillant
+    local CHARCOAL = Color3.fromRGB(32, 34, 38)
+    local RIM_GRAY = Color3.fromRGB(195, 200, 208)
+    local TIRE_BLACK = Color3.fromRGB(20, 20, 22)
+    local HEADLIGHT_COLOR = Color3.fromRGB(255, 252, 225)
+    local FOGLIGHT_YELLOW = Color3.fromRGB(255, 225, 90)
+    local TAILLIGHT_RED = Color3.fromRGB(255, 25, 25)
+
+    -- 2. Châssis inférieur et carrosserie principale
+    local baseBody = createPart("BaseBody", Vector3.new(6.8, 1.3, 11.6), root.CFrame * CFrame.new(0, -0.2, 0), Enum.Material.SmoothPlastic, RED, car)
+    weldParts(root, baseBody)
+
+    -- Lame avant / Splitter aéro
+    local splitter = createPart("FrontSplitter", Vector3.new(6.6, 0.35, 1.4), root.CFrame * CFrame.new(0, -0.7, -5.9), Enum.Material.SmoothPlastic, CHARCOAL, car)
+    weldParts(root, splitter)
+
+    -- Diffuseur arrière
+    local diffuser = createPart("RearDiffuser", Vector3.new(6.6, 0.45, 1.2), root.CFrame * CFrame.new(0, -0.6, 5.9), Enum.Material.SmoothPlastic, CHARCOAL, car)
+    weldParts(root, diffuser)
+
+    -- Capot avant biseauté
+    local hood = createPart("Hood", Vector3.new(6.4, 0.7, 4.0), root.CFrame * CFrame.new(0, 0.45, -3.7) * CFrame.Angles(math.rad(-6), 0, 0), Enum.Material.SmoothPlastic, RED, car)
+    weldParts(root, hood)
+
+    -- Coffre / Plage arrière
+    local rearDeck = createPart("RearDeck", Vector3.new(6.4, 0.9, 3.2), root.CFrame * CFrame.new(0, 0.55, 3.8), Enum.Material.SmoothPlastic, RED, car)
+    weldParts(root, rearDeck)
+
+    -- 3. Habitacle & Vitres noir brillant
+    -- Toit
+    local roof = createPart("Roof", Vector3.new(4.8, 0.35, 4.8), root.CFrame * CFrame.new(0, 1.85, 0.4), Enum.Material.SmoothPlastic, DARK_RED, car)
+    weldParts(root, roof)
+
+    -- Pare-brise avant
+    local windshield = createPart("Windshield", Vector3.new(4.7, 1.6, 0.25), root.CFrame * CFrame.new(0, 1.2, -1.8) * CFrame.Angles(math.rad(-32), 0, 0), Enum.Material.Glass, BLACK_GLOSS, car)
+    windshield.Reflectance = 0.35
+    weldParts(root, windshield)
+
+    -- Lunette arrière
+    local rearWindow = createPart("RearWindow", Vector3.new(4.7, 1.5, 0.25), root.CFrame * CFrame.new(0, 1.25, 2.7) * CFrame.Angles(math.rad(28), 0, 0), Enum.Material.Glass, BLACK_GLOSS, car)
+    rearWindow.Reflectance = 0.35
+    weldParts(root, rearWindow)
+
+    -- Vitres latérales
+    local leftWin = createPart("SideWindow_L", Vector3.new(0.2, 1.25, 4.3), root.CFrame * CFrame.new(-2.35, 1.15, 0.45), Enum.Material.Glass, BLACK_GLOSS, car)
+    leftWin.Reflectance = 0.35
+    weldParts(root, leftWin)
+
+    local rightWin = createPart("SideWindow_R", Vector3.new(0.2, 1.25, 4.3), root.CFrame * CFrame.new(2.35, 1.15, 0.45), Enum.Material.Glass, BLACK_GLOSS, car)
+    rightWin.Reflectance = 0.35
+    weldParts(root, rightWin)
+
+    -- Prise d'air de toit (Rally Roof Scoop)
+    local scoop = createPart("RoofScoop", Vector3.new(1.6, 0.5, 1.8), root.CFrame * CFrame.new(0, 2.15, -0.6) * CFrame.Angles(math.rad(-10), 0, 0), Enum.Material.SmoothPlastic, CHARCOAL, car)
+    weldParts(root, scoop)
+
+    -- Aileron de rallye arrière (Rear Wing)
+    local wing = createPart("RearWing", Vector3.new(6.4, 0.3, 1.8), root.CFrame * CFrame.new(0, 2.1, 5.7), Enum.Material.SmoothPlastic, CHARCOAL, car)
+    weldParts(root, wing)
+
+    local strutL = createPart("WingStrut_L", Vector3.new(0.25, 1.2, 0.8), root.CFrame * CFrame.new(-2.2, 1.4, 5.6), Enum.Material.SmoothPlastic, CHARCOAL, car)
+    weldParts(root, strutL)
+    local strutR = createPart("WingStrut_R", Vector3.new(0.25, 1.2, 0.8), root.CFrame * CFrame.new(2.2, 1.4, 5.6), Enum.Material.SmoothPlastic, CHARCOAL, car)
+    weldParts(root, strutR)
+
+    -- Rétroviseurs extérieurs
+    local mirrorL = createPart("Mirror_L", Vector3.new(0.7, 0.4, 0.8), root.CFrame * CFrame.new(-2.7, 0.95, -1.6), Enum.Material.SmoothPlastic, CHARCOAL, car)
+    weldParts(root, mirrorL)
+    local mirrorR = createPart("Mirror_R", Vector3.new(0.7, 0.4, 0.8), root.CFrame * CFrame.new(2.7, 0.95, -1.6), Enum.Material.SmoothPlastic, CHARCOAL, car)
+    weldParts(root, mirrorR)
+
+    -- 4. 4 Roues noires avec jantes grises
+    local wheelPositions = {
+        { name = "Wheel_FL", cf = CFrame.new(-3.45, -0.7, -3.7) },
+        { name = "Wheel_FR", cf = CFrame.new(3.45, -0.7, -3.7) },
+        { name = "Wheel_RL", cf = CFrame.new(-3.45, -0.7, 3.7) },
+        { name = "Wheel_RR", cf = CFrame.new(3.45, -0.7, 3.7) },
+    }
+
+    for _, wInfo in ipairs(wheelPositions) do
+        -- Pneu (Cylindre noir)
+        local tire = Instance.new("Part")
+        tire.Name = wInfo.name
+        tire.Shape = Enum.PartType.Cylinder
+        tire.Size = Vector3.new(0.9, 2.2, 2.2)
+        -- En Roblox, le cylindre a son axe le long de X : rotation pour orienter les flancs vers les côtés
+        tire.CFrame = root.CFrame * wInfo.cf * CFrame.Angles(0, 0, math.rad(90))
+        tire.Material = Enum.Material.Rubber
+        tire.Color = TIRE_BLACK
+        tire.Anchored = false
+        tire.CanCollide = false
+        tire.Parent = car
+        weldParts(root, tire)
+
+        -- Jante grise (Cylindre intérieur légèrement débordant)
+        local rim = Instance.new("Part")
+        rim.Name = wInfo.name .. "_Rim"
+        rim.Shape = Enum.PartType.Cylinder
+        rim.Size = Vector3.new(0.96, 1.4, 1.4)
+        rim.CFrame = tire.CFrame
+        rim.Material = Enum.Material.Metal
+        rim.Color = RIM_GRAY
+        rim.Anchored = false
+        rim.CanCollide = false
+        rim.Parent = car
+        weldParts(root, rim)
+    end
+
+    -- 5. Phares avant (Neon blanc/jaune)
+    local headL = createPart("Headlight_L", Vector3.new(1.3, 0.55, 0.2), root.CFrame * CFrame.new(-2.3, 0.05, -5.85), Enum.Material.Neon, HEADLIGHT_COLOR, car)
+    weldParts(root, headL)
+
+    local headR = createPart("Headlight_R", Vector3.new(1.3, 0.55, 0.2), root.CFrame * CFrame.new(2.3, 0.05, -5.85), Enum.Material.Neon, HEADLIGHT_COLOR, car)
+    weldParts(root, headR)
+
+    -- Phares antibrouillard ronds centraux (Style rallye jaune)
+    local fogL = Instance.new("Part")
+    fogL.Name = "RallyFog_L"
+    fogL.Shape = Enum.PartType.Cylinder
+    fogL.Size = Vector3.new(0.3, 0.85, 0.85)
+    fogL.CFrame = root.CFrame * CFrame.new(-0.8, -0.15, -5.9) * CFrame.Angles(0, math.rad(90), 0)
+    fogL.Material = Enum.Material.Neon
+    fogL.Color = FOGLIGHT_YELLOW
+    fogL.Anchored = false
+    fogL.CanCollide = false
+    fogL.Parent = car
+    weldParts(root, fogL)
+
+    local fogR = Instance.new("Part")
+    fogR.Name = "RallyFog_R"
+    fogR.Shape = Enum.PartType.Cylinder
+    fogR.Size = Vector3.new(0.3, 0.85, 0.85)
+    fogR.CFrame = root.CFrame * CFrame.new(0.8, -0.15, -5.9) * CFrame.Angles(0, math.rad(90), 0)
+    fogR.Material = Enum.Material.Neon
+    fogR.Color = FOGLIGHT_YELLOW
+    fogR.Anchored = false
+    fogR.CanCollide = false
+    fogR.Parent = car
+    weldParts(root, fogR)
+
+    -- Feux arrière rouges
+    local tailL = createPart("Taillight_L", Vector3.new(1.4, 0.5, 0.2), root.CFrame * CFrame.new(-2.2, 0.3, 5.85), Enum.Material.Neon, TAILLIGHT_RED, car)
+    weldParts(root, tailL)
+    local tailR = createPart("Taillight_R", Vector3.new(1.4, 0.5, 0.2), root.CFrame * CFrame.new(2.2, 0.3, 5.85), Enum.Material.Neon, TAILLIGHT_RED, car)
+    weldParts(root, tailR)
+
+    return car
+end
+
+return CarBuilder
+]]></string>
+      </Properties>
+    </Item>
   </Item>
-  <Item class="ServerScriptService" referent="2">
+  <Item class="ServerScriptService" referent="3">
     <Properties>
       <string name="Name">ServerScriptService</string>
     </Properties>
-    <Item class="Script" referent="3">
+    <Item class="Script" referent="4">
       <Properties>
         <string name="Name">WorldBuilder</string>
         <token name="RunContext">0</token>
@@ -284,15 +487,15 @@ print("[WorldBuilder] Rue San Francisco en pente et TargetFrame créés avec suc
       </Properties>
     </Item>
   </Item>
-  <Item class="StarterPlayer" referent="4">
+  <Item class="StarterPlayer" referent="5">
     <Properties>
       <string name="Name">StarterPlayer</string>
     </Properties>
-    <Item class="StarterPlayerScripts" referent="5">
+    <Item class="StarterPlayerScripts" referent="6">
       <Properties>
         <string name="Name">StarterPlayerScripts</string>
       </Properties>
-      <Item class="LocalScript" referent="6">
+      <Item class="LocalScript" referent="7">
         <Properties>
           <string name="Name">CameraController</string>
           <string name="Source"><![CDATA[--!strict
@@ -391,7 +594,12 @@ local function onRenderStep()
         fixedCameraCFrame = computeCameraCFrame()
     end
     if fixedCameraCFrame then
-        camera.CFrame = fixedCameraCFrame
+        local shake = camera:GetAttribute("ShakeOffset")
+        if shake and typeof(shake) == "Vector3" then
+            camera.CFrame = fixedCameraCFrame * CFrame.new(shake)
+        else
+            camera.CFrame = fixedCameraCFrame
+        end
     end
 end
 
@@ -400,14 +608,360 @@ print("[CameraController] Caméra fixe Scriptable initialisée avec succès.")
 ]]></string>
         </Properties>
       </Item>
+      <Item class="LocalScript" referent="8">
+        <Properties>
+          <string name="Name">GameLoop</string>
+          <string name="Source"><![CDATA[--!strict
+--[[
+    STOP AT THE FRAME - GAME LOOP & FRAME GRADING (CLIENT SCRIPT)
+    Gère la boucle de saut infinie de la Lotus Rally, les inputs d'arrêt (Espace / Clic / Touch),
+    le calcul de précision par rapport au TargetFrame, et l'affichage des grades.
+]]
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local CarBuilder = require(ReplicatedStorage:WaitForChild("CarBuilder") :: ModuleScript)
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
+local camera = Workspace.CurrentCamera or Workspace:WaitForChild("Camera") :: Camera
+
+-- =============================================================================
+-- 1. CRÉATION DE L'INTERFACE UTILISATEUR (ScreenGui)
+-- =============================================================================
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "GameHUD"
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.Parent = playerGui
+
+-- Flash néon plein écran pour le "FRAME PERFECT!"
+local flashFrame = Instance.new("Frame")
+flashFrame.Name = "NeonFlash"
+flashFrame.Size = UDim2.new(1, 0, 1, 0)
+flashFrame.BackgroundColor3 = Color3.fromRGB(255, 235, 120)
+flashFrame.BackgroundTransparency = 1
+flashFrame.ZIndex = 20
+flashFrame.Parent = screenGui
+
+-- Label du véhicule en bas au centre : "#1 Lotus Rally"
+local vehicleLabel = Instance.new("TextLabel")
+vehicleLabel.Name = "VehicleLabel"
+vehicleLabel.Size = UDim2.new(0, 360, 0, 40)
+vehicleLabel.AnchorPoint = Vector2.new(0.5, 1)
+vehicleLabel.Position = UDim2.new(0.5, 0, 1, -26)
+vehicleLabel.BackgroundTransparency = 1
+vehicleLabel.Font = Enum.Font.GothamBlack
+vehicleLabel.TextSize = 22
+vehicleLabel.TextColor3 = Color3.fromRGB(240, 242, 245)
+vehicleLabel.TextStrokeColor3 = Color3.fromRGB(15, 18, 22)
+vehicleLabel.TextStrokeTransparency = 0
+vehicleLabel.Text = "#1 Lotus Rally"
+vehicleLabel.Parent = screenGui
+
+-- Conteneur central pour le résultat géant
+local resultContainer = Instance.new("Frame")
+resultContainer.Name = "ResultContainer"
+resultContainer.Size = UDim2.new(0, 500, 0, 160)
+resultContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+resultContainer.Position = UDim2.new(0.5, 0, 0.38, 0)
+resultContainer.BackgroundTransparency = 1
+resultContainer.Visible = false
+resultContainer.Parent = screenGui
+
+local gradeLabel = Instance.new("TextLabel")
+gradeLabel.Name = "GradeLabel"
+gradeLabel.Size = UDim2.new(1, 0, 0, 75)
+gradeLabel.Position = UDim2.new(0, 0, 0, 0)
+gradeLabel.BackgroundTransparency = 1
+gradeLabel.Font = Enum.Font.FredokaOne
+gradeLabel.TextSize = 58
+gradeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+gradeLabel.TextStrokeColor3 = Color3.fromRGB(10, 12, 16)
+gradeLabel.TextStrokeTransparency = 0
+gradeLabel.Text = "FRAME PERFECT!"
+gradeLabel.Parent = resultContainer
+
+local accuracyLabel = Instance.new("TextLabel")
+accuracyLabel.Name = "AccuracyLabel"
+accuracyLabel.Size = UDim2.new(1, 0, 0, 40)
+accuracyLabel.Position = UDim2.new(0, 0, 0, 80)
+accuracyLabel.BackgroundTransparency = 1
+accuracyLabel.Font = Enum.Font.GothamBlack
+accuracyLabel.TextSize = 26
+accuracyLabel.TextColor3 = Color3.fromRGB(245, 245, 250)
+accuracyLabel.TextStrokeColor3 = Color3.fromRGB(12, 14, 18)
+accuracyLabel.TextStrokeTransparency = 0.2
+accuracyLabel.Text = "Précision : 100% (0.1 studs)"
+accuracyLabel.Parent = resultContainer
+
+-- Instruction d'aide discrète
+local hintLabel = Instance.new("TextLabel")
+hintLabel.Name = "HintLabel"
+hintLabel.Size = UDim2.new(0, 400, 0, 30)
+hintLabel.AnchorPoint = Vector2.new(0.5, 1)
+hintLabel.Position = UDim2.new(0.5, 0, 1, -70)
+hintLabel.BackgroundTransparency = 1
+hintLabel.Font = Enum.Font.GothamMedium
+hintLabel.TextSize = 15
+hintLabel.TextColor3 = Color3.fromRGB(180, 255, 195)
+hintLabel.TextStrokeColor3 = Color3.fromRGB(10, 15, 20)
+hintLabel.TextStrokeTransparency = 0.4
+hintLabel.Text = "[ESPACE] ou [CLIC GAUCHE] pour figer la voiture dans le cadre"
+hintLabel.Parent = screenGui
+
+-- =============================================================================
+-- 2. CALIBRATION GÉOMÉTRIQUE DU SAUT PARABOLIQUE
+-- =============================================================================
+local targetFrame = Workspace:WaitForChild("TargetFrame", 15) :: Model?
+local centerPoint = (targetFrame and targetFrame:WaitForChild("CenterPoint", 10)) :: BasePart?
+
+-- Si centerPoint est introuvable, coordonnées de secours calculées à l'étape 1
+local targetPos = (centerPoint and centerPoint.Position) or Vector3.new(0, 66.84, 158.22)
+
+-- Trajectoire parabolique descendante :
+-- Départ au sommet de la colline, passage EXACT à travers TargetFrame à t = 0.60
+local JUMP_DURATION = 2.8 -- Durée totale du vol (secondes)
+local T_TARGET = 0.60 -- Moment exact du passage dans le cadre
+
+local zStart = 260.0
+local zTarget = targetPos.Z
+local zEnd = 90.0
+
+local yStart = 96.0
+local yTarget = targetPos.Y
+local yEnd = 38.0
+
+-- Résolution des coefficients quadratiques f(t) = a*t^2 + b*t + c
+local dz1 = zTarget - zStart
+local dz2 = zEnd - zStart
+local az = (dz2 * T_TARGET - dz1) / (T_TARGET * (1 - T_TARGET))
+local bz = dz2 - az
+local cz = zStart
+
+local dy1 = yTarget - yStart
+local dy2 = yEnd - yStart
+local ay = (dy2 * T_TARGET - dy1) / (T_TARGET * (1 - T_TARGET))
+local by = dy2 - ay
+local cy = yStart
+
+local function getJumpPosition(tNorm: number): Vector3
+    local z = az * (tNorm ^ 2) + bz * tNorm + cz
+    local y = ay * (tNorm ^ 2) + by * tNorm + cy
+    return Vector3.new(0, y, z)
+end
+
+-- =============================================================================
+-- 3. GESTION DU GRADE ET DES EFFETS
+-- =============================================================================
+local function triggerScreenShake(intensity: number, duration: number)
+    task.spawn(function()
+        local startTime = os.clock()
+        while (os.clock() - startTime) < duration do
+            local elapsed = os.clock() - startTime
+            local decay = 1 - (elapsed / duration)
+            local offset = Vector3.new(
+                (math.random() - 0.5) * 2 * intensity * decay,
+                (math.random() - 0.5) * 2 * intensity * decay,
+                0
+            )
+            camera:SetAttribute("ShakeOffset", offset)
+            RunService.RenderStepped:Wait()
+        end
+        camera:SetAttribute("ShakeOffset", Vector3.zero)
+    end)
+end
+
+local function triggerNeonFlash()
+    flashFrame.BackgroundTransparency = 0.4
+    local tween = TweenService:Create(flashFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        BackgroundTransparency = 1,
+    })
+    tween:Play()
+end
+
+local function computeAccuracyPercentage(dist: number): number
+    if dist <= 0.8 then
+        return math.clamp(math.floor(98 + (1 - dist / 0.8) * 2), 98, 100)
+    elseif dist <= 2.5 then
+        return math.clamp(math.floor(90 + (1 - (dist - 0.8) / 1.7) * 7.9), 90, 97)
+    elseif dist <= 5.0 then
+        return math.clamp(math.floor(75 + (1 - (dist - 2.5) / 2.5) * 14.9), 75, 89)
+    else
+        return math.max(0, math.floor(70 - (dist - 5.0) * 3.5))
+    end
+end
+
+-- =============================================================================
+-- 4. ÉTAT DU JEU ET ÉCOUTE DES ENTRÉES DU JOUEUR
+-- =============================================================================
+local currentCar: Model? = nil
+local isJumping = false
+local hasStopped = false
+local currentElapsed = 0
+
+local function onPlayerInput()
+    if not isJumping or hasStopped or not currentCar then return end
+    hasStopped = true
+    isJumping = false
+
+    local root = currentCar.PrimaryPart
+    if not root then return end
+
+    -- 1. Fige immédiatement la voiture sur place
+    root.Anchored = true
+    for _, part in ipairs(currentCar:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.Anchored = true
+        end
+    end
+
+    -- 2. Calcul de la distance 3D précise entre RootPart et CenterPoint
+    local actualTargetPos = (centerPoint and centerPoint.Position) or targetPos
+    local distance = (root.Position - actualTargetPos).Magnitude
+    local accuracyPct = computeAccuracyPercentage(distance)
+
+    -- 3. Attribution du grade selon les seuils
+    local gradeText = "RATÉ!"
+    local gradeColor = Color3.fromRGB(255, 55, 55)
+
+    if distance < 0.8 then
+        gradeText = "FRAME PERFECT!"
+        gradeColor = Color3.fromRGB(255, 215, 0) -- Doré
+        triggerNeonFlash()
+        triggerScreenShake(0.8, 0.35)
+    elseif distance < 2.5 then
+        gradeText = "PERFECT!"
+        gradeColor = Color3.fromRGB(0, 255, 80) -- Vert fluo
+    elseif distance < 5.0 then
+        gradeText = "GOOD!"
+        gradeColor = Color3.fromRGB(255, 215, 45) -- Jaune
+    else
+        gradeText = "RATÉ!"
+        gradeColor = Color3.fromRGB(255, 50, 50) -- Rouge
+        -- Active la physique/dé-ancrage pour que la voiture tombe et s'écrase
+        task.defer(function()
+            for _, part in ipairs(currentCar:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.Anchored = false
+                    part.CanCollide = true
+                end
+            end
+            root.AssemblyLinearVelocity = Vector3.new(0, -15, -45)
+            root.AssemblyAngularVelocity = Vector3.new(math.random(-5, 5), math.random(-3, 3), math.random(-8, 8))
+        end)
+    end
+
+    -- 4. Affichage visuel du résultat avec animation pop-in
+    gradeLabel.Text = gradeText
+    gradeLabel.TextColor3 = gradeColor
+    accuracyLabel.Text = string.format("Précision : %d%% (%.2f studs)", accuracyPct, distance)
+
+    resultContainer.Visible = true
+    resultContainer.Size = UDim2.new(0, 560, 0, 180)
+    TweenService:Create(resultContainer, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Size = UDim2.new(0, 500, 0, 160),
+    }):Play()
+end
+
+-- Écoute Clavier (Espace), Souris (Clic gauche) et Écran tactile (Touch)
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.Space
+        or input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        onPlayerInput()
+    end
+end)
+
+-- =============================================================================
+-- 5. BOUCLE DE SAUT INFINIE
+-- =============================================================================
+local function startNextJump()
+    -- Nettoyage de l'ancienne voiture
+    if currentCar then
+        currentCar:Destroy()
+        currentCar = nil
+    end
+
+    resultContainer.Visible = false
+    hasStopped = false
+    currentElapsed = 0
+
+    -- Instanciation de la Lotus Rally
+    currentCar = CarBuilder.CreateLotusRally()
+    currentCar.Parent = Workspace
+
+    -- Position initiale au sommet de la colline
+    local startPos = getJumpPosition(0)
+    local nextPos = getJumpPosition(0.02)
+    local startCF = CFrame.lookAt(startPos, nextPos)
+    currentCar:PivotTo(startCF)
+
+    isJumping = true
+end
+
+-- Mise à jour continue du déplacement parabolique à chaque frame
+RunService.RenderStepped:Connect(function(dt)
+    if not isJumping or hasStopped or not currentCar then return end
+
+    currentElapsed += dt
+    local tNorm = math.clamp(currentElapsed / JUMP_DURATION, 0, 1)
+
+    local currentPos = getJumpPosition(tNorm)
+    -- Calcul de la tangente pour orienter le véhicule le long de sa trajectoire
+    local lookAheadT = math.clamp(tNorm + 0.015, 0, 1)
+    local nextPos = getJumpPosition(lookAheadT)
+    local moveDir = (nextPos - currentPos)
+
+    local targetCF: CFrame
+    if moveDir.Magnitude > 0.001 then
+        targetCF = CFrame.lookAt(currentPos, nextPos)
+    else
+        targetCF = currentCar:GetPivot()
+    end
+
+    currentCar:PivotTo(targetCF)
+
+    -- Si la voiture atteint la fin du saut sans appui du joueur
+    if tNorm >= 1.0 then
+        onPlayerInput() -- Déclenche automatiquement un "RATÉ"
+    end
+end)
+
+-- Boucle infinie orchestrant les séquences de saut
+task.spawn(function()
+    task.wait(1.0) -- Léger temps de chargement initial
+    while true do
+        startNextJump()
+
+        -- Attend la fin du saut ou l'appui du joueur
+        while isJumping and not hasStopped do
+            task.wait()
+        end
+
+        -- Affiche la note et le % de précision pendant 1.5 seconde
+        task.wait(1.5)
+    end
+end)
+
+print("[GameLoop] Boucle de saut Lotus Rally et système de Frame Grading activés.")
+]]></string>
+        </Properties>
+      </Item>
     </Item>
   </Item>
-  <Item class="Workspace" referent="7">
+  <Item class="Workspace" referent="9">
     <Properties>
       <string name="Name">Workspace</string>
       <bool name="NeedsPivotMigration">false</bool>
     </Properties>
-    <Item class="Part" referent="8">
+    <Item class="Part" referent="10">
       <Properties>
         <string name="Name">Baseplate</string>
         <bool name="Anchored">true</bool>

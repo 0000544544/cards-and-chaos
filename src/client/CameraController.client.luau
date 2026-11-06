@@ -94,7 +94,12 @@ local function onRenderStep()
         fixedCameraCFrame = computeCameraCFrame()
     end
     if fixedCameraCFrame then
-        camera.CFrame = fixedCameraCFrame
+        local shake = camera:GetAttribute("ShakeOffset")
+        if shake and typeof(shake) == "Vector3" then
+            camera.CFrame = fixedCameraCFrame * CFrame.new(shake)
+        else
+            camera.CFrame = fixedCameraCFrame
+        end
     end
 end
 
