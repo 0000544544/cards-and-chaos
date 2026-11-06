@@ -8,7 +8,7 @@
 
 local CarBuilder = {}
 
-export type ContourPoint = { number } -- { X, Y }
+export type ContourPoint = { number } -- { X, Y, Z } en coords locales du véhicule
 
 export type VehicleConfig = {
     Id: string,
@@ -510,7 +510,8 @@ function CarBuilder.CreateHyperionJetCar(): Model
 end
 
 -- =============================================================================
--- REGISTRE DES 5 VÉHICULES AVEC LEUR CONTOUR EXTÉRIEUR UNIQUE (BOUCLE FERMÉE)
+-- REGISTRE DES 5 VÉHICULES AVEC LEUR CONTOUR 3D EXACT (PROJECTION PERSPECTIVE)
+-- Coordonnées { X, Y, Z } en espace local du véhicule sur les pièces réelles
 -- =============================================================================
 CarBuilder.Vehicles = {
     {
@@ -519,36 +520,33 @@ CarBuilder.Vehicles = {
         Name = "#1 Lotus Rally",
         SpeedMultiplier = 1.0,
         RewardCash = 50,
-        FrontZ = -6.6,
+        FrontZ = -6.0,
         OuterContour = {
-            {  0.00, -0.88 }, -- Bas du splitter central
-            { -3.00, -0.88 }, -- Intérieur pneu avant G
-            { -3.45, -1.80 }, -- Bas du pneu G
-            { -3.90, -1.80 }, -- Coin bas extérieur pneu G
-            { -3.90, -0.20 }, -- Flanc extérieur pneu G
-            { -3.45,  0.45 }, -- Jonction aile G
-            { -3.20,  0.80 }, -- Bord supérieur aile / capot G
-            { -3.05,  0.90 }, -- Base rétroviseur G
-            { -3.15,  1.15 }, -- Pointe rétroviseur G
-            { -2.50,  1.20 }, -- Montant pare-brise G
-            { -3.25,  1.95 }, -- Bas dérive aileron arrière G
-            { -3.25,  2.35 }, -- Haut dérive aileron arrière G
-            { -2.40,  2.05 }, -- Bord gauche toit
-            { -0.80,  2.40 }, -- Prise d'air toit G
-            {  0.00,  2.42 }, -- Sommet prise d'air toit
-            {  0.80,  2.40 }, -- Prise d'air toit D
-            {  2.40,  2.05 }, -- Bord droit toit
-            {  3.25,  2.35 }, -- Haut dérive aileron arrière D
-            {  3.25,  1.95 }, -- Bas dérive aileron arrière D
-            {  2.50,  1.20 }, -- Montant pare-brise D
-            {  3.15,  1.15 }, -- Pointe rétroviseur D
-            {  3.05,  0.90 }, -- Base rétroviseur D
-            {  3.20,  0.80 }, -- Bord supérieur aile / capot D
-            {  3.45,  0.45 }, -- Jonction aile D
-            {  3.90, -0.20 }, -- Flanc extérieur pneu D
-            {  3.90, -1.80 }, -- Coin bas extérieur pneu D
-            {  3.45, -1.80 }, -- Bas du pneu D
-            {  3.00, -0.88 }, -- Intérieur pneu avant D
+            {  0.00, -0.88, -5.9 }, -- Bas splitter central
+            { -3.00, -0.88, -3.7 }, -- Bas intérieur pneu G
+            { -3.00, -1.80, -3.7 }, -- Semelle interne pneu G
+            { -3.90, -1.80, -3.7 }, -- Semelle externe pneu G
+            { -3.90,  0.40, -3.7 }, -- Haut flanc externe pneu G
+            { -3.20,  0.45, -3.7 }, -- Aile avant G
+            { -3.10,  0.78, -3.7 }, -- Haut capot G
+            { -3.05,  0.78, -1.6 }, -- Bas rétroviseur G
+            { -3.05,  1.12, -1.6 }, -- Haut rétroviseur G
+            { -2.40,  1.12, -1.8 }, -- Base montant pare-brise G
+            { -2.40,  2.02, -1.8 }, -- Coin supérieur toit G
+            { -0.80,  2.02, -1.5 }, -- Base prise d'air toit G
+            { -0.80,  2.40, -1.5 }, -- Haut prise d'air toit G
+            {  0.80,  2.40, -1.5 }, -- Haut prise d'air toit D
+            {  0.80,  2.02, -1.5 }, -- Base prise d'air toit D
+            {  2.40,  2.02, -1.8 }, -- Coin supérieur toit D
+            {  2.40,  1.12, -1.8 }, -- Base montant pare-brise D
+            {  3.05,  1.12, -1.6 }, -- Haut rétroviseur D
+            {  3.05,  0.78, -1.6 }, -- Bas rétroviseur D
+            {  3.10,  0.78, -3.7 }, -- Haut capot D
+            {  3.20,  0.45, -3.7 }, -- Aile avant D
+            {  3.90,  0.40, -3.7 }, -- Haut flanc externe pneu D
+            {  3.90, -1.80, -3.7 }, -- Semelle externe pneu D
+            {  3.00, -1.80, -3.7 }, -- Semelle interne pneu D
+            {  3.00, -0.88, -3.7 }, -- Bas intérieur pneu D
         },
         Builder = CarBuilder.CreateLotusRally,
     },
@@ -558,28 +556,27 @@ CarBuilder.Vehicles = {
         Name = "#2 Cyber Truck",
         SpeedMultiplier = 1.35,
         RewardCash = 120,
-        FrontZ = -6.2,
+        FrontZ = -6.0,
         OuterContour = {
-            {  0.00, -0.75 }, -- Garde au sol centrale
-            { -2.95, -0.75 }, -- Intérieur pneu G
-            { -3.40, -1.80 }, -- Bas pneu G
-            { -3.85, -1.80 }, -- Coin bas extérieur pneu G
-            { -3.85, -0.30 }, -- Flanc extérieur pneu G
-            { -3.45,  0.40 }, -- Arche de roue angulaire G
-            { -3.25,  0.55 }, -- Coin lightbar G
-            { -3.65,  0.95 }, -- Pointe rétroviseur angulaire G
-            { -3.10,  1.05 }, -- Base rétroviseur G
-            { -1.40,  2.05 }, -- Sommet pyramide toit G
-            {  0.00,  2.08 }, -- Crête centrale toit
-            {  1.40,  2.05 }, -- Sommet pyramide toit D
-            {  3.10,  1.05 }, -- Base rétroviseur D
-            {  3.65,  0.95 }, -- Pointe rétroviseur angulaire D
-            {  3.25,  0.55 }, -- Coin lightbar D
-            {  3.45,  0.40 }, -- Arche de roue angulaire D
-            {  3.85, -0.30 }, -- Flanc extérieur pneu D
-            {  3.85, -1.80 }, -- Coin bas extérieur pneu D
-            {  3.40, -1.80 }, -- Bas pneu D
-            {  2.95, -0.75 }, -- Intérieur pneu D
+            {  0.00, -0.80, -5.8 }, -- Bas châssis central
+            { -2.95, -0.80, -3.8 }, -- Bas intérieur pneu G
+            { -2.95, -1.80, -3.8 }, -- Semelle interne pneu G
+            { -3.85, -1.80, -3.8 }, -- Semelle externe pneu G
+            { -3.85,  0.40, -3.8 }, -- Haut pneu G
+            { -3.20,  0.45, -5.8 }, -- Bord châssis / lightbar G
+            { -3.62,  0.78, -1.8 }, -- Bas rétro G
+            { -3.62,  1.12, -1.8 }, -- Pointe rétro G
+            { -2.90,  1.12, -2.4 }, -- Base pente toit G
+            { -1.40,  2.22,  0.2 }, -- Crête toit G
+            {  1.40,  2.22,  0.2 }, -- Crête toit D
+            {  2.90,  1.12, -2.4 }, -- Base pente toit D
+            {  3.62,  1.12, -1.8 }, -- Pointe rétro D
+            {  3.62,  0.78, -1.8 }, -- Bas rétro D
+            {  3.20,  0.45, -5.8 }, -- Bord châssis / lightbar D
+            {  3.85,  0.40, -3.8 }, -- Haut pneu D
+            {  3.85, -1.80, -3.8 }, -- Semelle externe pneu D
+            {  2.95, -1.80, -3.8 }, -- Semelle interne pneu D
+            {  2.95, -0.80, -3.8 }, -- Bas intérieur pneu D
         },
         Builder = CarBuilder.CreateCyberTruck,
     },
@@ -589,32 +586,27 @@ CarBuilder.Vehicles = {
         Name = "#3 Drift Supra",
         SpeedMultiplier = 1.7,
         RewardCash = 300,
-        FrontZ = -6.6,
+        FrontZ = -6.0,
         OuterContour = {
-            {  0.00, -0.85 }, -- Centre splitter
-            { -3.05, -0.85 }, -- Intérieur pneu G
-            { -3.50, -1.75 }, -- Bas pneu G
-            { -3.95, -1.75 }, -- Coin bas pneu G
-            { -4.05, -0.55 }, -- Canard aéro avant G
-            { -3.80,  0.40 }, -- Élargisseur aile large G
-            { -3.25,  0.95 }, -- Rétroviseur carbone G
-            { -2.25,  1.20 }, -- Montant pare-brise G
-            { -3.60,  1.90 }, -- Embase aileron GT G
-            { -3.65,  2.45 }, -- Dérive haute aileron GT G
-            { -2.00,  2.45 }, -- Lame aileron GT G
-            { -1.80,  1.80 }, -- Double bossage toit G
-            {  0.00,  1.75 }, -- Creux central toit
-            {  1.80,  1.80 }, -- Double bossage toit D
-            {  2.00,  2.45 }, -- Lame aileron GT D
-            {  3.65,  2.45 }, -- Dérive haute aileron GT D
-            {  3.60,  1.90 }, -- Embase aileron GT D
-            {  2.25,  1.20 }, -- Montant pare-brise D
-            {  3.25,  0.95 }, -- Rétroviseur carbone D
-            {  3.80,  0.40 }, -- Élargisseur aile large D
-            {  4.05, -0.55 }, -- Canard aéro avant D
-            {  3.95, -1.75 }, -- Coin bas pneu D
-            {  3.50, -1.75 }, -- Bas pneu D
-            {  3.05, -0.85 }, -- Intérieur pneu D
+            {  0.00, -0.88, -5.9 }, -- Bas splitter carbone
+            { -3.05, -0.88, -3.7 }, -- Intérieur pneu G
+            { -3.05, -1.75, -3.7 }, -- Semelle interne pneu G
+            { -3.95, -1.75, -3.7 }, -- Semelle externe pneu G
+            { -3.95,  0.45, -3.7 }, -- Haut pneu G
+            { -3.20,  0.70, -3.7 }, -- Haut aile / capot G
+            { -3.22,  0.78, -1.6 }, -- Bas rétro G
+            { -3.22,  1.12, -1.6 }, -- Haut rétro G
+            { -2.30,  1.12, -1.8 }, -- Base pare-brise G
+            { -2.30,  1.82, -0.5 }, -- Coin supérieur toit G
+            {  2.30,  1.82, -0.5 }, -- Coin supérieur toit D
+            {  2.30,  1.12, -1.8 }, -- Base pare-brise D
+            {  3.22,  1.12, -1.6 }, -- Haut rétro D
+            {  3.22,  0.78, -1.6 }, -- Bas rétro D
+            {  3.20,  0.70, -3.7 }, -- Haut aile / capot D
+            {  3.95,  0.45, -3.7 }, -- Haut pneu D
+            {  3.95, -1.75, -3.7 }, -- Semelle externe pneu D
+            {  3.05, -1.75, -3.7 }, -- Semelle interne pneu D
+            {  3.05, -0.88, -3.7 }, -- Intérieur pneu D
         },
         Builder = CarBuilder.CreateDriftSupra,
     },
@@ -624,32 +616,29 @@ CarBuilder.Vehicles = {
         Name = "#4 Police Interceptor",
         SpeedMultiplier = 2.1,
         RewardCash = 750,
-        FrontZ = -6.8,
+        FrontZ = -6.4,
         OuterContour = {
-            {  0.00, -0.80 }, -- Bas bullbar central
-            { -2.40, -0.80 }, -- Coin bas bullbar G
-            { -3.00, -0.80 }, -- Intérieur pneu G
-            { -3.45, -1.80 }, -- Bas pneu G
-            { -3.90, -1.80 }, -- Coin extérieur pneu G
-            { -3.90, -0.20 }, -- Flanc extérieur pneu G
-            { -3.50,  0.50 }, -- Aile avant G
-            { -2.40,  0.60 }, -- Sommet bullbar G
-            { -3.30,  1.05 }, -- Rétroviseur & spot recherche G
-            { -2.35,  1.25 }, -- Montant pare-brise G
-            { -2.30,  1.95 }, -- Bord toit G
-            { -1.90,  2.35 }, -- Sommet gyrophare G
-            {  0.00,  2.35 }, -- Centre rampe gyrophare
-            {  1.90,  2.35 }, -- Sommet gyrophare D
-            {  2.30,  1.95 }, -- Bord toit D
-            {  2.35,  1.25 }, -- Montant pare-brise D
-            {  3.30,  1.05 }, -- Rétroviseur & spot recherche D
-            {  2.40,  0.60 }, -- Sommet bullbar D
-            {  3.50,  0.50 }, -- Aile avant D
-            {  3.90, -0.20 }, -- Flanc extérieur pneu D
-            {  3.90, -1.80 }, -- Coin extérieur pneu D
-            {  3.45, -1.80 }, -- Bas pneu D
-            {  3.00, -0.80 }, -- Intérieur pneu D
-            {  2.40, -0.80 }, -- Coin bas bullbar D
+            {  0.00, -0.85, -5.9 }, -- Bas châssis central
+            { -3.00, -0.85, -3.8 }, -- Intérieur pneu G
+            { -3.00, -1.80, -3.8 }, -- Semelle interne pneu G
+            { -3.90, -1.80, -3.8 }, -- Semelle externe pneu G
+            { -3.90,  0.40, -3.8 }, -- Haut pneu G
+            { -3.22,  0.60, -3.8 }, -- Haut aile G
+            { -3.12,  0.78, -1.6 }, -- Bas rétro G
+            { -3.12,  1.12, -1.6 }, -- Haut rétro G
+            { -2.30,  1.12, -1.8 }, -- Base pare-brise G
+            { -2.30,  2.02, -0.5 }, -- Coin toit G
+            { -1.90,  2.38,  0.4 }, -- Haut gyrophare G
+            {  1.90,  2.38,  0.4 }, -- Haut gyrophare D
+            {  2.30,  2.02, -0.5 }, -- Coin toit D
+            {  2.30,  1.12, -1.8 }, -- Base pare-brise D
+            {  3.12,  1.12, -1.6 }, -- Haut rétro D
+            {  3.12,  0.78, -1.6 }, -- Bas rétro D
+            {  3.22,  0.60, -3.8 }, -- Haut aile D
+            {  3.90,  0.40, -3.8 }, -- Haut pneu D
+            {  3.90, -1.80, -3.8 }, -- Semelle externe pneu D
+            {  3.00, -1.80, -3.8 }, -- Semelle interne pneu D
+            {  3.00, -0.85, -3.8 }, -- Intérieur pneu D
         },
         Builder = CarBuilder.CreatePoliceInterceptor,
     },
@@ -659,28 +648,27 @@ CarBuilder.Vehicles = {
         Name = "#5 Hyperion JetCar",
         SpeedMultiplier = 2.7,
         RewardCash = 2000,
-        FrontZ = -7.2,
+        FrontZ = -6.8,
         OuterContour = {
-            {  0.00, -0.85 }, -- Pointe avant basse
-            { -2.90, -0.85 }, -- Intérieur roue G
-            { -3.40, -1.65 }, -- Bas roue G
-            { -3.85, -1.65 }, -- Coin bas roue G
-            { -4.10, -0.40 }, -- Aileron canard supersonique G
-            { -3.50,  0.30 }, -- Écope latérale G
-            { -2.80,  1.10 }, -- Nacelle réacteur jet G
-            { -1.80,  1.20 }, -- Base verrière bulle G
-            { -1.40,  1.75 }, -- Épaulement verrière G
-            { -0.20,  2.10 }, -- Base aileron dorsal G
-            {  0.00,  2.65 }, -- Crête dérive dorsale fusée
-            {  0.20,  2.10 }, -- Base aileron dorsal D
-            {  1.40,  1.75 }, -- Épaulement verrière D
-            {  1.80,  1.20 }, -- Base verrière bulle D
-            {  2.80,  1.10 }, -- Nacelle réacteur jet D
-            {  3.50,  0.30 }, -- Écope latérale D
-            {  4.10, -0.40 }, -- Aileron canard supersonique D
-            {  3.85, -1.65 }, -- Coin bas roue D
-            {  3.40, -1.65 }, -- Bas roue D
-            {  2.90, -0.85 }, -- Intérieur roue D
+            {  0.00, -0.75, -5.8 }, -- Bas fuselage central
+            { -2.95, -0.75, -3.8 }, -- Intérieur roue G
+            { -2.95, -1.65, -3.8 }, -- Semelle interne roue G
+            { -3.85, -1.65, -3.8 }, -- Semelle externe roue G
+            { -3.85,  0.35, -3.8 }, -- Haut roue G
+            { -3.20,  0.25, -3.8 }, -- Bord fuselage Or G
+            { -1.60,  0.35, -1.5 }, -- Base verrière cockpit G
+            { -1.60,  1.55, -0.4 }, -- Haut verrière cockpit G
+            { -0.15,  1.55,  1.2 }, -- Base dérive dorsale G
+            { -0.15,  2.60,  1.2 }, -- Sommet dérive dorsale G
+            {  0.15,  2.60,  1.2 }, -- Sommet dérive dorsale D
+            {  0.15,  1.55,  1.2 }, -- Base dérive dorsale D
+            {  1.60,  1.55, -0.4 }, -- Haut verrière cockpit D
+            {  1.60,  0.35, -1.5 }, -- Base verrière cockpit D
+            {  3.20,  0.25, -3.8 }, -- Bord fuselage Or D
+            {  3.85,  0.35, -3.8 }, -- Haut roue D
+            {  3.85, -1.65, -3.8 }, -- Semelle externe roue D
+            {  2.95, -1.65, -3.8 }, -- Semelle interne roue D
+            {  2.95, -0.75, -3.8 }, -- Intérieur roue D
         },
         Builder = CarBuilder.CreateHyperionJetCar,
     },
@@ -700,10 +688,12 @@ function CarBuilder.GetVehicleConfig(idOrIndex: any): VehicleConfig
 end
 
 -- =============================================================================
--- CRÉATION DU TARGETFRAME : BOUCLE FERMÉE UNIQUE SANS LIGNES INTERNES
--- Calée directement sur la silhouette extérieure réelle du véhicule
+-- CRÉATION DU TARGETFRAME : BOUCLE FERMÉE EXTÉRIEURE AVEC PROJECTION PERSPECTIVE
+-- Les points 3D locaux { X, Y, Z } sont projetés depuis l'œil de la caméra
+-- sur le plan frontal (FrontZ) via une intersection rayon-plan exacte.
+-- Résultat : chaque barre verte à l'écran coïncide au pixel près avec la pièce 3D vue depuis la caméra.
 -- =============================================================================
-function CarBuilder.CreateTargetFrame(idOrIndex: any, centerPos: Vector3, param3: any?, param4: any?): Model
+function CarBuilder.CreateTargetFrame(idOrIndex: any, centerPos: Vector3): Model
     local cfg = CarBuilder.GetVehicleConfig(idOrIndex)
 
     -- Nettoyage de tout ancien TargetFrame existant
@@ -716,19 +706,29 @@ function CarBuilder.CreateTargetFrame(idOrIndex: any, centerPos: Vector3, param3
     frameModel.Name = "TargetFrame"
     frameModel.Parent = workspace
 
-    -- Orientation standard alignée avec la descente de la colline
+    -- Repère géométrique identique à CameraController et GameLoop
     local slopeVector = Vector3.new(0, 120, 400)
     local uDir = slopeVector.Unit
     local rightVec = Vector3.new(1, 0, 0)
     local normalVec = uDir:Cross(rightVec)
     local downhillDir = -uDir
 
+    -- CFrame cible du véhicule (de face face à la caméra)
     local targetCF = CFrame.lookAt(centerPos, centerPos + downhillDir, normalVec)
 
-    local NEON_GREEN = Color3.fromRGB(0, 255, 60)
-    local BAR_THICKNESS = 0.14
+    -- Position de l'œil de la caméra (identique à CameraController.client.luau)
+    local roadBasePos = centerPos - (uDir * 20)
+    local eyePos = roadBasePos - (normalVec * 0.4)
 
-    -- 1. Repère invisible CenterPoint exactement au centre cible
+    -- Plan du contour : placé exactement devant le nez de la voiture (FrontZ - 0.20)
+    local contourCF = targetCF * CFrame.new(0, 0, cfg.FrontZ - 0.20)
+    local planeOrigin = contourCF.Position
+    local planeNormal = contourCF.LookVector
+
+    local NEON_GREEN = Color3.fromRGB(0, 255, 60)
+    local BAR_THICKNESS = 0.12
+
+    -- 1. Repère invisible CenterPoint au centre géométrique du cadre
     local centerPoint = Instance.new("Part")
     centerPoint.Name = "CenterPoint"
     centerPoint.Size = Vector3.new(1, 1, 1)
@@ -746,11 +746,19 @@ function CarBuilder.CreateTargetFrame(idOrIndex: any, centerPos: Vector3, param3
     pointLight.Range = 26
     pointLight.Parent = centerPoint
 
-    -- 2. Plan du contour placé 0.15 stud devant le nez de la voiture
-    -- Cela empêche toute barre de traverser la carrosserie lorsque la voiture est figée à l'arrêt
-    local contourCF = targetCF * CFrame.new(0, 0, cfg.FrontZ - 0.15)
+    -- 2. Projection perspective : chaque sommet 3D local → rayon depuis la caméra → intersection avec le plan contour
+    local function projectPointFromCamera(localPt: { number }): Vector3
+        local worldPt = targetCF:PointToWorldSpace(Vector3.new(localPt[1], localPt[2], localPt[3]))
+        local rayDir = worldPt - eyePos
+        local denom = rayDir:Dot(planeNormal)
+        if math.abs(denom) < 1e-5 then
+            return worldPt -- Rayon parallèle au plan : retour au point monde
+        end
+        local s = (planeOrigin - eyePos):Dot(planeNormal) / denom
+        return eyePos + rayDir * s
+    end
 
-    -- 3. Construction de la boucle fermée extérieure UNIQUE (aucun clone fantôme, aucune ligne interne)
+    -- 3. Construction de la boucle fermée extérieure UNIQUE (aucun clone, aucune ligne interne)
     local pts = cfg.OuterContour
     local count = #pts
 
@@ -759,9 +767,8 @@ function CarBuilder.CreateTargetFrame(idOrIndex: any, centerPos: Vector3, param3
         local nextIdx = (i % count) + 1
         local pB = pts[nextIdx]
 
-        -- Conversion des coordonnées 2D (X, Y) du contour dans l'espace 3D du plan frontal
-        local wA = contourCF:PointToWorldSpace(Vector3.new(pA[1], pA[2], 0))
-        local wB = contourCF:PointToWorldSpace(Vector3.new(pB[1], pB[2], 0))
+        local wA = projectPointFromCamera(pA)
+        local wB = projectPointFromCamera(pB)
 
         local segVec = wB - wA
         local segLen = segVec.Magnitude
@@ -781,7 +788,7 @@ function CarBuilder.CreateTargetFrame(idOrIndex: any, centerPos: Vector3, param3
         end
     end
 
-    print(string.format("[CarBuilder] TargetFrame boucle fermée extérieure créée pour %s (%d segments)", cfg.Name, count))
+    print(string.format("[CarBuilder] TargetFrame perspective projeté créé pour %s (%d segments)", cfg.Name, count))
     return frameModel
 end
 

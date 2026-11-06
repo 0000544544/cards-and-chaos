@@ -418,9 +418,11 @@ local function getJumpCFrame(tNorm: number): CFrame
 
     if tNorm <= T_TARGET then
         local arcProgress = tNorm / T_TARGET
-        local sinEnv = math.sin(math.pi * arcProgress)
+        -- sin² annule la dérivée verticale à t = T_TARGET : la voiture atterrit tangentiellement
+        -- sans décalage vertical résiduel même à 1 stud d'écart (zone PERFECT)
+        local sinEnv = math.sin(math.pi * arcProgress) ^ 2
         yArc = 14.0 * sinEnv
-        -- Le nez se cabre de +24° dans les airs (visible en contre-plongée) puis redescend à 0°
+        -- Le cabrage s'annule également en douceur avec la même enveloppe
         pitchDeg = 24.0 * sinEnv
     else
         -- Redescente après la cible
@@ -441,7 +443,7 @@ local function getJumpCFrame(tNorm: number): CFrame
     local nextYBase = ay * (nextT ^ 2) + by * nextT + cy
     local nextYArc = 0
     if nextT <= T_TARGET then
-        nextYArc = 14.0 * math.sin(math.pi * (nextT / T_TARGET))
+        nextYArc = 14.0 * math.sin(math.pi * (nextT / T_TARGET)) ^ 2
     end
     local nextPos = Vector3.new(0, nextYBase + nextYArc, nextZ)
 
@@ -454,9 +456,12 @@ local function getJumpCFrame(tNorm: number): CFrame
     end
 
     local pitchCF = CFrame.Angles(math.rad(pitchDeg), 0, 0)
-    local flightCF = baseLookCF * pitchCF
+    -- Orientation de vol : basée sur TargetCFrame pour garantir que la rotation finale est toujours correcte
+    -- pitchDeg vaut 0 à T_TARGET grâce au sin², donc flightCF === TargetCFrame en position
+    local orientBase = TargetCFrame - TargetCFrame.Position + currentPos
+    local flightCF = orientBase * pitchCF
 
-    -- 4. Convergence mathématique continue vers TargetCFrame à l'approche de T_TARGET
+    -- 4. Convergence SmoothStep vers TargetCFrame dans les 35% finaux de l'approche
     if tNorm < T_TARGET then
         local approachProgress = tNorm / T_TARGET
         if approachProgress >= 0.65 then
@@ -508,6 +513,8 @@ local function onPlayerInput()
         gradeText = "FRAME PERFECT!"
         gradeColor = Color3.fromRGB(255, 215, 0)
         rewardAmount = currentConfig.RewardCash
+        -- Snap visuel ultra-satisfaisant : emboîtement parfait dans le cadre
+        currentCar:PivotTo(TargetCFrame)
         triggerNeonFlash()
         triggerScreenShake(0.9, 0.4)
     elseif distance < 2.5 then
