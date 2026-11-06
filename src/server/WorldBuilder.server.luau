@@ -151,11 +151,10 @@ for z = ROAD_START_Z + 10, ROAD_END_Z - 10, stepZ do
 end
 
 -- =============================================================================
--- 6. LE CADRE VERT CIBLE "TargetFrame" (Flottant à 4 studs au milieu de la pente)
+-- 6. LE CADRE VERT CIBLE "TargetFrame" INITIALISÉ VIA CARBUILDER
 -- =============================================================================
-local targetFrameModel = Instance.new("Model")
-targetFrameModel.Name = "TargetFrame"
-targetFrameModel.Parent = Workspace
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local CarBuilder = require(ReplicatedStorage:WaitForChild("CarBuilder") :: ModuleScript)
 
 -- Position du milieu de la pente sur la surface de la route
 local midT = 0.5
@@ -164,86 +163,9 @@ local midSurfacePos = Vector3.new(0, midSurfaceY, midZ)
 
 -- La base de la silhouette de voiture flotte à 4 studs au-dessus de la route
 local FRAME_FLOAT_HEIGHT = 4.0
-local frameBasePos = midSurfacePos + (normalVec * FRAME_FLOAT_HEIGHT)
+local frameCenterPos = midSurfacePos + (normalVec * (FRAME_FLOAT_HEIGHT + 1.8))
+local frameBaseCF = CFrame.fromMatrix(frameCenterPos, rightVec, normalVec)
 
--- Dimensions de la silhouette de voiture de face
-local BAR_THICKNESS = 0.22
-local NEON_GREEN = Color3.fromRGB(0, 255, 80)
+CarBuilder.CreateTargetFrame("lotus_rally", frameCenterPos, frameBaseCF)
 
--- Segments 2D formant la silhouette de face d'une voiture (en coordonnées locales x, y)
--- x : largeur (-4 à +4 studs), y : hauteur (0 à 4.2 studs au-dessus du point de flottaison)
-local carSilhouetteSegments: { { number } } = {
-    -- 1. Pare-chocs inférieur (Base)
-    { -3.6, 0.2, 3.6, 0.2 },
-    -- 2. Contour des pneus / bas de caisse
-    { -3.6, 0.2, -3.9, 0.9 },
-    { 3.6, 0.2, 3.9, 0.9 },
-    -- 3. Pare-chocs principal horizontal
-    { -4.0, 0.9, 4.0, 0.9 },
-    -- 4. Ailes et calandre inférieure
-    { -4.0, 0.9, -3.9, 2.0 },
-    { 4.0, 0.9, 3.9, 2.0 },
-    -- 5. Ligne de capot (Ceinture de caisse)
-    { -3.9, 2.0, 3.9, 2.0 },
-    -- 6. Montants de pare-brise (Piliers A inclinés)
-    { -3.4, 2.0, -2.3, 4.0 },
-    { 3.4, 2.0, 2.3, 4.0 },
-    -- 7. Toit horizontal
-    { -2.3, 4.0, 2.3, 4.0 },
-    -- 8. Rétroviseurs extérieurs
-    { -3.5, 2.3, -4.3, 2.4 },
-    { 3.5, 2.3, 4.3, 2.4 },
-    -- 9. Phares avant (Accents horizontaux)
-    { -3.5, 1.5, -2.4, 1.5 },
-    { 2.4, 1.5, 3.5, 1.5 },
-    -- 10. Calandre centrale
-    { -1.4, 1.4, 1.4, 1.4 },
-}
-
--- Tracé de chaque barre en Neon vert fluo
-for i, seg in ipairs(carSilhouetteSegments) do
-    local x1, y1, x2, y2 = seg[1], seg[2], seg[3], seg[4]
-    local p1 = frameBasePos + (rightVec * x1) + (normalVec * y1)
-    local p2 = frameBasePos + (rightVec * x2) + (normalVec * y2)
-
-    local segVec = p2 - p1
-    local segLen = segVec.Magnitude
-    local segMid = (p1 + p2) / 2
-
-    if segLen > 0.01 then
-        local bar = Instance.new("Part")
-        bar.Name = "Bar_" .. i
-        bar.Size = Vector3.new(BAR_THICKNESS, BAR_THICKNESS, segLen)
-        bar.CFrame = CFrame.lookAt(segMid, segMid + segVec.Unit)
-        bar.Material = Enum.Material.Neon
-        bar.Color = NEON_GREEN
-        bar.Anchored = true
-        bar.CanCollide = false
-        bar.Parent = targetFrameModel
-    end
-end
-
--- Calcul du centre exact du cadre vert
-local centerLocalY = 2.1
-local frameCenterPos = frameBasePos + (normalVec * centerLocalY)
-
--- Repère invisible "CenterPoint" avec PointLight au centre du cadre vert
-local centerPoint = Instance.new("Part")
-centerPoint.Name = "CenterPoint"
-centerPoint.Size = Vector3.new(1, 1, 1)
-centerPoint.CFrame = CFrame.new(frameCenterPos)
-centerPoint.Transparency = 1
-centerPoint.Anchored = true
-centerPoint.CanCollide = false
-centerPoint.Parent = targetFrameModel
-
-local pointLight = Instance.new("PointLight")
-pointLight.Name = "FrameLight"
-pointLight.Color = NEON_GREEN
-pointLight.Brightness = 3.5
-pointLight.Range = 26
-pointLight.Parent = centerPoint
-
-targetFrameModel.PrimaryPart = centerPoint
-
-print("[WorldBuilder] Rue San Francisco en pente et TargetFrame créés avec succès.")
+print("[WorldBuilder] Rue San Francisco en pente et TargetFrame initialisés avec succès.")

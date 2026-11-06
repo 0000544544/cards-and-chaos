@@ -66,23 +66,22 @@ local uDir = slopeVector.Unit -- Monte vers le sommet
 local rightVec = Vector3.new(1, 0, 0)
 local normalVec = uDir:Cross(rightVec) -- Perpendiculaire au sol vers le haut
 
--- Position fixe de la caméra : en bas de la pente, 55 studs en retrait du cadre,
--- élevée à 4.8 studs au-dessus du sol pour une perspective dynamique au ras de la route
+-- Position fixe de la caméra : rapprochée à ~20 studs du cadre vert (en contre-plongée légère)
+-- Le TargetFrame occupe ainsi une place imposante et majestueuse au premier plan de l'écran.
 local fixedCameraCFrame: CFrame? = nil
 
 local function computeCameraCFrame(): CFrame
-    if centerPoint then
-        local targetPos = centerPoint.Position
-        -- Recul de 52 studs vers le bas de la colline le long de la pente
-        local roadBasePos = targetPos - (uDir * 52)
-        -- Élévation au-dessus du sol
-        local eyePos = roadBasePos + (normalVec * 0.8)
-        -- Visée vers le centre du TargetFrame
-        return CFrame.lookAt(eyePos, targetPos)
-    else
-        -- Coordonnées de secours si le point n'est pas encore instancié
-        return CFrame.lookAt(Vector3.new(0, 48, 108), Vector3.new(0, 66, 160))
-    end
+    local currentTarget = Workspace:FindFirstChild("TargetFrame")
+    local cp = currentTarget and currentTarget:FindFirstChild("CenterPoint") :: BasePart?
+    local targetPos = (cp and cp.Position) or (centerPoint and centerPoint.Position) or Vector3.new(0, 66.84, 158.22)
+
+    -- Rapprochement à 20 studs devant le TargetFrame le long de la pente
+    local roadBasePos = targetPos - (uDir * 20)
+    -- Contre-plongée légère : caméra placée sous le centre pour une visée ascendante dynamique
+    local eyePos = roadBasePos - (normalVec * 0.4)
+    local lookTarget = targetPos + (normalVec * 0.3)
+
+    return CFrame.lookAt(eyePos, lookTarget)
 end
 
 fixedCameraCFrame = computeCameraCFrame()
