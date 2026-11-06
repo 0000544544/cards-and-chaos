@@ -1,9 +1,10 @@
 --!strict
 --[[
-    STOP AT THE FRAME - GAME LOOP & MULTI-MOMENTS (CLIENT SCRIPT)
-    Étape 3 : Cadrage rapproché, saut haut cabré (+24° pitch) révélant le dessous noir,
-    5 moments/véhicules avec TargetFrame synchronisé au millimètre,
-    économie, streaks, titres et interface HUD complète.
+    STOP AT THE FRAME - GAME LOOP & FRAME GRADING (CLIENT SCRIPT)
+    Gère la trajectoire parabolique avec saut cabré (+24° pitch) et alignement
+    mathématique 100% parfait à t = T_TARGET avec TargetCFrame,
+    le TargetFrame en boucle fermée extérieure unique sans clone fantôme ni lignes internes,
+    et le système de notation de précision (Frame Grading).
 ]]
 
 local Players = game:GetService("Players")
@@ -29,16 +30,19 @@ if remotesFolder then
 end
 
 -- =============================================================================
--- 2. GÉOMÉTRIE DE LA PENTE ET DU CADRE CIBLE
+-- 2. GÉOMÉTRIE ET CIBLE UNIQUE "TargetCFrame"
 -- =============================================================================
 local slopeVector = Vector3.new(0, 120, 400)
 local uDir = slopeVector.Unit
 local rightVec = Vector3.new(1, 0, 0)
 local normalVec = uDir:Cross(rightVec)
+local downhillDir = -uDir -- Direction descendante vers la caméra
 
 local midSurfacePos = Vector3.new(0, 61.0, 160.0)
 local frameCenterPos = midSurfacePos + (normalVec * 5.8)
-local frameBaseCF = CFrame.fromMatrix(frameCenterPos, rightVec, normalVec)
+
+-- CFrame de référence unique pour le passage dans le cadre (de face face à la caméra)
+local TargetCFrame = CFrame.lookAt(frameCenterPos, frameCenterPos + downhillDir, normalVec)
 
 -- =============================================================================
 -- 3. INTERFACE UTILISATEUR COMPLETE (ScreenGui)
@@ -163,7 +167,7 @@ accuracyLabel.TextSize = 25
 accuracyLabel.TextColor3 = Color3.fromRGB(245, 245, 250)
 accuracyLabel.TextStrokeColor3 = Color3.fromRGB(12, 14, 18)
 accuracyLabel.TextStrokeTransparency = 0.2
-accuracyLabel.Text = "Précision : 100% (0.1 studs)"
+accuracyLabel.Text = "Précision : 100% (0.0 studs)"
 accuracyLabel.Parent = resultContainer
 
 local rewardPopupLabel = Instance.new("TextLabel")
@@ -313,8 +317,8 @@ local function applyVehicleChange(newIndex: number)
     currentVehicleIndex = math.clamp(newIndex, 1, totalVehicles)
     updateVehicleUI()
 
-    -- Reconstruit le TargetFrame avec la silhouette exacte et l'inclinaison cible du véhicule
-    CarBuilder.CreateTargetFrame(currentVehicleIndex, frameCenterPos, frameBaseCF)
+    -- Reconstruit le TargetFrame avec la boucle fermée extérieure unique correspondant au véhicule
+    CarBuilder.CreateTargetFrame(currentVehicleIndex, frameCenterPos)
 
     -- Relance immédiatement le saut avec le nouveau véhicule
     hasStopped = true
@@ -375,12 +379,12 @@ local function computeAccuracyPercentage(dist: number): number
 end
 
 -- =============================================================================
--- 7. PHYSIQUE DU SAUT HAUT CABRÉ (+24° PITCH) ET TARGET FRAME TARGETING
+-- 7. PHYSIQUE DU SAUT ET CONVERGENCE STRICTE VERS TargetCFrame À t = T_TARGET
 -- =============================================================================
 local JUMP_BASE_DURATION = 2.6 -- Durée de base à vitesse x1.0
 local T_TARGET = 0.60 -- Moment exact du passage dans le TargetFrame
 
--- Points directeurs de la trajectoire
+-- Points directeurs de la parabole de trajectoire
 local zStart = 265.0
 local zTarget = frameCenterPos.Z
 local zEnd = 85.0
@@ -389,7 +393,7 @@ local yStart = 98.0
 local yTarget = frameCenterPos.Y
 local yEnd = 34.0
 
--- Résolution de la parabole de base f(t) = a*t^2 + b*t + c
+-- Résolution de la parabole f(t) = a*t^2 + b*t + c
 local dz1 = zTarget - zStart
 local dz2 = zEnd - zStart
 local az = (dz2 * T_TARGET - dz1) / (T_TARGET * (1 - T_TARGET))
@@ -408,57 +412,62 @@ local function getJumpCFrame(tNorm: number): CFrame
     local yBase = ay * (tNorm ^ 2) + by * tNorm + cy
 
     -- 2. Surélévation parabolique puissante (Saut HAUT au-dessus du cadre)
-    -- Culmine à +14 studs à mi-chemin vers la cible (t = 0.30), et s'annule à t = T_TARGET (0.60)
+    -- Culmine à +14 studs à mi-parcours (t = 0.30) et s'annule exactement à t = T_TARGET (0.60)
     local yArc = 0
     local pitchDeg = 0
+
     if tNorm <= T_TARGET then
         local arcProgress = tNorm / T_TARGET
         local sinEnv = math.sin(math.pi * arcProgress)
         yArc = 14.0 * sinEnv
-        -- Le nez se cabre de +24° dans les airs : on voit parfaitement tout le dessous noir détaillé !
+        -- Le nez se cabre de +24° dans les airs (visible en contre-plongée) puis redescend à 0°
         pitchDeg = 24.0 * sinEnv
     else
         -- Redescente après la cible
         local postProgress = (tNorm - T_TARGET) / (1.0 - T_TARGET)
-        pitchDeg = -12.0 * math.sin(math.pi * 0.5 * postProgress)
+        pitchDeg = -10.0 * math.sin(math.pi * 0.5 * postProgress)
     end
 
     local currentPos = Vector3.new(0, yBase + yArc, z)
 
-    -- 3. Orientation tangentielle + inclinaison
-    local nextT = math.clamp(tNorm + 0.015, 0, 1)
+    -- Si tNorm est exactement à T_TARGET, renvoie strictement TargetCFrame
+    if math.abs(tNorm - T_TARGET) < 0.0005 then
+        return TargetCFrame
+    end
+
+    -- 3. Calcul de la tangente de vol
+    local nextT = math.clamp(tNorm + 0.012, 0, 1)
     local nextZ = az * (nextT ^ 2) + bz * nextT + cz
     local nextYBase = ay * (nextT ^ 2) + by * nextT + cy
     local nextYArc = 0
     if nextT <= T_TARGET then
         nextYArc = 14.0 * math.sin(math.pi * (nextT / T_TARGET))
-    else
-        local p = (nextT - T_TARGET) / (1.0 - T_TARGET)
-        nextYArc = 0
     end
     local nextPos = Vector3.new(0, nextYBase + nextYArc, nextZ)
 
     local moveDir = (nextPos - currentPos)
     local baseLookCF: CFrame
     if moveDir.Magnitude > 0.001 then
-        baseLookCF = CFrame.lookAt(currentPos, nextPos)
+        baseLookCF = CFrame.lookAt(currentPos, nextPos, normalVec)
     else
-        baseLookCF = frameBaseCF + (currentPos - frameCenterPos)
+        baseLookCF = TargetCFrame - TargetCFrame.Position + currentPos
     end
 
-    -- Combinaison du cabrage en vol avec l'inclinaison spécifique du véhicule
     local pitchCF = CFrame.Angles(math.rad(pitchDeg), 0, 0)
+    local flightCF = baseLookCF * pitchCF
 
-    -- À t = T_TARGET, la rotation doit correspondre EXACTEMENT à frameBaseCF * currentConfig.TargetTilt
-    local targetRotOnly = (frameBaseCF * currentConfig.TargetTilt) - frameCenterPos
-    local blendToTarget = math.clamp(1 - math.abs(tNorm - T_TARGET) / 0.15, 0, 1)
-
-    if blendToTarget > 0 then
-        local rawCF = (baseLookCF * pitchCF) - currentPos
-        local blendedRot = rawCF:Lerp(targetRotOnly, blendToTarget)
-        return CFrame.new(currentPos) * blendedRot
+    -- 4. Convergence mathématique continue vers TargetCFrame à l'approche de T_TARGET
+    if tNorm < T_TARGET then
+        local approachProgress = tNorm / T_TARGET
+        if approachProgress >= 0.65 then
+            local alpha = (approachProgress - 0.65) / 0.35
+            local smoothAlpha = alpha * alpha * (3 - 2 * alpha)
+            local targetAtPos = TargetCFrame - TargetCFrame.Position + currentPos
+            return flightCF:Lerp(targetAtPos, smoothAlpha)
+        end
+        return flightCF
     else
-        return baseLookCF * pitchCF
+        return flightCF
     end
 end
 
@@ -627,7 +636,7 @@ end)
 task.spawn(function()
     task.wait(0.8)
     -- Initialisation du TargetFrame pour le véhicule sélectionné par défaut
-    CarBuilder.CreateTargetFrame(currentVehicleIndex, frameCenterPos, frameBaseCF)
+    CarBuilder.CreateTargetFrame(currentVehicleIndex, frameCenterPos)
     updateVehicleUI()
 
     while true do
@@ -641,4 +650,4 @@ task.spawn(function()
     end
 end)
 
-print("[GameLoop] Multi-moments, saut haut cabré, HUD et économie prêts !")
+print("[GameLoop] Trajectoire, boucle fermée TargetFrame et système de grading opérationnels.")

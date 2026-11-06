@@ -1,13 +1,14 @@
 --!strict
 --[[
     STOP AT THE FRAME - CAR BUILDER & TARGET FRAME GENERATOR (MODULE SCRIPT)
-    Génère procéduralement les 5 véhicules uniques (#1 Lotus Rally, #2 Cyber Truck,
-    #3 Drift Supra, #4 Police Interceptor, #5 Hyperion JetCar) avec châssis inférieur détaillé,
-    et génère le TargetFrame 100% fidèle avec clone fantôme (Highlight AlwaysOnTop)
-    et contour polygonal en fines barres vert fluo.
+    Génère procéduralement les 5 véhicules avec soubassement noir détaillé,
+    et génère le TargetFrame : un seul polygone fermé continu en fines barres Neon vertes (0.14)
+    délimitant exclusivement le contour extérieur (vide à l'intérieur, aucun clone fantôme, aucune ligne interne).
 ]]
 
 local CarBuilder = {}
+
+export type ContourPoint = { number } -- { X, Y }
 
 export type VehicleConfig = {
     Id: string,
@@ -15,8 +16,8 @@ export type VehicleConfig = {
     Name: string,
     SpeedMultiplier: number,
     RewardCash: number,
-    TargetTilt: CFrame,
-    SilhouettePoints: { { number } },
+    FrontZ: number,
+    OuterContour: { ContourPoint },
     Builder: () -> Model,
 }
 
@@ -40,32 +41,32 @@ local function weldParts(part0: BasePart, part1: BasePart)
     weld.Parent = part1
 end
 
--- Ajoute un soubassement noir détaillé sous n'importe quel châssis (visible quand le nez est cabré)
+-- Ajoute un soubassement mécanique noir détaillé (visible quand le nez est cabré)
 local function addDetailedUndercarriage(root: BasePart, car: Model, width: number, length: number)
     local UNDER_BLACK = Color3.fromRGB(15, 16, 18)
     local METAL_GRAY = Color3.fromRGB(175, 180, 188)
     local EXHAUST_HEAT = Color3.fromRGB(120, 150, 190)
 
-    -- 1. Plaque de protection inférieure (Skid Plate)
+    -- Plaque de protection inférieure (Skid Plate)
     local skidPlate = createPart("SkidPlate", Vector3.new(width - 0.8, 0.25, length - 1.5), root.CFrame * CFrame.new(0, -0.9, 0), Enum.Material.DiamondPlate, UNDER_BLACK, car)
     weldParts(root, skidPlate)
 
-    -- 2. Carter de transmission & boîte centrale
-    local transmission = createPart("GearboxPan", Vector3.new(2.2, 0.4, 3.2), root.CFrame * CFrame.new(0, -0.95, -0.4), Enum.Material.Metal, METAL_GRAY, car)
+    -- Carter de transmission & boîte centrale
+    local transmission = createPart("GearboxPan", Vector3.new(2.0, 0.4, 3.0), root.CFrame * CFrame.new(0, -0.95, -0.4), Enum.Material.Metal, METAL_GRAY, car)
     weldParts(root, transmission)
 
-    -- 3. Double ligne d'échappement inox
-    local exhaustL = createPart("ExhaustPipe_L", Vector3.new(0.4, 0.4, length - 3.0), root.CFrame * CFrame.new(-1.2, -0.92, 0.8), Enum.Material.Metal, EXHAUST_HEAT, car)
+    -- Double ligne d'échappement inox
+    local exhaustL = createPart("ExhaustPipe_L", Vector3.new(0.35, 0.35, length - 3.2), root.CFrame * CFrame.new(-1.2, -0.92, 0.8), Enum.Material.Metal, EXHAUST_HEAT, car)
     weldParts(root, exhaustL)
-    local exhaustR = createPart("ExhaustPipe_R", Vector3.new(0.4, 0.4, length - 3.0), root.CFrame * CFrame.new(1.2, -0.92, 0.8), Enum.Material.Metal, EXHAUST_HEAT, car)
+    local exhaustR = createPart("ExhaustPipe_R", Vector3.new(0.35, 0.35, length - 3.2), root.CFrame * CFrame.new(1.2, -0.92, 0.8), Enum.Material.Metal, EXHAUST_HEAT, car)
     weldParts(root, exhaustR)
 
-    -- 4. Embouts d'échappement chromés à l'arrière
+    -- Embouts d'échappement chromés à l'arrière
     local tipL = Instance.new("Part")
     tipL.Name = "ExhaustTip_L"
     tipL.Shape = Enum.PartType.Cylinder
-    tipL.Size = Vector3.new(0.8, 0.55, 0.55)
-    tipL.CFrame = root.CFrame * CFrame.new(-1.4, -0.7, length / 2 + 0.3) * CFrame.Angles(0, math.rad(90), 0)
+    tipL.Size = Vector3.new(0.8, 0.5, 0.5)
+    tipL.CFrame = root.CFrame * CFrame.new(-1.3, -0.7, length / 2 + 0.3) * CFrame.Angles(0, math.rad(90), 0)
     tipL.Material = Enum.Material.Metal
     tipL.Color = METAL_GRAY
     tipL.Anchored = false
@@ -76,8 +77,8 @@ local function addDetailedUndercarriage(root: BasePart, car: Model, width: numbe
     local tipR = Instance.new("Part")
     tipR.Name = "ExhaustTip_R"
     tipR.Shape = Enum.PartType.Cylinder
-    tipR.Size = Vector3.new(0.8, 0.55, 0.55)
-    tipR.CFrame = root.CFrame * CFrame.new(1.4, -0.7, length / 2 + 0.3) * CFrame.Angles(0, math.rad(90), 0)
+    tipR.Size = Vector3.new(0.8, 0.5, 0.5)
+    tipR.CFrame = root.CFrame * CFrame.new(1.3, -0.7, length / 2 + 0.3) * CFrame.Angles(0, math.rad(90), 0)
     tipR.Material = Enum.Material.Metal
     tipR.Color = METAL_GRAY
     tipR.Anchored = false
@@ -85,7 +86,7 @@ local function addDetailedUndercarriage(root: BasePart, car: Model, width: numbe
     tipR.Parent = car
     weldParts(root, tipR)
 
-    -- 5. Bras de suspension / Essieux avant et arrière
+    -- Essieux de suspension avant et arrière
     local axleFront = createPart("Suspension_F", Vector3.new(width - 0.4, 0.3, 0.8), root.CFrame * CFrame.new(0, -0.8, -length * 0.3), Enum.Material.Metal, UNDER_BLACK, car)
     weldParts(root, axleFront)
     local axleRear = createPart("Suspension_R", Vector3.new(width - 0.4, 0.3, 0.8), root.CFrame * CFrame.new(0, -0.8, length * 0.3), Enum.Material.Metal, UNDER_BLACK, car)
@@ -93,7 +94,7 @@ local function addDetailedUndercarriage(root: BasePart, car: Model, width: numbe
 end
 
 -- =============================================================================
--- #1 LOTUS RALLY (Rouge vif, saut classique cabré, vitesse x1.0, 50$)
+-- #1 LOTUS RALLY (Rouge vif, vitesse x1.0, 50$)
 -- =============================================================================
 function CarBuilder.CreateLotusRally(): Model
     local car = Instance.new("Model")
@@ -114,18 +115,18 @@ function CarBuilder.CreateLotusRally(): Model
     local BLACK_GLOSS = Color3.fromRGB(15, 18, 22)
     local RIM_GRAY = Color3.fromRGB(195, 200, 208)
 
-    -- Châssis & carrosserie
-    local base = createPart("Base", Vector3.new(6.8, 1.3, 11.6), root.CFrame * CFrame.new(0, -0.2, 0), Enum.Material.SmoothPlastic, RED, car)
+    -- Carrosserie
+    local base = createPart("Base", Vector3.new(6.4, 1.2, 11.6), root.CFrame * CFrame.new(0, -0.2, 0), Enum.Material.SmoothPlastic, RED, car)
     weldParts(root, base)
-    local splitter = createPart("Splitter", Vector3.new(6.6, 0.35, 1.4), root.CFrame * CFrame.new(0, -0.7, -5.9), Enum.Material.SmoothPlastic, CHARCOAL, car)
+    local splitter = createPart("Splitter", Vector3.new(6.4, 0.35, 1.4), root.CFrame * CFrame.new(0, -0.7, -5.9), Enum.Material.SmoothPlastic, CHARCOAL, car)
     weldParts(root, splitter)
-    local hood = createPart("Hood", Vector3.new(6.4, 0.7, 4.0), root.CFrame * CFrame.new(0, 0.45, -3.7) * CFrame.Angles(math.rad(-6), 0, 0), Enum.Material.SmoothPlastic, RED, car)
+    local hood = createPart("Hood", Vector3.new(6.2, 0.65, 3.8), root.CFrame * CFrame.new(0, 0.45, -3.7) * CFrame.Angles(math.rad(-6), 0, 0), Enum.Material.SmoothPlastic, RED, car)
     weldParts(root, hood)
-    local rearDeck = createPart("RearDeck", Vector3.new(6.4, 0.9, 3.2), root.CFrame * CFrame.new(0, 0.55, 3.8), Enum.Material.SmoothPlastic, RED, car)
+    local rearDeck = createPart("RearDeck", Vector3.new(6.2, 0.85, 3.2), root.CFrame * CFrame.new(0, 0.55, 3.8), Enum.Material.SmoothPlastic, RED, car)
     weldParts(root, rearDeck)
 
     -- Toit et vitres
-    local roof = createPart("Roof", Vector3.new(4.8, 0.35, 4.8), root.CFrame * CFrame.new(0, 1.85, 0.4), Enum.Material.SmoothPlastic, DARK_RED, car)
+    local roof = createPart("Roof", Vector3.new(4.8, 0.35, 4.6), root.CFrame * CFrame.new(0, 1.85, 0.4), Enum.Material.SmoothPlastic, DARK_RED, car)
     weldParts(root, roof)
     local windshield = createPart("Windshield", Vector3.new(4.7, 1.6, 0.25), root.CFrame * CFrame.new(0, 1.2, -1.8) * CFrame.Angles(math.rad(-32), 0, 0), Enum.Material.Glass, BLACK_GLOSS, car)
     windshield.Reflectance = 0.35
@@ -139,7 +140,7 @@ function CarBuilder.CreateLotusRally(): Model
     local scoop = createPart("RoofScoop", Vector3.new(1.6, 0.5, 1.8), root.CFrame * CFrame.new(0, 2.15, -0.6) * CFrame.Angles(math.rad(-10), 0, 0), Enum.Material.SmoothPlastic, CHARCOAL, car)
     weldParts(root, scoop)
 
-    -- 4 Roues
+    -- 4 Roues (Rayon 1.1, Largeur 0.9, Bas à Y = -1.80)
     for _, offset in ipairs({ Vector3.new(-3.45, -0.7, -3.7), Vector3.new(3.45, -0.7, -3.7), Vector3.new(-3.45, -0.7, 3.7), Vector3.new(3.45, -0.7, 3.7) }) do
         local tire = Instance.new("Part")
         tire.Shape = Enum.PartType.Cylinder
@@ -165,23 +166,23 @@ function CarBuilder.CreateLotusRally(): Model
     end
 
     -- Phares Neon
-    local headL = createPart("HeadL", Vector3.new(1.3, 0.55, 0.2), root.CFrame * CFrame.new(-2.3, 0.05, -5.85), Enum.Material.Neon, Color3.fromRGB(255, 252, 225), car)
+    local headL = createPart("HeadL", Vector3.new(1.3, 0.5, 0.2), root.CFrame * CFrame.new(-2.3, 0.05, -5.85), Enum.Material.Neon, Color3.fromRGB(255, 252, 225), car)
     weldParts(root, headL)
-    local headR = createPart("HeadR", Vector3.new(1.3, 0.55, 0.2), root.CFrame * CFrame.new(2.3, 0.05, -5.85), Enum.Material.Neon, Color3.fromRGB(255, 252, 225), car)
+    local headR = createPart("HeadR", Vector3.new(1.3, 0.5, 0.2), root.CFrame * CFrame.new(2.3, 0.05, -5.85), Enum.Material.Neon, Color3.fromRGB(255, 252, 225), car)
     weldParts(root, headR)
 
     -- Rétroviseurs
-    local mirL = createPart("MirrorL", Vector3.new(0.7, 0.4, 0.8), root.CFrame * CFrame.new(-2.7, 0.95, -1.6), Enum.Material.SmoothPlastic, CHARCOAL, car)
+    local mirL = createPart("MirrorL", Vector3.new(0.7, 0.35, 0.8), root.CFrame * CFrame.new(-2.7, 0.95, -1.6), Enum.Material.SmoothPlastic, CHARCOAL, car)
     weldParts(root, mirL)
-    local mirR = createPart("MirrorR", Vector3.new(0.7, 0.4, 0.8), root.CFrame * CFrame.new(2.7, 0.95, -1.6), Enum.Material.SmoothPlastic, CHARCOAL, car)
+    local mirR = createPart("MirrorR", Vector3.new(0.7, 0.35, 0.8), root.CFrame * CFrame.new(2.7, 0.95, -1.6), Enum.Material.SmoothPlastic, CHARCOAL, car)
     weldParts(root, mirR)
 
-    addDetailedUndercarriage(root, car, 6.8, 11.6)
+    addDetailedUndercarriage(root, car, 6.4, 11.6)
     return car
 end
 
 -- =============================================================================
--- #2 CYBER TRUCK (Argenté anguleux, saut rapide incliné côté, vitesse x1.35, 120$)
+-- #2 CYBER TRUCK (Pick-up futuriste acier brossé, vitesse x1.35, 120$)
 -- =============================================================================
 function CarBuilder.CreateCyberTruck(): Model
     local car = Instance.new("Model")
@@ -196,40 +197,50 @@ function CarBuilder.CreateCyberTruck(): Model
     root.Parent = car
     car.PrimaryPart = root
 
-    local STEEL = Color3.fromRGB(215, 220, 228)
-    local DARK_STEEL = Color3.fromRGB(150, 155, 165)
+    local STEEL = Color3.fromRGB(220, 225, 232)
+    local DARK_STEEL = Color3.fromRGB(135, 140, 150)
     local CYBER_CYAN = Color3.fromRGB(0, 240, 255)
-    local BLACK_ARMOR = Color3.fromRGB(25, 26, 30)
+    local BLACK_ARMOR = Color3.fromRGB(22, 24, 28)
 
-    -- Corps anguleux massif
-    local lower = createPart("LowerArmor", Vector3.new(7.6, 1.8, 13.0), root.CFrame * CFrame.new(0, -0.1, 0), Enum.Material.Metal, STEEL, car)
+    -- Châssis principal profilé (Largeur 6.4, Hauteur 1.2, Longueur 11.6)
+    local lower = createPart("LowerArmor", Vector3.new(6.4, 1.2, 11.6), root.CFrame * CFrame.new(0, -0.2, 0), Enum.Material.Metal, STEEL, car)
     weldParts(root, lower)
 
-    -- Ligne de toit triangulaire pyramidale emblématique
-    local roofFront = createPart("RoofFrontSlope", Vector3.new(6.8, 0.5, 6.5), root.CFrame * CFrame.new(0, 1.5, -2.6) * CFrame.Angles(math.rad(-22), 0, 0), Enum.Material.Metal, STEEL, car)
+    -- Toit triangulaire pyramidale emblématique
+    local roofFront = createPart("RoofFrontSlope", Vector3.new(5.8, 0.45, 5.8), root.CFrame * CFrame.new(0, 1.25, -2.4) * CFrame.Angles(math.rad(-21), 0, 0), Enum.Material.Metal, STEEL, car)
     weldParts(root, roofFront)
 
-    local roofBack = createPart("RoofBackSlope", Vector3.new(6.8, 0.5, 6.8), root.CFrame * CFrame.new(0, 1.5, 3.2) * CFrame.Angles(math.rad(20), 0, 0), Enum.Material.Metal, STEEL, car)
+    local roofBack = createPart("RoofBackSlope", Vector3.new(5.8, 0.45, 6.0), root.CFrame * CFrame.new(0, 1.25, 2.9) * CFrame.Angles(math.rad(19), 0, 0), Enum.Material.Metal, STEEL, car)
     weldParts(root, roofBack)
 
-    -- Vitre pare-brise angulaire blindée
-    local glass = createPart("ArmorWindshield", Vector3.new(6.2, 1.8, 0.3), root.CFrame * CFrame.new(0, 1.35, -2.5) * CFrame.Angles(math.rad(-26), 0, 0), Enum.Material.Glass, Color3.fromRGB(18, 22, 28), car)
+    -- Crête supérieure du toit
+    local roofPeak = createPart("RoofPeakBar", Vector3.new(2.8, 0.35, 1.2), root.CFrame * CFrame.new(0, 2.05, 0.2), Enum.Material.Metal, STEEL, car)
+    weldParts(root, roofPeak)
+
+    -- Pare-brise angulaire blindé teinté
+    local glass = createPart("ArmorWindshield", Vector3.new(5.4, 1.6, 0.25), root.CFrame * CFrame.new(0, 1.2, -2.3) * CFrame.Angles(math.rad(-25), 0, 0), Enum.Material.Glass, BLACK_ARMOR, car)
     glass.Reflectance = 0.4
     weldParts(root, glass)
 
-    -- Lightbar avant pleine largeur (Barre LED continue néon cyan/blanc)
-    local lightbar = createPart("FrontLightbar", Vector3.new(7.4, 0.35, 0.25), root.CFrame * CFrame.new(0, 0.7, -6.55), Enum.Material.Neon, CYBER_CYAN, car)
+    -- Lightbar avant continue néon cyan (Pleine largeur 6.2 studs)
+    local lightbar = createPart("FrontLightbar", Vector3.new(6.2, 0.28, 0.2), root.CFrame * CFrame.new(0, 0.45, -5.85), Enum.Material.Neon, CYBER_CYAN, car)
     weldParts(root, lightbar)
 
-    -- Lightbar arrière rouge continu
-    local rearLight = createPart("RearLightbar", Vector3.new(7.4, 0.35, 0.25), root.CFrame * CFrame.new(0, 0.8, 6.55), Enum.Material.Neon, Color3.fromRGB(255, 35, 35), car)
+    -- Lightbar arrière rouge
+    local rearLight = createPart("RearLightbar", Vector3.new(6.2, 0.28, 0.2), root.CFrame * CFrame.new(0, 0.55, 5.85), Enum.Material.Neon, Color3.fromRGB(255, 30, 30), car)
     weldParts(root, rearLight)
 
-    -- 4 Grandes roues cyberpunk géométriques
-    for _, offset in ipairs({ Vector3.new(-3.85, -0.6, -4.2), Vector3.new(3.85, -0.6, -4.2), Vector3.new(-3.85, -0.6, 4.2), Vector3.new(3.85, -0.6, 4.2) }) do
+    -- Rétroviseurs angulaires compacts
+    local mirL = createPart("CyberMirrorL", Vector3.new(0.65, 0.35, 0.7), root.CFrame * CFrame.new(-3.3, 0.95, -1.8), Enum.Material.Metal, DARK_STEEL, car)
+    weldParts(root, mirL)
+    local mirR = createPart("CyberMirrorR", Vector3.new(0.65, 0.35, 0.7), root.CFrame * CFrame.new(3.3, 0.95, -1.8), Enum.Material.Metal, DARK_STEEL, car)
+    weldParts(root, mirR)
+
+    -- 4 Roues polygonales cyberpunk (Diamètre 2.2, Rayon 1.1, Bas à Y = -1.80)
+    for _, offset in ipairs({ Vector3.new(-3.40, -0.7, -3.8), Vector3.new(3.40, -0.7, -3.8), Vector3.new(-3.40, -0.7, 3.8), Vector3.new(3.40, -0.7, 3.8) }) do
         local tire = Instance.new("Part")
         tire.Shape = Enum.PartType.Cylinder
-        tire.Size = Vector3.new(1.1, 2.6, 2.6)
+        tire.Size = Vector3.new(0.9, 2.2, 2.2)
         tire.CFrame = root.CFrame * CFrame.new(offset) * CFrame.Angles(0, 0, math.rad(90))
         tire.Material = Enum.Material.Rubber
         tire.Color = BLACK_ARMOR
@@ -240,7 +251,7 @@ function CarBuilder.CreateCyberTruck(): Model
 
         local cap = Instance.new("Part")
         cap.Shape = Enum.PartType.Cylinder
-        cap.Size = Vector3.new(1.15, 1.6, 1.6)
+        cap.Size = Vector3.new(0.96, 1.4, 1.4)
         cap.CFrame = tire.CFrame
         cap.Material = Enum.Material.Metal
         cap.Color = DARK_STEEL
@@ -250,12 +261,12 @@ function CarBuilder.CreateCyberTruck(): Model
         weldParts(root, cap)
     end
 
-    addDetailedUndercarriage(root, car, 7.6, 13.0)
+    addDetailedUndercarriage(root, car, 6.4, 11.6)
     return car
 end
 
 -- =============================================================================
--- #3 DRIFT SUPRA (Orange néon, saut en drift, vitesse x1.7, 300$)
+-- #3 DRIFT SUPRA (Orange néon, kit carrosserie large, vitesse x1.7, 300$)
 -- =============================================================================
 function CarBuilder.CreateDriftSupra(): Model
     local car = Instance.new("Model")
@@ -270,51 +281,50 @@ function CarBuilder.CreateDriftSupra(): Model
     root.Parent = car
     car.PrimaryPart = root
 
-    local ORANGE = Color3.fromRGB(255, 105, 15)
-    local CARBON = Color3.fromRGB(22, 22, 25)
-    local BRONZE_RIM = Color3.fromRGB(205, 140, 60)
-    local GLOSS_BLACK = Color3.fromRGB(15, 18, 22)
+    local ORANGE = Color3.fromRGB(255, 95, 0)
+    local DARK_ORANGE = Color3.fromRGB(200, 70, 0)
+    local CARBON = Color3.fromRGB(25, 27, 30)
+    local BRONZE_WHEEL = Color3.fromRGB(175, 130, 75)
 
-    -- Carrosserie Widebody aérodynamique
-    local body = createPart("Widebody", Vector3.new(7.2, 1.2, 11.8), root.CFrame * CFrame.new(0, -0.2, 0), Enum.Material.SmoothPlastic, ORANGE, car)
-    weldParts(root, body)
+    -- Châssis large surbaissé
+    local base = createPart("WideBase", Vector3.new(6.4, 1.1, 11.6), root.CFrame * CFrame.new(0, -0.25, 0), Enum.Material.SmoothPlastic, ORANGE, car)
+    weldParts(root, base)
+    local splitter = createPart("CarbonSplitter", Vector3.new(6.6, 0.25, 1.6), root.CFrame * CFrame.new(0, -0.75, -5.9), Enum.Material.DiamondPlate, CARBON, car)
+    weldParts(root, splitter)
 
-    -- Lame avant carbone et ailettes canards
-    local frontCanards = createPart("FrontCanards", Vector3.new(7.4, 0.25, 1.6), root.CFrame * CFrame.new(0, -0.65, -5.9), Enum.Material.DiamondPlate, CARBON, car)
-    weldParts(root, frontCanards)
+    -- Canards aérodynamiques latéraux avant
+    local canardL = createPart("CanardL", Vector3.new(0.6, 0.25, 1.2), root.CFrame * CFrame.new(-3.7, -0.55, -5.7) * CFrame.Angles(0, math.rad(-15), math.rad(10)), Enum.Material.SmoothPlastic, CARBON, car)
+    weldParts(root, canardL)
+    local canardR = createPart("CanardR", Vector3.new(0.6, 0.25, 1.2), root.CFrame * CFrame.new(3.7, -0.55, -5.7) * CFrame.Angles(0, math.rad(15), math.rad(-10)), Enum.Material.SmoothPlastic, CARBON, car)
+    weldParts(root, canardR)
 
-    -- Capot avec double ouïes d'aération
-    local hood = createPart("VentedHood", Vector3.new(6.6, 0.65, 4.4), root.CFrame * CFrame.new(0, 0.45, -3.6) * CFrame.Angles(math.rad(-7), 0, 0), Enum.Material.SmoothPlastic, ORANGE, car)
+    -- Capot galbé carbone avec sorties d'air
+    local hood = createPart("CarbonHood", Vector3.new(6.2, 0.6, 4.0), root.CFrame * CFrame.new(0, 0.4, -3.7) * CFrame.Angles(math.rad(-7), 0, 0), Enum.Material.DiamondPlate, CARBON, car)
     weldParts(root, hood)
 
-    local ventL = createPart("HoodVent_L", Vector3.new(0.8, 0.1, 2.0), root.CFrame * CFrame.new(-1.6, 0.78, -3.6) * CFrame.Angles(math.rad(-7), 0, 0), Enum.Material.Metal, CARBON, car)
-    weldParts(root, ventL)
-    local ventR = createPart("HoodVent_R", Vector3.new(0.8, 0.1, 2.0), root.CFrame * CFrame.new(1.6, 0.78, -3.6) * CFrame.Angles(math.rad(-7), 0, 0), Enum.Material.Metal, CARBON, car)
-    weldParts(root, ventR)
-
-    -- Habitacle profilé bulle
-    local cabin = createPart("CabinRoof", Vector3.new(5.0, 1.5, 4.6), root.CFrame * CFrame.new(0, 1.3, 0.4), Enum.Material.SmoothPlastic, ORANGE, car)
-    weldParts(root, cabin)
-    local windshield = createPart("Windshield", Vector3.new(4.8, 1.5, 0.25), root.CFrame * CFrame.new(0, 1.15, -1.9) * CFrame.Angles(math.rad(-34), 0, 0), Enum.Material.Glass, GLOSS_BLACK, car)
+    -- Toit galbé profilé
+    local roof = createPart("RoofDoubleBubble", Vector3.new(4.6, 0.35, 4.4), root.CFrame * CFrame.new(0, 1.65, 0.3), Enum.Material.SmoothPlastic, DARK_ORANGE, car)
+    weldParts(root, roof)
+    local windshield = createPart("Windshield", Vector3.new(4.5, 1.5, 0.25), root.CFrame * CFrame.new(0, 1.15, -1.8) * CFrame.Angles(math.rad(-34), 0, 0), Enum.Material.Glass, Color3.fromRGB(15, 18, 22), car)
     windshield.Reflectance = 0.4
     weldParts(root, windshield)
 
-    -- Énorme Aileron GT incurvé carbone
-    local gtWing = createPart("GTWing", Vector3.new(7.6, 0.35, 1.9), root.CFrame * CFrame.new(0, 2.4, 5.8), Enum.Material.Metal, CARBON, car)
-    weldParts(root, gtWing)
-    local strutL = createPart("StrutL", Vector3.new(0.2, 1.5, 0.9), root.CFrame * CFrame.new(-2.6, 1.6, 5.7), Enum.Material.Metal, CARBON, car)
-    weldParts(root, strutL)
-    local strutR = createPart("StrutR", Vector3.new(0.2, 1.5, 0.9), root.CFrame * CFrame.new(2.6, 1.6, 5.7), Enum.Material.Metal, CARBON, car)
-    weldParts(root, strutR)
+    -- Aileron GT démesuré
+    local wingBlade = createPart("GTWingBlade", Vector3.new(7.2, 0.25, 1.8), root.CFrame * CFrame.new(0, 2.45, 5.5), Enum.Material.SmoothPlastic, CARBON, car)
+    weldParts(root, wingBlade)
+    local uprightL = createPart("UprightL", Vector3.new(0.25, 1.2, 0.8), root.CFrame * CFrame.new(-2.2, 1.85, 5.5), Enum.Material.Metal, CARBON, car)
+    weldParts(root, uprightL)
+    local uprightR = createPart("UprightR", Vector3.new(0.25, 1.2, 0.8), root.CFrame * CFrame.new(2.2, 1.85, 5.5), Enum.Material.Metal, CARBON, car)
+    weldParts(root, uprightR)
 
-    -- Roues larges avec jantes bronze de drift
-    for _, offset in ipairs({ Vector3.new(-3.65, -0.65, -3.8), Vector3.new(3.65, -0.65, -3.8), Vector3.new(-3.65, -0.65, 3.8), Vector3.new(3.65, -0.65, 3.8) }) do
+    -- Roues larges bronze (Bas à Y = -1.75)
+    for _, offset in ipairs({ Vector3.new(-3.50, -0.65, -3.7), Vector3.new(3.50, -0.65, -3.7), Vector3.new(-3.50, -0.65, 3.7), Vector3.new(3.50, -0.65, 3.7) }) do
         local tire = Instance.new("Part")
         tire.Shape = Enum.PartType.Cylinder
-        tire.Size = Vector3.new(1.1, 2.3, 2.3)
+        tire.Size = Vector3.new(0.9, 2.2, 2.2)
         tire.CFrame = root.CFrame * CFrame.new(offset) * CFrame.Angles(0, 0, math.rad(90))
         tire.Material = Enum.Material.Rubber
-        tire.Color = Color3.fromRGB(18, 18, 20)
+        tire.Color = Color3.fromRGB(20, 20, 22)
         tire.Anchored = false
         tire.CanCollide = false
         tire.Parent = car
@@ -322,28 +332,28 @@ function CarBuilder.CreateDriftSupra(): Model
 
         local rim = Instance.new("Part")
         rim.Shape = Enum.PartType.Cylinder
-        rim.Size = Vector3.new(1.16, 1.5, 1.5)
+        rim.Size = Vector3.new(0.96, 1.4, 1.4)
         rim.CFrame = tire.CFrame
         rim.Material = Enum.Material.Metal
-        rim.Color = BRONZE_RIM
+        rim.Color = BRONZE_WHEEL
         rim.Anchored = false
         rim.CanCollide = false
         rim.Parent = car
         weldParts(root, rim)
     end
 
-    -- Phares avant LED angulaires néon blanc pur
-    local hL = createPart("HeadL", Vector3.new(1.4, 0.45, 0.3), root.CFrame * CFrame.new(-2.5, 0.1, -5.9), Enum.Material.Neon, Color3.fromRGB(255, 255, 255), car)
-    weldParts(root, hL)
-    local hR = createPart("HeadR", Vector3.new(1.4, 0.45, 0.3), root.CFrame * CFrame.new(2.5, 0.1, -5.9), Enum.Material.Neon, Color3.fromRGB(255, 255, 255), car)
-    weldParts(root, hR)
+    -- Rétroviseurs aéro carbone
+    local mirL = createPart("MirL", Vector3.new(0.65, 0.35, 0.7), root.CFrame * CFrame.new(-2.9, 0.95, -1.6), Enum.Material.SmoothPlastic, CARBON, car)
+    weldParts(root, mirL)
+    local mirR = createPart("MirR", Vector3.new(0.65, 0.35, 0.7), root.CFrame * CFrame.new(2.9, 0.95, -1.6), Enum.Material.SmoothPlastic, CARBON, car)
+    weldParts(root, mirR)
 
-    addDetailedUndercarriage(root, car, 7.2, 11.8)
+    addDetailedUndercarriage(root, car, 6.4, 11.6)
     return car
 end
 
 -- =============================================================================
--- #4 POLICE INTERCEPTOR (Noir & Blanc, gyrophare bleu/rouge, saut plongeant, 750$)
+-- #4 POLICE INTERCEPTOR (Noir/blanc, bullbar, gyrophares, vitesse x2.1, 750$)
 -- =============================================================================
 function CarBuilder.CreatePoliceInterceptor(): Model
     local car = Instance.new("Model")
@@ -358,55 +368,46 @@ function CarBuilder.CreatePoliceInterceptor(): Model
     root.Parent = car
     car.PrimaryPart = root
 
-    local POLICE_BLACK = Color3.fromRGB(18, 20, 24)
-    local POLICE_WHITE = Color3.fromRGB(245, 248, 252)
-    local CHROME = Color3.fromRGB(210, 215, 220)
-    local BLUE_SIREN = Color3.fromRGB(0, 130, 255)
-    local RED_SIREN = Color3.fromRGB(255, 20, 30)
+    local BLACK = Color3.fromRGB(18, 20, 24)
+    local WHITE = Color3.fromRGB(245, 248, 252)
+    local STEEL = Color3.fromRGB(160, 165, 175)
 
-    -- Carrosserie bicolore (portes blanches, avant et arrière noirs)
-    local bodyFront = createPart("BodyFront", Vector3.new(7.0, 1.4, 4.0), root.CFrame * CFrame.new(0, -0.2, -3.8), Enum.Material.SmoothPlastic, POLICE_BLACK, car)
-    weldParts(root, bodyFront)
-    local bodyCenter = createPart("BodyCenter", Vector3.new(7.0, 1.4, 4.2), root.CFrame * CFrame.new(0, -0.2, 0.2), Enum.Material.SmoothPlastic, POLICE_WHITE, car)
-    weldParts(root, bodyCenter)
-    local bodyRear = createPart("BodyRear", Vector3.new(7.0, 1.4, 3.8), root.CFrame * CFrame.new(0, -0.2, 4.1), Enum.Material.SmoothPlastic, POLICE_BLACK, car)
-    weldParts(root, bodyRear)
+    -- Carrosserie bicolore
+    local base = createPart("Chassis", Vector3.new(6.4, 1.3, 11.8), root.CFrame * CFrame.new(0, -0.2, 0), Enum.Material.SmoothPlastic, BLACK, car)
+    weldParts(root, base)
+    local doors = createPart("WhiteDoors", Vector3.new(6.45, 1.1, 5.0), root.CFrame * CFrame.new(0, 0.05, 0.2), Enum.Material.SmoothPlastic, WHITE, car)
+    weldParts(root, doors)
 
-    -- Pare-buffle imposant en acier noir (Push Bumper / Bullbar)
-    local bullbar = createPart("Bullbar", Vector3.new(5.6, 1.6, 0.4), root.CFrame * CFrame.new(0, 0.1, -6.1), Enum.Material.DiamondPlate, POLICE_BLACK, car)
+    -- Pare-buffle avant (PushBar)
+    local bullbar = createPart("BullbarMain", Vector3.new(4.8, 1.4, 0.6), root.CFrame * CFrame.new(0, -0.1, -6.1), Enum.Material.Metal, STEEL, car)
     weldParts(root, bullbar)
-    local bullbarBarT = createPart("BullbarTop", Vector3.new(5.0, 0.3, 0.3), root.CFrame * CFrame.new(0, 0.8, -6.1), Enum.Material.Metal, CHROME, car)
-    weldParts(root, bullbarBarT)
 
-    -- Toit blanc et vitres teintées
-    local roof = createPart("Roof", Vector3.new(5.0, 0.35, 4.8), root.CFrame * CFrame.new(0, 1.85, 0.4), Enum.Material.SmoothPlastic, POLICE_WHITE, car)
+    -- Toit et vitres
+    local roof = createPart("Roof", Vector3.new(4.6, 0.35, 4.6), root.CFrame * CFrame.new(0, 1.85, 0.4), Enum.Material.SmoothPlastic, WHITE, car)
     weldParts(root, roof)
-    local windshield = createPart("Windshield", Vector3.new(4.8, 1.6, 0.25), root.CFrame * CFrame.new(0, 1.2, -1.8) * CFrame.Angles(math.rad(-30), 0, 0), Enum.Material.Glass, Color3.fromRGB(10, 12, 16), car)
-    windshield.Reflectance = 0.3
+    local windshield = createPart("Windshield", Vector3.new(4.5, 1.6, 0.25), root.CFrame * CFrame.new(0, 1.2, -1.8) * CFrame.Angles(math.rad(-30), 0, 0), Enum.Material.Glass, Color3.fromRGB(15, 18, 22), car)
     weldParts(root, windshield)
 
-    -- Gyrophare de toit Police (Bleu et Rouge clignotants)
-    local sirenBase = createPart("SirenBase", Vector3.new(3.8, 0.2, 0.8), root.CFrame * CFrame.new(0, 2.1, 0.3), Enum.Material.Metal, POLICE_BLACK, car)
-    weldParts(root, sirenBase)
-    local sirenBlue = createPart("SirenBlue", Vector3.new(1.6, 0.45, 0.7), root.CFrame * CFrame.new(-0.9, 2.35, 0.3), Enum.Material.Neon, BLUE_SIREN, car)
-    weldParts(root, sirenBlue)
-    local sirenRed = createPart("SirenRed", Vector3.new(1.6, 0.45, 0.7), root.CFrame * CFrame.new(0.9, 2.35, 0.3), Enum.Material.Neon, RED_SIREN, car)
+    -- Gyrophares sur le toit (Rouge / Bleu)
+    local sirenRed = createPart("Siren_Red", Vector3.new(1.8, 0.35, 0.8), root.CFrame * CFrame.new(-1.0, 2.2, 0.4), Enum.Material.Neon, Color3.fromRGB(255, 30, 30), car)
     weldParts(root, sirenRed)
+    local sirenBlue = createPart("Siren_Blue", Vector3.new(1.8, 0.35, 0.8), root.CFrame * CFrame.new(1.0, 2.2, 0.4), Enum.Material.Neon, Color3.fromRGB(30, 100, 255), car)
+    weldParts(root, sirenBlue)
 
-    -- Spots de recherche sur les montants A
-    local spotL = createPart("SpotL", Vector3.new(0.5, 0.5, 0.5), root.CFrame * CFrame.new(-2.6, 1.3, -1.5), Enum.Material.Neon, Color3.fromRGB(255, 255, 255), car)
-    weldParts(root, spotL)
-    local spotR = createPart("SpotR", Vector3.new(0.5, 0.5, 0.5), root.CFrame * CFrame.new(2.6, 1.3, -1.5), Enum.Material.Neon, Color3.fromRGB(255, 255, 255), car)
-    weldParts(root, spotR)
+    -- Rétroviseurs
+    local mirL = createPart("MirL", Vector3.new(0.65, 0.35, 0.7), root.CFrame * CFrame.new(-2.8, 0.95, -1.6), Enum.Material.SmoothPlastic, BLACK, car)
+    weldParts(root, mirL)
+    local mirR = createPart("MirR", Vector3.new(0.65, 0.35, 0.7), root.CFrame * CFrame.new(2.8, 0.95, -1.6), Enum.Material.SmoothPlastic, BLACK, car)
+    weldParts(root, mirR)
 
-    -- 4 Roues de police avec jantes acier noires à cabochon chromé
-    for _, offset in ipairs({ Vector3.new(-3.5, -0.7, -3.7), Vector3.new(3.5, -0.7, -3.7), Vector3.new(-3.5, -0.7, 3.7), Vector3.new(3.5, -0.7, 3.7) }) do
+    -- 4 Roues police (Bas à Y = -1.80)
+    for _, offset in ipairs({ Vector3.new(-3.45, -0.7, -3.8), Vector3.new(3.45, -0.7, -3.8), Vector3.new(-3.45, -0.7, 3.8), Vector3.new(3.45, -0.7, 3.8) }) do
         local tire = Instance.new("Part")
         tire.Shape = Enum.PartType.Cylinder
-        tire.Size = Vector3.new(0.95, 2.2, 2.2)
+        tire.Size = Vector3.new(0.9, 2.2, 2.2)
         tire.CFrame = root.CFrame * CFrame.new(offset) * CFrame.Angles(0, 0, math.rad(90))
         tire.Material = Enum.Material.Rubber
-        tire.Color = POLICE_BLACK
+        tire.Color = Color3.fromRGB(20, 20, 22)
         tire.Anchored = false
         tire.CanCollide = false
         tire.Parent = car
@@ -414,22 +415,22 @@ function CarBuilder.CreatePoliceInterceptor(): Model
 
         local cap = Instance.new("Part")
         cap.Shape = Enum.PartType.Cylinder
-        cap.Size = Vector3.new(1.0, 0.9, 0.9)
+        cap.Size = Vector3.new(0.96, 1.4, 1.4)
         cap.CFrame = tire.CFrame
         cap.Material = Enum.Material.Metal
-        cap.Color = CHROME
+        cap.Color = STEEL
         cap.Anchored = false
         cap.CanCollide = false
         cap.Parent = car
         weldParts(root, cap)
     end
 
-    addDetailedUndercarriage(root, car, 7.0, 12.0)
+    addDetailedUndercarriage(root, car, 6.4, 11.8)
     return car
 end
 
 -- =============================================================================
--- #5 HYPERION JETCAR (Or & Noir, vitesse extrême x2.7, 2000$)
+-- #5 HYPERION JETCAR (Hypercar dorée/carbone, réacteurs cyan, vitesse x2.7, 2000$)
 -- =============================================================================
 function CarBuilder.CreateHyperionJetCar(): Model
     local car = Instance.new("Model")
@@ -444,108 +445,72 @@ function CarBuilder.CreateHyperionJetCar(): Model
     root.Parent = car
     car.PrimaryPart = root
 
-    local GOLD = Color3.fromRGB(255, 205, 30)
-    local CARBON = Color3.fromRGB(16, 16, 20)
-    local CYAN_THRUSTER = Color3.fromRGB(0, 245, 255)
-    local ORANGE_AFTERBURN = Color3.fromRGB(255, 110, 0)
+    local GOLD = Color3.fromRGB(245, 195, 45)
+    local DARK_CARBON = Color3.fromRGB(18, 20, 24)
+    local JET_CYAN = Color3.fromRGB(0, 245, 255)
 
-    -- Châssis hypercar effilé fuselé
-    local mainCockpit = createPart("Cockpit", Vector3.new(6.6, 1.1, 12.6), root.CFrame * CFrame.new(0, -0.25, 0), Enum.Material.Metal, GOLD, car)
-    weldParts(root, mainCockpit)
-
-    -- Ailerons canards avant en flèche
-    local nose = createPart("NoseCone", Vector3.new(5.0, 0.6, 3.2), root.CFrame * CFrame.new(0, 0.1, -5.8) * CFrame.Angles(math.rad(-12), 0, 0), Enum.Material.SmoothPlastic, CARBON, car)
+    -- Fuselage en flèche
+    local body = createPart("Fuselage", Vector3.new(6.4, 1.0, 12.4), root.CFrame * CFrame.new(0, -0.25, 0), Enum.Material.Metal, GOLD, car)
+    weldParts(root, body)
+    local nose = createPart("AeroNose", Vector3.new(4.2, 0.45, 2.4), root.CFrame * CFrame.new(0, -0.45, -6.4), Enum.Material.DiamondPlate, DARK_CARBON, car)
     weldParts(root, nose)
 
-    -- Verrière bulle cockpit d'avion de chasse (Canopy)
-    local canopy = createPart("JetCanopy", Vector3.new(4.2, 1.4, 5.0), root.CFrame * CFrame.new(0, 0.95, -0.2), Enum.Material.Glass, Color3.fromRGB(10, 14, 20), car)
+    -- Verrière cockpit type avion de chasse
+    local canopy = createPart("Canopy", Vector3.new(3.2, 1.4, 4.4), root.CFrame * CFrame.new(0, 0.85, -0.4) * CFrame.Angles(math.rad(-15), 0, 0), Enum.Material.Glass, Color3.fromRGB(10, 15, 20), car)
     canopy.Reflectance = 0.5
     weldParts(root, canopy)
 
-    -- Dérive dorsale verticale (Stabilisateur jet)
-    local fin = createPart("DorsalFin", Vector3.new(0.3, 1.8, 3.8), root.CFrame * CFrame.new(0, 1.8, 2.8), Enum.Material.Metal, GOLD, car)
+    -- Dérive dorsale centrale
+    local fin = createPart("DorsalFin", Vector3.new(0.3, 1.3, 3.4), root.CFrame * CFrame.new(0, 1.95, 2.2), Enum.Material.SmoothPlastic, DARK_CARBON, car)
     weldParts(root, fin)
 
-    -- Double réacteur à propulsion jet à l'arrière
-    local jetL = Instance.new("Part")
-    jetL.Name = "JetEngine_L"
-    jetL.Shape = Enum.PartType.Cylinder
-    jetL.Size = Vector3.new(4.2, 1.6, 1.6)
-    jetL.CFrame = root.CFrame * CFrame.new(-1.8, 0.2, 5.2) * CFrame.Angles(0, math.rad(90), 0)
-    jetL.Material = Enum.Material.Metal
-    jetL.Color = CARBON
-    jetL.Anchored = false
-    jetL.CanCollide = false
-    jetL.Parent = car
-    weldParts(root, jetL)
+    -- Tuyères de réacteur arrière avec plasma cyan
+    for _, xOff in ipairs({ -1.8, 1.8 }) do
+        local jetHousing = Instance.new("Part")
+        jetHousing.Name = "JetHousing"
+        jetHousing.Shape = Enum.PartType.Cylinder
+        jetHousing.Size = Vector3.new(1.8, 1.5, 1.5)
+        jetHousing.CFrame = root.CFrame * CFrame.new(xOff, 0.35, 6.0) * CFrame.Angles(0, math.rad(90), 0)
+        jetHousing.Material = Enum.Material.Metal
+        jetHousing.Color = DARK_CARBON
+        jetHousing.Anchored = false
+        jetHousing.CanCollide = false
+        jetHousing.Parent = car
+        weldParts(root, jetHousing)
 
-    local flameL = Instance.new("Part")
-    flameL.Name = "JetFlame_L"
-    flameL.Shape = Enum.PartType.Cylinder
-    flameL.Size = Vector3.new(0.6, 1.2, 1.2)
-    flameL.CFrame = root.CFrame * CFrame.new(-1.8, 0.2, 7.3) * CFrame.Angles(0, math.rad(90), 0)
-    flameL.Material = Enum.Material.Neon
-    flameL.Color = CYAN_THRUSTER
-    flameL.Anchored = false
-    flameL.CanCollide = false
-    flameL.Parent = car
-    weldParts(root, flameL)
+        local plasma = Instance.new("Part")
+        plasma.Name = "JetFlame"
+        plasma.Shape = Enum.PartType.Cylinder
+        plasma.Size = Vector3.new(0.4, 1.1, 1.1)
+        plasma.CFrame = root.CFrame * CFrame.new(xOff, 0.35, 6.9) * CFrame.Angles(0, math.rad(90), 0)
+        plasma.Material = Enum.Material.Neon
+        plasma.Color = JET_CYAN
+        plasma.Anchored = false
+        plasma.CanCollide = false
+        plasma.Parent = car
+        weldParts(root, plasma)
+    end
 
-    local jetR = Instance.new("Part")
-    jetR.Name = "JetEngine_R"
-    jetR.Shape = Enum.PartType.Cylinder
-    jetR.Size = Vector3.new(4.2, 1.6, 1.6)
-    jetR.CFrame = root.CFrame * CFrame.new(1.8, 0.2, 5.2) * CFrame.Angles(0, math.rad(90), 0)
-    jetR.Material = Enum.Material.Metal
-    jetR.Color = CARBON
-    jetR.Anchored = false
-    jetR.CanCollide = false
-    jetR.Parent = car
-    weldParts(root, jetR)
-
-    local flameR = Instance.new("Part")
-    flameR.Name = "JetFlame_R"
-    flameR.Shape = Enum.PartType.Cylinder
-    flameR.Size = Vector3.new(0.6, 1.2, 1.2)
-    flameR.CFrame = root.CFrame * CFrame.new(1.8, 0.2, 7.3) * CFrame.Angles(0, math.rad(90), 0)
-    flameR.Material = Enum.Material.Neon
-    flameR.Color = CYAN_THRUSTER
-    flameR.Anchored = false
-    flameR.CanCollide = false
-    flameR.Parent = car
-    weldParts(root, flameR)
-
-    -- 4 Roues carénées aéro
-    for _, offset in ipairs({ Vector3.new(-3.6, -0.65, -3.9), Vector3.new(3.6, -0.65, -3.9), Vector3.new(-3.6, -0.65, 3.9), Vector3.new(3.6, -0.65, 3.9) }) do
+    -- 4 Roues aéro (Bas à Y = -1.65)
+    for _, offset in ipairs({ Vector3.new(-3.40, -0.65, -3.8), Vector3.new(3.40, -0.65, -3.8), Vector3.new(-3.40, -0.65, 3.8), Vector3.new(3.40, -0.65, 3.8) }) do
         local tire = Instance.new("Part")
         tire.Shape = Enum.PartType.Cylinder
-        tire.Size = Vector3.new(1.0, 2.2, 2.2)
+        tire.Size = Vector3.new(0.9, 2.0, 2.0)
         tire.CFrame = root.CFrame * CFrame.new(offset) * CFrame.Angles(0, 0, math.rad(90))
         tire.Material = Enum.Material.Rubber
-        tire.Color = CARBON
+        tire.Color = DARK_CARBON
         tire.Anchored = false
         tire.CanCollide = false
         tire.Parent = car
         weldParts(root, tire)
-
-        local goldRim = Instance.new("Part")
-        goldRim.Shape = Enum.PartType.Cylinder
-        goldRim.Size = Vector3.new(1.08, 1.4, 1.4)
-        goldRim.CFrame = tire.CFrame
-        goldRim.Material = Enum.Material.Metal
-        goldRim.Color = GOLD
-        goldRim.Anchored = false
-        goldRim.CanCollide = false
-        goldRim.Parent = car
-        weldParts(root, goldRim)
     end
 
-    addDetailedUndercarriage(root, car, 6.6, 12.6)
+    addDetailedUndercarriage(root, car, 6.4, 12.4)
     return car
 end
 
 -- =============================================================================
--- REGISTRE DES 5 VÉHICULES / MOMENTS
+-- REGISTRE DES 5 VÉHICULES AVEC LEUR CONTOUR EXTÉRIEUR UNIQUE (BOUCLE FERMÉE)
 -- =============================================================================
 CarBuilder.Vehicles = {
     {
@@ -554,24 +519,38 @@ CarBuilder.Vehicles = {
         Name = "#1 Lotus Rally",
         SpeedMultiplier = 1.0,
         RewardCash = 50,
-        TargetTilt = CFrame.Angles(0, 0, 0),
-        Builder = CarBuilder.CreateLotusRally,
-        SilhouettePoints = {
-            { -3.6, -1.6, 3.6, -1.6 },   -- Bas pneus
-            { -3.6, -1.6, -3.8, -0.2 },  -- Flanc pneu G
-            { 3.6, -1.6, 3.8, -0.2 },    -- Flanc pneu D
-            { -4.0, -0.2, 4.0, -0.2 },   -- Pare-chocs
-            { -4.0, -0.2, -3.9, 0.8 },   -- Aile G
-            { 4.0, -0.2, 3.9, 0.8 },     -- Aile D
-            { -3.9, 0.8, 3.9, 0.8 },     -- Capot
-            { -3.4, 0.8, -2.4, 2.1 },    -- Montant pare-brise G
-            { 3.4, 0.8, 2.4, 2.1 },      -- Montant pare-brise D
-            { -2.4, 2.1, 2.4, 2.1 },     -- Ligne de toit
-            { -3.5, 1.1, -4.3, 1.2 },    -- Rétroviseur G
-            { 3.5, 1.1, 4.3, 1.2 },      -- Rétroviseur D
-            { -3.5, 0.3, -2.2, 0.3 },    -- Phare G
-            { 2.2, 0.3, 3.5, 0.3 },      -- Phare D
+        FrontZ = -6.6,
+        OuterContour = {
+            {  0.00, -0.88 }, -- Bas du splitter central
+            { -3.00, -0.88 }, -- Intérieur pneu avant G
+            { -3.45, -1.80 }, -- Bas du pneu G
+            { -3.90, -1.80 }, -- Coin bas extérieur pneu G
+            { -3.90, -0.20 }, -- Flanc extérieur pneu G
+            { -3.45,  0.45 }, -- Jonction aile G
+            { -3.20,  0.80 }, -- Bord supérieur aile / capot G
+            { -3.05,  0.90 }, -- Base rétroviseur G
+            { -3.15,  1.15 }, -- Pointe rétroviseur G
+            { -2.50,  1.20 }, -- Montant pare-brise G
+            { -3.25,  1.95 }, -- Bas dérive aileron arrière G
+            { -3.25,  2.35 }, -- Haut dérive aileron arrière G
+            { -2.40,  2.05 }, -- Bord gauche toit
+            { -0.80,  2.40 }, -- Prise d'air toit G
+            {  0.00,  2.42 }, -- Sommet prise d'air toit
+            {  0.80,  2.40 }, -- Prise d'air toit D
+            {  2.40,  2.05 }, -- Bord droit toit
+            {  3.25,  2.35 }, -- Haut dérive aileron arrière D
+            {  3.25,  1.95 }, -- Bas dérive aileron arrière D
+            {  2.50,  1.20 }, -- Montant pare-brise D
+            {  3.15,  1.15 }, -- Pointe rétroviseur D
+            {  3.05,  0.90 }, -- Base rétroviseur D
+            {  3.20,  0.80 }, -- Bord supérieur aile / capot D
+            {  3.45,  0.45 }, -- Jonction aile D
+            {  3.90, -0.20 }, -- Flanc extérieur pneu D
+            {  3.90, -1.80 }, -- Coin bas extérieur pneu D
+            {  3.45, -1.80 }, -- Bas du pneu D
+            {  3.00, -0.88 }, -- Intérieur pneu avant D
         },
+        Builder = CarBuilder.CreateLotusRally,
     },
     {
         Id = "cyber_truck",
@@ -579,20 +558,30 @@ CarBuilder.Vehicles = {
         Name = "#2 Cyber Truck",
         SpeedMultiplier = 1.35,
         RewardCash = 120,
-        TargetTilt = CFrame.Angles(0, 0, math.rad(7)), -- Saut incliné côté
-        Builder = CarBuilder.CreateCyberTruck,
-        SilhouettePoints = {
-            { -3.9, -1.8, 3.9, -1.8 },   -- Bas pneus
-            { -4.0, -1.8, -4.1, 0.0 },   -- Flanc G
-            { 4.0, -1.8, 4.1, 0.0 },     -- Flanc D
-            { -4.3, 0.0, 4.3, 0.0 },     -- Pare-chocs anguleux
-            { -4.3, 0.0, -4.0, 1.1 },    -- Ligne ceinture G
-            { 4.3, 0.0, 4.0, 1.1 },      -- Ligne ceinture D
-            { -4.0, 1.1, -0.2, 2.4 },    -- Toit pointe triangulaire G
-            { 4.0, 1.1, 0.2, 2.4 },      -- Toit pointe triangulaire D
-            { -0.2, 2.4, 0.2, 2.4 },     -- Arête sommitale
-            { -3.8, 0.7, 3.8, 0.7 },     -- Lightbar horizontale continue
+        FrontZ = -6.2,
+        OuterContour = {
+            {  0.00, -0.75 }, -- Garde au sol centrale
+            { -2.95, -0.75 }, -- Intérieur pneu G
+            { -3.40, -1.80 }, -- Bas pneu G
+            { -3.85, -1.80 }, -- Coin bas extérieur pneu G
+            { -3.85, -0.30 }, -- Flanc extérieur pneu G
+            { -3.45,  0.40 }, -- Arche de roue angulaire G
+            { -3.25,  0.55 }, -- Coin lightbar G
+            { -3.65,  0.95 }, -- Pointe rétroviseur angulaire G
+            { -3.10,  1.05 }, -- Base rétroviseur G
+            { -1.40,  2.05 }, -- Sommet pyramide toit G
+            {  0.00,  2.08 }, -- Crête centrale toit
+            {  1.40,  2.05 }, -- Sommet pyramide toit D
+            {  3.10,  1.05 }, -- Base rétroviseur D
+            {  3.65,  0.95 }, -- Pointe rétroviseur angulaire D
+            {  3.25,  0.55 }, -- Coin lightbar D
+            {  3.45,  0.40 }, -- Arche de roue angulaire D
+            {  3.85, -0.30 }, -- Flanc extérieur pneu D
+            {  3.85, -1.80 }, -- Coin bas extérieur pneu D
+            {  3.40, -1.80 }, -- Bas pneu D
+            {  2.95, -0.75 }, -- Intérieur pneu D
         },
+        Builder = CarBuilder.CreateCyberTruck,
     },
     {
         Id = "drift_supra",
@@ -600,23 +589,34 @@ CarBuilder.Vehicles = {
         Name = "#3 Drift Supra",
         SpeedMultiplier = 1.7,
         RewardCash = 300,
-        TargetTilt = CFrame.Angles(0, math.rad(12), 0), -- Saut en travers drift
-        Builder = CarBuilder.CreateDriftSupra,
-        SilhouettePoints = {
-            { -3.8, -1.7, 3.8, -1.7 },   -- Bas pneus
-            { -4.2, -0.3, 4.2, -0.3 },   -- Canards splitter large
-            { -4.2, -0.3, -3.9, 0.7 },   -- Aile élargie G
-            { 4.2, -0.3, 3.9, 0.7 },     -- Aile élargie D
-            { -3.9, 0.7, 3.9, 0.7 },     -- Ligne capot
-            { -3.5, 0.7, -2.4, 1.9 },    -- Pare-brise profilé G
-            { 3.5, 0.7, 2.4, 1.9 },      -- Pare-brise profilé D
-            { -2.4, 1.9, 2.4, 1.9 },     -- Toit
-            { -4.1, 2.5, 4.1, 2.5 },     -- Aileron GT démesuré
-            { -2.7, 1.8, -2.7, 2.5 },    -- Support aileron G
-            { 2.7, 1.8, 2.7, 2.5 },      -- Support aileron D
-            { -3.6, 0.2, -2.2, 0.2 },    -- Phares acérés
-            { 2.2, 0.2, 3.6, 0.2 },
+        FrontZ = -6.6,
+        OuterContour = {
+            {  0.00, -0.85 }, -- Centre splitter
+            { -3.05, -0.85 }, -- Intérieur pneu G
+            { -3.50, -1.75 }, -- Bas pneu G
+            { -3.95, -1.75 }, -- Coin bas pneu G
+            { -4.05, -0.55 }, -- Canard aéro avant G
+            { -3.80,  0.40 }, -- Élargisseur aile large G
+            { -3.25,  0.95 }, -- Rétroviseur carbone G
+            { -2.25,  1.20 }, -- Montant pare-brise G
+            { -3.60,  1.90 }, -- Embase aileron GT G
+            { -3.65,  2.45 }, -- Dérive haute aileron GT G
+            { -2.00,  2.45 }, -- Lame aileron GT G
+            { -1.80,  1.80 }, -- Double bossage toit G
+            {  0.00,  1.75 }, -- Creux central toit
+            {  1.80,  1.80 }, -- Double bossage toit D
+            {  2.00,  2.45 }, -- Lame aileron GT D
+            {  3.65,  2.45 }, -- Dérive haute aileron GT D
+            {  3.60,  1.90 }, -- Embase aileron GT D
+            {  2.25,  1.20 }, -- Montant pare-brise D
+            {  3.25,  0.95 }, -- Rétroviseur carbone D
+            {  3.80,  0.40 }, -- Élargisseur aile large D
+            {  4.05, -0.55 }, -- Canard aéro avant D
+            {  3.95, -1.75 }, -- Coin bas pneu D
+            {  3.50, -1.75 }, -- Bas pneu D
+            {  3.05, -0.85 }, -- Intérieur pneu D
         },
+        Builder = CarBuilder.CreateDriftSupra,
     },
     {
         Id = "police_interceptor",
@@ -624,24 +624,34 @@ CarBuilder.Vehicles = {
         Name = "#4 Police Interceptor",
         SpeedMultiplier = 2.1,
         RewardCash = 750,
-        TargetTilt = CFrame.Angles(math.rad(-10), 0, 0), -- Saut plongeant
-        Builder = CarBuilder.CreatePoliceInterceptor,
-        SilhouettePoints = {
-            { -3.7, -1.7, 3.7, -1.7 },   -- Bas pneus
-            { -4.1, -0.1, 4.1, -0.1 },   -- Pare-chocs
-            { -3.0, -0.7, 3.0, -0.7 },   -- Pare-buffle avant bas
-            { -3.0, 0.8, 3.0, 0.8 },     -- Pare-buffle haut
-            { -3.0, -0.7, -3.0, 0.8 },   -- Barres bullbar
-            { 3.0, -0.7, 3.0, 0.8 },
-            { -4.0, 0.1, -3.8, 1.0 },    -- Ailes
-            { 4.0, 0.1, 3.8, 1.0 },
-            { -3.4, 1.0, -2.4, 2.0 },    -- Pare-brise
-            { 3.4, 1.0, 2.4, 2.0 },
-            { -2.4, 2.0, 2.4, 2.0 },     -- Toit
-            { -2.0, 2.3, 2.0, 2.3 },     -- Gyrophare de police
-            { -2.0, 2.0, -2.0, 2.3 },
-            { 2.0, 2.0, 2.0, 2.3 },
+        FrontZ = -6.8,
+        OuterContour = {
+            {  0.00, -0.80 }, -- Bas bullbar central
+            { -2.40, -0.80 }, -- Coin bas bullbar G
+            { -3.00, -0.80 }, -- Intérieur pneu G
+            { -3.45, -1.80 }, -- Bas pneu G
+            { -3.90, -1.80 }, -- Coin extérieur pneu G
+            { -3.90, -0.20 }, -- Flanc extérieur pneu G
+            { -3.50,  0.50 }, -- Aile avant G
+            { -2.40,  0.60 }, -- Sommet bullbar G
+            { -3.30,  1.05 }, -- Rétroviseur & spot recherche G
+            { -2.35,  1.25 }, -- Montant pare-brise G
+            { -2.30,  1.95 }, -- Bord toit G
+            { -1.90,  2.35 }, -- Sommet gyrophare G
+            {  0.00,  2.35 }, -- Centre rampe gyrophare
+            {  1.90,  2.35 }, -- Sommet gyrophare D
+            {  2.30,  1.95 }, -- Bord toit D
+            {  2.35,  1.25 }, -- Montant pare-brise D
+            {  3.30,  1.05 }, -- Rétroviseur & spot recherche D
+            {  2.40,  0.60 }, -- Sommet bullbar D
+            {  3.50,  0.50 }, -- Aile avant D
+            {  3.90, -0.20 }, -- Flanc extérieur pneu D
+            {  3.90, -1.80 }, -- Coin extérieur pneu D
+            {  3.45, -1.80 }, -- Bas pneu D
+            {  3.00, -0.80 }, -- Intérieur pneu D
+            {  2.40, -0.80 }, -- Coin bas bullbar D
         },
+        Builder = CarBuilder.CreatePoliceInterceptor,
     },
     {
         Id = "hyperion_jetcar",
@@ -649,21 +659,30 @@ CarBuilder.Vehicles = {
         Name = "#5 Hyperion JetCar",
         SpeedMultiplier = 2.7,
         RewardCash = 2000,
-        TargetTilt = CFrame.Angles(0, 0, 0),
-        Builder = CarBuilder.CreateHyperionJetCar,
-        SilhouettePoints = {
-            { -3.8, -1.6, 3.8, -1.6 },   -- Bas roues
-            { -4.3, -0.3, 4.3, -0.3 },   -- Flèche basse
-            { -4.3, -0.3, -3.5, 0.5 },   -- Canards
-            { 4.3, -0.3, 3.5, 0.5 },
-            { -3.2, 0.5, 3.2, 0.5 },     -- Cockpit
-            { -2.6, 0.5, -1.8, 1.8 },    -- Verrière bulle avion
-            { 2.6, 0.5, 1.8, 1.8 },
-            { -1.8, 1.8, 1.8, 1.8 },     -- Haut verrière
-            { 0.0, 1.8, 0.0, 2.8 },      -- Dérive dorsale fusée
-            { -2.6, -0.1, -2.6, 1.2 },   -- Tuyère réacteur G
-            { 2.6, -0.1, 2.6, 1.2 },     -- Tuyère réacteur D
+        FrontZ = -7.2,
+        OuterContour = {
+            {  0.00, -0.85 }, -- Pointe avant basse
+            { -2.90, -0.85 }, -- Intérieur roue G
+            { -3.40, -1.65 }, -- Bas roue G
+            { -3.85, -1.65 }, -- Coin bas roue G
+            { -4.10, -0.40 }, -- Aileron canard supersonique G
+            { -3.50,  0.30 }, -- Écope latérale G
+            { -2.80,  1.10 }, -- Nacelle réacteur jet G
+            { -1.80,  1.20 }, -- Base verrière bulle G
+            { -1.40,  1.75 }, -- Épaulement verrière G
+            { -0.20,  2.10 }, -- Base aileron dorsal G
+            {  0.00,  2.65 }, -- Crête dérive dorsale fusée
+            {  0.20,  2.10 }, -- Base aileron dorsal D
+            {  1.40,  1.75 }, -- Épaulement verrière D
+            {  1.80,  1.20 }, -- Base verrière bulle D
+            {  2.80,  1.10 }, -- Nacelle réacteur jet D
+            {  3.50,  0.30 }, -- Écope latérale D
+            {  4.10, -0.40 }, -- Aileron canard supersonique D
+            {  3.85, -1.65 }, -- Coin bas roue D
+            {  3.40, -1.65 }, -- Bas roue D
+            {  2.90, -0.85 }, -- Intérieur roue D
         },
+        Builder = CarBuilder.CreateHyperionJetCar,
     },
 }
 
@@ -681,10 +700,10 @@ function CarBuilder.GetVehicleConfig(idOrIndex: any): VehicleConfig
 end
 
 -- =============================================================================
--- CRÉATION D'UN TARGETFRAME 100% FIDÈLE AU VÉHICULE
--- Clone fantôme (Highlight AlwaysOnTop) + barres Neon vert fluo + CenterPoint
+-- CRÉATION DU TARGETFRAME : BOUCLE FERMÉE UNIQUE SANS LIGNES INTERNES
+-- Calée directement sur la silhouette extérieure réelle du véhicule
 -- =============================================================================
-function CarBuilder.CreateTargetFrame(idOrIndex: any, centerPos: Vector3, baseCFrame: CFrame): Model
+function CarBuilder.CreateTargetFrame(idOrIndex: any, centerPos: Vector3, param3: any?, param4: any?): Model
     local cfg = CarBuilder.GetVehicleConfig(idOrIndex)
 
     -- Nettoyage de tout ancien TargetFrame existant
@@ -697,11 +716,19 @@ function CarBuilder.CreateTargetFrame(idOrIndex: any, centerPos: Vector3, baseCF
     frameModel.Name = "TargetFrame"
     frameModel.Parent = workspace
 
-    local targetCF = baseCFrame * cfg.TargetTilt
-    local NEON_GREEN = Color3.fromRGB(0, 255, 60)
-    local BAR_THICKNESS = 0.15
+    -- Orientation standard alignée avec la descente de la colline
+    local slopeVector = Vector3.new(0, 120, 400)
+    local uDir = slopeVector.Unit
+    local rightVec = Vector3.new(1, 0, 0)
+    local normalVec = uDir:Cross(rightVec)
+    local downhillDir = -uDir
 
-    -- 1. Repère invisible CenterPoint exactement au centre
+    local targetCF = CFrame.lookAt(centerPos, centerPos + downhillDir, normalVec)
+
+    local NEON_GREEN = Color3.fromRGB(0, 255, 60)
+    local BAR_THICKNESS = 0.14
+
+    -- 1. Repère invisible CenterPoint exactement au centre cible
     local centerPoint = Instance.new("Part")
     centerPoint.Name = "CenterPoint"
     centerPoint.Size = Vector3.new(1, 1, 1)
@@ -715,60 +742,46 @@ function CarBuilder.CreateTargetFrame(idOrIndex: any, centerPos: Vector3, baseCF
     local pointLight = Instance.new("PointLight")
     pointLight.Name = "FrameLight"
     pointLight.Color = NEON_GREEN
-    pointLight.Brightness = 3.5
-    pointLight.Range = 28
+    pointLight.Brightness = 3.0
+    pointLight.Range = 26
     pointLight.Parent = centerPoint
 
-    -- 2. Clone fantôme du véhicule avec Highlight AlwaysOnTop (silhouette volumétrique 3D parfaite)
-    local ghostCar = cfg.Builder()
-    ghostCar.Name = "GhostVehicleSilhouette"
-    for _, part in ipairs(ghostCar:GetDescendants()) do
-        if part:IsA("BasePart") then
-            part.Anchored = true
-            part.CanCollide = false
-            part.Transparency = 0.92
-            part.CastShadow = false
-        end
-    end
-    ghostCar:PivotTo(targetCF)
-    ghostCar.Parent = frameModel
+    -- 2. Plan du contour placé 0.15 stud devant le nez de la voiture
+    -- Cela empêche toute barre de traverser la carrosserie lorsque la voiture est figée à l'arrêt
+    local contourCF = targetCF * CFrame.new(0, 0, cfg.FrontZ - 0.15)
 
-    local highlight = Instance.new("Highlight")
-    highlight.Name = "GreenOutlineHighlight"
-    highlight.FillTransparency = 1
-    highlight.OutlineColor = NEON_GREEN
-    highlight.OutlineTransparency = 0
-    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-    highlight.Adornee = ghostCar
-    highlight.Parent = ghostCar
+    -- 3. Construction de la boucle fermée extérieure UNIQUE (aucun clone fantôme, aucune ligne interne)
+    local pts = cfg.OuterContour
+    local count = #pts
 
-    -- 3. Barres Neon vert fluo reliant les points de contour exacts du gabarit frontal
-    local rightVec = targetCF.RightVector
-    local upVec = targetCF.UpVector
+    for i = 1, count do
+        local pA = pts[i]
+        local nextIdx = (i % count) + 1
+        local pB = pts[nextIdx]
 
-    for i, seg in ipairs(cfg.SilhouettePoints) do
-        local x1, y1, x2, y2 = seg[1], seg[2], seg[3], seg[4]
-        local p1 = targetCF.Position + (rightVec * x1) + (upVec * y1)
-        local p2 = targetCF.Position + (rightVec * x2) + (upVec * y2)
+        -- Conversion des coordonnées 2D (X, Y) du contour dans l'espace 3D du plan frontal
+        local wA = contourCF:PointToWorldSpace(Vector3.new(pA[1], pA[2], 0))
+        local wB = contourCF:PointToWorldSpace(Vector3.new(pB[1], pB[2], 0))
 
-        local segVec = p2 - p1
+        local segVec = wB - wA
         local segLen = segVec.Magnitude
-        local segMid = (p1 + p2) / 2
+        local segMid = (wA + wB) / 2
 
         if segLen > 0.02 then
             local bar = Instance.new("Part")
-            bar.Name = "Bar_" .. i
+            bar.Name = string.format("Outline_%02d", i)
             bar.Size = Vector3.new(BAR_THICKNESS, BAR_THICKNESS, segLen)
             bar.CFrame = CFrame.lookAt(segMid, segMid + segVec.Unit)
             bar.Material = Enum.Material.Neon
             bar.Color = NEON_GREEN
             bar.Anchored = true
             bar.CanCollide = false
+            bar.CastShadow = false
             bar.Parent = frameModel
         end
     end
 
-    print(string.format("[CarBuilder] TargetFrame 100%% synchronisé créé pour %s", cfg.Name))
+    print(string.format("[CarBuilder] TargetFrame boucle fermée extérieure créée pour %s (%d segments)", cfg.Name, count))
     return frameModel
 end
 
