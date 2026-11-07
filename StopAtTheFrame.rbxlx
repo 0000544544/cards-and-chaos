@@ -25,17 +25,17 @@
     <Item class="ModuleScript" referent="2">
       <Properties>
         <string name="Name">CarBuilder</string>
-        <string name="Source"><![CDATA[--!strict
+        <string name="Source"><![CDATA[﻿--!strict
 --[[
     STOP AT THE FRAME - CAR BUILDER & TARGET FRAME GENERATOR (MODULE SCRIPT)
-    Génère procéduralement les 5 véhicules avec soubassement noir détaillé,
-    et génère le TargetFrame : un seul polygone fermé continu en fines barres Neon vertes (0.14)
-    délimitant exclusivement le contour extérieur (vide à l'intérieur, aucun clone fantôme, aucune ligne interne).
+    GÃ©nÃ¨re procÃ©duralement les 5 vÃ©hicules avec soubassement noir dÃ©taillÃ©,
+    et gÃ©nÃ¨re le TargetFrame : un seul polygone fermÃ© continu en fines barres Neon vertes (0.14)
+    dÃ©limitant exclusivement le contour extÃ©rieur (vide Ã  l'intÃ©rieur, aucun clone fantÃ´me, aucune ligne interne).
 ]]
 
 local CarBuilder = {}
 
-export type ContourPoint = { number } -- { X, Y, Z } en coords locales du véhicule
+export type ContourPoint = { number } -- { X, Y, Z } en coords locales du vÃ©hicule
 
 export type VehicleConfig = {
     Id: string,
@@ -68,27 +68,27 @@ local function weldParts(part0: BasePart, part1: BasePart)
     weld.Parent = part1
 end
 
--- Ajoute un soubassement mécanique noir détaillé (visible quand le nez est cabré)
+-- Ajoute un soubassement mÃ©canique noir dÃ©taillÃ© (visible quand le nez est cabrÃ©)
 local function addDetailedUndercarriage(root: BasePart, car: Model, width: number, length: number)
     local UNDER_BLACK = Color3.fromRGB(15, 16, 18)
     local METAL_GRAY = Color3.fromRGB(175, 180, 188)
     local EXHAUST_HEAT = Color3.fromRGB(120, 150, 190)
 
-    -- Plaque de protection inférieure (Skid Plate)
+    -- Plaque de protection infÃ©rieure (Skid Plate)
     local skidPlate = createPart("SkidPlate", Vector3.new(width - 0.8, 0.25, length - 1.5), root.CFrame * CFrame.new(0, -0.9, 0), Enum.Material.DiamondPlate, UNDER_BLACK, car)
     weldParts(root, skidPlate)
 
-    -- Carter de transmission & boîte centrale
+    -- Carter de transmission & boÃ®te centrale
     local transmission = createPart("GearboxPan", Vector3.new(2.0, 0.4, 3.0), root.CFrame * CFrame.new(0, -0.95, -0.4), Enum.Material.Metal, METAL_GRAY, car)
     weldParts(root, transmission)
 
-    -- Double ligne d'échappement inox
+    -- Double ligne d'Ã©chappement inox
     local exhaustL = createPart("ExhaustPipe_L", Vector3.new(0.35, 0.35, length - 3.2), root.CFrame * CFrame.new(-1.2, -0.92, 0.8), Enum.Material.Metal, EXHAUST_HEAT, car)
     weldParts(root, exhaustL)
     local exhaustR = createPart("ExhaustPipe_R", Vector3.new(0.35, 0.35, length - 3.2), root.CFrame * CFrame.new(1.2, -0.92, 0.8), Enum.Material.Metal, EXHAUST_HEAT, car)
     weldParts(root, exhaustR)
 
-    -- Embouts d'échappement chromés à l'arrière
+    -- Embouts d'Ã©chappement chromÃ©s Ã  l'arriÃ¨re
     local tipL = Instance.new("Part")
     tipL.Name = "ExhaustTip_L"
     tipL.Shape = Enum.PartType.Cylinder
@@ -113,7 +113,7 @@ local function addDetailedUndercarriage(root: BasePart, car: Model, width: numbe
     tipR.Parent = car
     weldParts(root, tipR)
 
-    -- Essieux de suspension avant et arrière
+    -- Essieux de suspension avant et arriÃ¨re
     local axleFront = createPart("Suspension_F", Vector3.new(width - 0.4, 0.3, 0.8), root.CFrame * CFrame.new(0, -0.8, -length * 0.3), Enum.Material.Metal, UNDER_BLACK, car)
     weldParts(root, axleFront)
     local axleRear = createPart("Suspension_R", Vector3.new(width - 0.4, 0.3, 0.8), root.CFrame * CFrame.new(0, -0.8, length * 0.3), Enum.Material.Metal, UNDER_BLACK, car)
@@ -167,16 +167,15 @@ function CarBuilder.CreateLotusRally(): Model
     local scoop = createPart("RoofScoop", Vector3.new(1.6, 0.5, 1.8), root.CFrame * CFrame.new(0, 2.15, -0.6) * CFrame.Angles(math.rad(-10), 0, 0), Enum.Material.SmoothPlastic, CHARCOAL, car)
     weldParts(root, scoop)
 
-    -- 4 Roues droites debout (axe X = gauche-droite, pas de rotation Z)
-    -- Avant  : X = ±2.55 à ±3.65, bas Y = -1.80 | Arrière : légèrement plus haut / plus à l'intérieur
+    -- 4 Roues droites debout (axe X, sans rotation Z) â€” flanc externe Ã  X=Â±3.05, sous carrosserie Â±3.20
     local wheelOffsets = {
-        Vector3.new(-3.10, -0.70, -3.8), Vector3.new(3.10, -0.70, -3.8), -- Avant
-        Vector3.new(-2.80, -0.35,  3.8), Vector3.new(2.80, -0.35,  3.8), -- Arrière
+        Vector3.new(-2.55, -0.95, -3.8), Vector3.new(2.55, -0.95, -3.8), -- Avant
+        Vector3.new(-2.55, -0.95,  3.8), Vector3.new(2.55, -0.95,  3.8), -- ArriÃ¨re
     }
     for _, offset in ipairs(wheelOffsets) do
         local tire = Instance.new("Part")
         tire.Shape = Enum.PartType.Cylinder
-        tire.Size = Vector3.new(1.1, 2.2, 2.2)
+        tire.Size = Vector3.new(1.0, 2.1, 2.1)
         tire.CFrame = root.CFrame * CFrame.new(offset)
         tire.Material = Enum.Material.Rubber
         tire.Color = Color3.fromRGB(20, 20, 22)
@@ -187,7 +186,7 @@ function CarBuilder.CreateLotusRally(): Model
 
         local rim = Instance.new("Part")
         rim.Shape = Enum.PartType.Cylinder
-        rim.Size = Vector3.new(1.16, 1.35, 1.35)
+        rim.Size = Vector3.new(1.05, 1.3, 1.3)
         rim.CFrame = tire.CFrame
         rim.Material = Enum.Material.Metal
         rim.Color = RIM_GRAY
@@ -203,7 +202,7 @@ function CarBuilder.CreateLotusRally(): Model
     local headR = createPart("HeadR", Vector3.new(1.3, 0.5, 0.2), root.CFrame * CFrame.new(2.3, 0.05, -5.85), Enum.Material.Neon, Color3.fromRGB(255, 252, 225), car)
     weldParts(root, headR)
 
-    -- Rétroviseurs
+    -- RÃ©troviseurs
     local mirL = createPart("MirrorL", Vector3.new(0.7, 0.35, 0.8), root.CFrame * CFrame.new(-2.7, 0.95, -1.6), Enum.Material.SmoothPlastic, CHARCOAL, car)
     weldParts(root, mirL)
     local mirR = createPart("MirrorR", Vector3.new(0.7, 0.35, 0.8), root.CFrame * CFrame.new(2.7, 0.95, -1.6), Enum.Material.SmoothPlastic, CHARCOAL, car)
@@ -214,7 +213,7 @@ function CarBuilder.CreateLotusRally(): Model
 end
 
 -- =============================================================================
--- #2 CYBER TRUCK (Pick-up futuriste acier brossé, vitesse x1.35, 120$)
+-- #2 CYBER TRUCK (Pick-up futuriste acier brossÃ©, vitesse x1.35, 120$)
 -- =============================================================================
 function CarBuilder.CreateCyberTruck(): Model
     local car = Instance.new("Model")
@@ -234,49 +233,49 @@ function CarBuilder.CreateCyberTruck(): Model
     local CYBER_CYAN = Color3.fromRGB(0, 240, 255)
     local BLACK_ARMOR = Color3.fromRGB(22, 24, 28)
 
-    -- Châssis principal profilé (Largeur 6.4, Hauteur 1.2, Longueur 11.6)
+    -- ChÃ¢ssis principal profilÃ© (Largeur 6.4, Hauteur 1.2, Longueur 11.6)
     local lower = createPart("LowerArmor", Vector3.new(6.4, 1.2, 11.6), root.CFrame * CFrame.new(0, -0.2, 0), Enum.Material.Metal, STEEL, car)
     weldParts(root, lower)
 
-    -- Toit triangulaire pyramidale emblématique
+    -- Toit triangulaire pyramidale emblÃ©matique
     local roofFront = createPart("RoofFrontSlope", Vector3.new(5.8, 0.45, 5.8), root.CFrame * CFrame.new(0, 1.25, -2.4) * CFrame.Angles(math.rad(-21), 0, 0), Enum.Material.Metal, STEEL, car)
     weldParts(root, roofFront)
 
     local roofBack = createPart("RoofBackSlope", Vector3.new(5.8, 0.45, 6.0), root.CFrame * CFrame.new(0, 1.25, 2.9) * CFrame.Angles(math.rad(19), 0, 0), Enum.Material.Metal, STEEL, car)
     weldParts(root, roofBack)
 
-    -- Crête supérieure du toit
+    -- CrÃªte supÃ©rieure du toit
     local roofPeak = createPart("RoofPeakBar", Vector3.new(2.8, 0.35, 1.2), root.CFrame * CFrame.new(0, 2.05, 0.2), Enum.Material.Metal, STEEL, car)
     weldParts(root, roofPeak)
 
-    -- Pare-brise angulaire blindé teinté
+    -- Pare-brise angulaire blindÃ© teintÃ©
     local glass = createPart("ArmorWindshield", Vector3.new(5.4, 1.6, 0.25), root.CFrame * CFrame.new(0, 1.2, -2.3) * CFrame.Angles(math.rad(-25), 0, 0), Enum.Material.Glass, BLACK_ARMOR, car)
     glass.Reflectance = 0.4
     weldParts(root, glass)
 
-    -- Lightbar avant continue néon cyan (Pleine largeur 6.2 studs)
+    -- Lightbar avant continue nÃ©on cyan (Pleine largeur 6.2 studs)
     local lightbar = createPart("FrontLightbar", Vector3.new(6.2, 0.28, 0.2), root.CFrame * CFrame.new(0, 0.45, -5.85), Enum.Material.Neon, CYBER_CYAN, car)
     weldParts(root, lightbar)
 
-    -- Lightbar arrière rouge
+    -- Lightbar arriÃ¨re rouge
     local rearLight = createPart("RearLightbar", Vector3.new(6.2, 0.28, 0.2), root.CFrame * CFrame.new(0, 0.55, 5.85), Enum.Material.Neon, Color3.fromRGB(255, 30, 30), car)
     weldParts(root, rearLight)
 
-    -- Rétroviseurs angulaires compacts
+    -- RÃ©troviseurs angulaires compacts
     local mirL = createPart("CyberMirrorL", Vector3.new(0.65, 0.35, 0.7), root.CFrame * CFrame.new(-3.3, 0.95, -1.8), Enum.Material.Metal, DARK_STEEL, car)
     weldParts(root, mirL)
     local mirR = createPart("CyberMirrorR", Vector3.new(0.65, 0.35, 0.7), root.CFrame * CFrame.new(3.3, 0.95, -1.8), Enum.Material.Metal, DARK_STEEL, car)
     weldParts(root, mirR)
 
-    -- 4 Roues droites debout (axe X, sans rotation Z)
+    -- 4 Roues droites debout (axe X, sans rotation Z) â€” flanc externe Ã  X=Â±3.05, sous carrosserie Â±3.20
     local wheelOffsets = {
-        Vector3.new(-3.10, -0.70, -3.8), Vector3.new(3.10, -0.70, -3.8),
-        Vector3.new(-2.80, -0.35,  3.8), Vector3.new(2.80, -0.35,  3.8),
+        Vector3.new(-2.55, -0.95, -3.8), Vector3.new(2.55, -0.95, -3.8),
+        Vector3.new(-2.55, -0.95,  3.8), Vector3.new(2.55, -0.95,  3.8),
     }
     for _, offset in ipairs(wheelOffsets) do
         local tire = Instance.new("Part")
         tire.Shape = Enum.PartType.Cylinder
-        tire.Size = Vector3.new(1.1, 2.2, 2.2)
+        tire.Size = Vector3.new(1.0, 2.1, 2.1)
         tire.CFrame = root.CFrame * CFrame.new(offset)
         tire.Material = Enum.Material.Rubber
         tire.Color = BLACK_ARMOR
@@ -287,7 +286,7 @@ function CarBuilder.CreateCyberTruck(): Model
 
         local cap = Instance.new("Part")
         cap.Shape = Enum.PartType.Cylinder
-        cap.Size = Vector3.new(1.16, 1.35, 1.35)
+        cap.Size = Vector3.new(1.05, 1.3, 1.3)
         cap.CFrame = tire.CFrame
         cap.Material = Enum.Material.Metal
         cap.Color = DARK_STEEL
@@ -302,7 +301,7 @@ function CarBuilder.CreateCyberTruck(): Model
 end
 
 -- =============================================================================
--- #3 DRIFT SUPRA (Orange néon, kit carrosserie large, vitesse x1.7, 300$)
+-- #3 DRIFT SUPRA (Orange nÃ©on, kit carrosserie large, vitesse x1.7, 300$)
 -- =============================================================================
 function CarBuilder.CreateDriftSupra(): Model
     local car = Instance.new("Model")
@@ -322,30 +321,30 @@ function CarBuilder.CreateDriftSupra(): Model
     local CARBON = Color3.fromRGB(25, 27, 30)
     local BRONZE_WHEEL = Color3.fromRGB(175, 130, 75)
 
-    -- Châssis large surbaissé
+    -- ChÃ¢ssis large surbaissÃ©
     local base = createPart("WideBase", Vector3.new(6.4, 1.1, 11.6), root.CFrame * CFrame.new(0, -0.25, 0), Enum.Material.SmoothPlastic, ORANGE, car)
     weldParts(root, base)
     local splitter = createPart("CarbonSplitter", Vector3.new(6.6, 0.25, 1.6), root.CFrame * CFrame.new(0, -0.75, -5.9), Enum.Material.DiamondPlate, CARBON, car)
     weldParts(root, splitter)
 
-    -- Canards aérodynamiques latéraux avant
+    -- Canards aÃ©rodynamiques latÃ©raux avant
     local canardL = createPart("CanardL", Vector3.new(0.6, 0.25, 1.2), root.CFrame * CFrame.new(-3.7, -0.55, -5.7) * CFrame.Angles(0, math.rad(-15), math.rad(10)), Enum.Material.SmoothPlastic, CARBON, car)
     weldParts(root, canardL)
     local canardR = createPart("CanardR", Vector3.new(0.6, 0.25, 1.2), root.CFrame * CFrame.new(3.7, -0.55, -5.7) * CFrame.Angles(0, math.rad(15), math.rad(-10)), Enum.Material.SmoothPlastic, CARBON, car)
     weldParts(root, canardR)
 
-    -- Capot galbé carbone avec sorties d'air
+    -- Capot galbÃ© carbone avec sorties d'air
     local hood = createPart("CarbonHood", Vector3.new(6.2, 0.6, 4.0), root.CFrame * CFrame.new(0, 0.4, -3.7) * CFrame.Angles(math.rad(-7), 0, 0), Enum.Material.DiamondPlate, CARBON, car)
     weldParts(root, hood)
 
-    -- Toit galbé profilé
+    -- Toit galbÃ© profilÃ©
     local roof = createPart("RoofDoubleBubble", Vector3.new(4.6, 0.35, 4.4), root.CFrame * CFrame.new(0, 1.65, 0.3), Enum.Material.SmoothPlastic, DARK_ORANGE, car)
     weldParts(root, roof)
     local windshield = createPart("Windshield", Vector3.new(4.5, 1.5, 0.25), root.CFrame * CFrame.new(0, 1.15, -1.8) * CFrame.Angles(math.rad(-34), 0, 0), Enum.Material.Glass, Color3.fromRGB(15, 18, 22), car)
     windshield.Reflectance = 0.4
     weldParts(root, windshield)
 
-    -- Aileron GT démesuré
+    -- Aileron GT dÃ©mesurÃ©
     local wingBlade = createPart("GTWingBlade", Vector3.new(7.2, 0.25, 1.8), root.CFrame * CFrame.new(0, 2.45, 5.5), Enum.Material.SmoothPlastic, CARBON, car)
     weldParts(root, wingBlade)
     local uprightL = createPart("UprightL", Vector3.new(0.25, 1.2, 0.8), root.CFrame * CFrame.new(-2.2, 1.85, 5.5), Enum.Material.Metal, CARBON, car)
@@ -355,13 +354,13 @@ function CarBuilder.CreateDriftSupra(): Model
 
     -- Roues larges bronze droites debout (sans rotation Z)
     local wheelOffsets = {
-        Vector3.new(-3.10, -0.70, -3.8), Vector3.new(3.10, -0.70, -3.8),
-        Vector3.new(-2.80, -0.35,  3.8), Vector3.new(2.80, -0.35,  3.8),
+        Vector3.new(-2.55, -0.95, -3.8), Vector3.new(2.55, -0.95, -3.8),
+        Vector3.new(-2.55, -0.95,  3.8), Vector3.new(2.55, -0.95,  3.8),
     }
     for _, offset in ipairs(wheelOffsets) do
         local tire = Instance.new("Part")
         tire.Shape = Enum.PartType.Cylinder
-        tire.Size = Vector3.new(1.1, 2.2, 2.2)
+        tire.Size = Vector3.new(1.0, 2.1, 2.1)
         tire.CFrame = root.CFrame * CFrame.new(offset)
         tire.Material = Enum.Material.Rubber
         tire.Color = Color3.fromRGB(20, 20, 22)
@@ -372,7 +371,7 @@ function CarBuilder.CreateDriftSupra(): Model
 
         local rim = Instance.new("Part")
         rim.Shape = Enum.PartType.Cylinder
-        rim.Size = Vector3.new(1.16, 1.35, 1.35)
+        rim.Size = Vector3.new(1.05, 1.3, 1.3)
         rim.CFrame = tire.CFrame
         rim.Material = Enum.Material.Metal
         rim.Color = BRONZE_WHEEL
@@ -382,7 +381,7 @@ function CarBuilder.CreateDriftSupra(): Model
         weldParts(root, rim)
     end
 
-    -- Rétroviseurs aéro carbone
+    -- RÃ©troviseurs aÃ©ro carbone
     local mirL = createPart("MirL", Vector3.new(0.65, 0.35, 0.7), root.CFrame * CFrame.new(-2.9, 0.95, -1.6), Enum.Material.SmoothPlastic, CARBON, car)
     weldParts(root, mirL)
     local mirR = createPart("MirR", Vector3.new(0.65, 0.35, 0.7), root.CFrame * CFrame.new(2.9, 0.95, -1.6), Enum.Material.SmoothPlastic, CARBON, car)
@@ -434,7 +433,7 @@ function CarBuilder.CreatePoliceInterceptor(): Model
     local sirenBlue = createPart("Siren_Blue", Vector3.new(1.8, 0.35, 0.8), root.CFrame * CFrame.new(1.0, 2.2, 0.4), Enum.Material.Neon, Color3.fromRGB(30, 100, 255), car)
     weldParts(root, sirenBlue)
 
-    -- Rétroviseurs
+    -- RÃ©troviseurs
     local mirL = createPart("MirL", Vector3.new(0.65, 0.35, 0.7), root.CFrame * CFrame.new(-2.8, 0.95, -1.6), Enum.Material.SmoothPlastic, BLACK, car)
     weldParts(root, mirL)
     local mirR = createPart("MirR", Vector3.new(0.65, 0.35, 0.7), root.CFrame * CFrame.new(2.8, 0.95, -1.6), Enum.Material.SmoothPlastic, BLACK, car)
@@ -442,13 +441,13 @@ function CarBuilder.CreatePoliceInterceptor(): Model
 
     -- 4 Roues police droites debout (sans rotation Z)
     local wheelOffsets = {
-        Vector3.new(-3.10, -0.70, -3.8), Vector3.new(3.10, -0.70, -3.8),
-        Vector3.new(-2.80, -0.35,  3.8), Vector3.new(2.80, -0.35,  3.8),
+        Vector3.new(-2.55, -0.95, -3.8), Vector3.new(2.55, -0.95, -3.8),
+        Vector3.new(-2.55, -0.95,  3.8), Vector3.new(2.55, -0.95,  3.8),
     }
     for _, offset in ipairs(wheelOffsets) do
         local tire = Instance.new("Part")
         tire.Shape = Enum.PartType.Cylinder
-        tire.Size = Vector3.new(1.1, 2.2, 2.2)
+        tire.Size = Vector3.new(1.0, 2.1, 2.1)
         tire.CFrame = root.CFrame * CFrame.new(offset)
         tire.Material = Enum.Material.Rubber
         tire.Color = Color3.fromRGB(20, 20, 22)
@@ -459,7 +458,7 @@ function CarBuilder.CreatePoliceInterceptor(): Model
 
         local cap = Instance.new("Part")
         cap.Shape = Enum.PartType.Cylinder
-        cap.Size = Vector3.new(1.16, 1.35, 1.35)
+        cap.Size = Vector3.new(1.05, 1.3, 1.3)
         cap.CFrame = tire.CFrame
         cap.Material = Enum.Material.Metal
         cap.Color = STEEL
@@ -474,7 +473,7 @@ function CarBuilder.CreatePoliceInterceptor(): Model
 end
 
 -- =============================================================================
--- #5 HYPERION JETCAR (Hypercar dorée/carbone, réacteurs cyan, vitesse x2.7, 2000$)
+-- #5 HYPERION JETCAR (Hypercar dorÃ©e/carbone, rÃ©acteurs cyan, vitesse x2.7, 2000$)
 -- =============================================================================
 function CarBuilder.CreateHyperionJetCar(): Model
     local car = Instance.new("Model")
@@ -493,22 +492,22 @@ function CarBuilder.CreateHyperionJetCar(): Model
     local DARK_CARBON = Color3.fromRGB(18, 20, 24)
     local JET_CYAN = Color3.fromRGB(0, 245, 255)
 
-    -- Fuselage en flèche
+    -- Fuselage en flÃ¨che
     local body = createPart("Fuselage", Vector3.new(6.4, 1.0, 12.4), root.CFrame * CFrame.new(0, -0.25, 0), Enum.Material.Metal, GOLD, car)
     weldParts(root, body)
     local nose = createPart("AeroNose", Vector3.new(4.2, 0.45, 2.4), root.CFrame * CFrame.new(0, -0.45, -6.4), Enum.Material.DiamondPlate, DARK_CARBON, car)
     weldParts(root, nose)
 
-    -- Verrière cockpit type avion de chasse
+    -- VerriÃ¨re cockpit type avion de chasse
     local canopy = createPart("Canopy", Vector3.new(3.2, 1.4, 4.4), root.CFrame * CFrame.new(0, 0.85, -0.4) * CFrame.Angles(math.rad(-15), 0, 0), Enum.Material.Glass, Color3.fromRGB(10, 15, 20), car)
     canopy.Reflectance = 0.5
     weldParts(root, canopy)
 
-    -- Dérive dorsale centrale
+    -- DÃ©rive dorsale centrale
     local fin = createPart("DorsalFin", Vector3.new(0.3, 1.3, 3.4), root.CFrame * CFrame.new(0, 1.95, 2.2), Enum.Material.SmoothPlastic, DARK_CARBON, car)
     weldParts(root, fin)
 
-    -- Tuyères de réacteur arrière avec plasma cyan
+    -- TuyÃ¨res de rÃ©acteur arriÃ¨re avec plasma cyan
     for _, xOff in ipairs({ -1.8, 1.8 }) do
         local jetHousing = Instance.new("Part")
         jetHousing.Name = "JetHousing"
@@ -535,15 +534,15 @@ function CarBuilder.CreateHyperionJetCar(): Model
         weldParts(root, plasma)
     end
 
-    -- 4 Roues aéro droites debout (sans rotation Z)
+    -- 4 Roues aÃ©ro droites debout (sans rotation Z)
     local wheelOffsets = {
-        Vector3.new(-3.10, -0.70, -3.8), Vector3.new(3.10, -0.70, -3.8),
-        Vector3.new(-2.80, -0.35,  3.8), Vector3.new(2.80, -0.35,  3.8),
+        Vector3.new(-2.55, -0.95, -3.8), Vector3.new(2.55, -0.95, -3.8),
+        Vector3.new(-2.55, -0.95,  3.8), Vector3.new(2.55, -0.95,  3.8),
     }
     for _, offset in ipairs(wheelOffsets) do
         local tire = Instance.new("Part")
         tire.Shape = Enum.PartType.Cylinder
-        tire.Size = Vector3.new(1.1, 2.0, 2.0)
+        tire.Size = Vector3.new(1.0, 2.1, 2.1)
         tire.CFrame = root.CFrame * CFrame.new(offset)
         tire.Material = Enum.Material.Rubber
         tire.Color = DARK_CARBON
@@ -558,10 +557,7 @@ function CarBuilder.CreateHyperionJetCar(): Model
 end
 
 -- =============================================================================
--- REGISTRE DES 5 VÉHICULES AVEC LEUR CONTOUR 3D EXACT (PROJECTION PERSPECTIVE)
--- Coordonnées { X, Y, Z } calées sur les pièces réelles + nouvelles roues droites debout
--- Flancs de roue : X = ±2.55 (interne) à ±3.65 (externe), Y bas = -1.80, Z avant = -3.8
--- Pare-chocs avant : Z = -5.8 (position réelle du pare-chocs avant des modèles)
+-- REGISTRE DES 5 VÃ‰HICULES (OuterContour supprimÃ© â€” scan Raycast automatique)
 -- =============================================================================
 CarBuilder.Vehicles = {
     {
@@ -571,33 +567,6 @@ CarBuilder.Vehicles = {
         SpeedMultiplier = 1.0,
         RewardCash = 50,
         FrontZ = -6.0,
-        OuterContour = {
-            {  0.00, -0.88, -5.9 }, -- Bas splitter central
-            { -2.55, -0.88, -3.8 }, -- Haut interne pneu G
-            { -2.55, -1.80, -3.8 }, -- Bas interne pneu G
-            { -3.65, -1.80, -3.8 }, -- Bas externe pneu G
-            { -3.65, -0.20, -3.8 }, -- Flanc externe pneu G
-            { -3.20,  0.45, -5.8 }, -- Coin haut pare-chocs avant G
-            { -3.10,  0.78, -5.6 }, -- Bord capot avant G
-            { -3.05,  0.78, -1.6 }, -- Bas rétroviseur G
-            { -3.05,  1.12, -1.6 }, -- Haut rétroviseur G
-            { -2.40,  1.12, -1.8 }, -- Base pare-brise G
-            { -2.40,  2.02, -1.8 }, -- Coin toit G
-            { -0.80,  2.02, -1.5 }, -- Base prise d'air G
-            { -0.80,  2.40, -1.5 }, -- Haut prise d'air G
-            {  0.80,  2.40, -1.5 }, -- Haut prise d'air D
-            {  0.80,  2.02, -1.5 }, -- Base prise d'air D
-            {  2.40,  2.02, -1.8 }, -- Coin toit D
-            {  2.40,  1.12, -1.8 }, -- Base pare-brise D
-            {  3.05,  1.12, -1.6 }, -- Haut rétroviseur D
-            {  3.05,  0.78, -1.6 }, -- Bas rétroviseur D
-            {  3.10,  0.78, -5.6 }, -- Bord capot avant D
-            {  3.20,  0.45, -5.8 }, -- Coin haut pare-chocs avant D
-            {  3.65, -0.20, -3.8 }, -- Flanc externe pneu D
-            {  3.65, -1.80, -3.8 }, -- Bas externe pneu D
-            {  2.55, -1.80, -3.8 }, -- Bas interne pneu D
-            {  2.55, -0.88, -3.8 }, -- Haut interne pneu D
-        },
         Builder = CarBuilder.CreateLotusRally,
     },
     {
@@ -607,27 +576,6 @@ CarBuilder.Vehicles = {
         SpeedMultiplier = 1.35,
         RewardCash = 120,
         FrontZ = -6.0,
-        OuterContour = {
-            {  0.00, -0.80, -5.8 }, -- Bas châssis central
-            { -2.55, -0.80, -3.8 }, -- Haut interne pneu G
-            { -2.55, -1.80, -3.8 }, -- Bas interne pneu G
-            { -3.65, -1.80, -3.8 }, -- Bas externe pneu G
-            { -3.65, -0.20, -3.8 }, -- Flanc externe pneu G
-            { -3.20,  0.58, -5.8 }, -- Coin haut lightbar avant G
-            { -3.62,  0.78, -1.8 }, -- Bas rétro G
-            { -3.62,  1.12, -1.8 }, -- Pointe rétro G
-            { -2.90,  1.12, -2.4 }, -- Base pente toit G
-            { -1.40,  2.22,  0.2 }, -- Crête toit G
-            {  1.40,  2.22,  0.2 }, -- Crête toit D
-            {  2.90,  1.12, -2.4 }, -- Base pente toit D
-            {  3.62,  1.12, -1.8 }, -- Pointe rétro D
-            {  3.62,  0.78, -1.8 }, -- Bas rétro D
-            {  3.20,  0.58, -5.8 }, -- Coin haut lightbar avant D
-            {  3.65, -0.20, -3.8 }, -- Flanc externe pneu D
-            {  3.65, -1.80, -3.8 }, -- Bas externe pneu D
-            {  2.55, -1.80, -3.8 }, -- Bas interne pneu D
-            {  2.55, -0.80, -3.8 }, -- Haut interne pneu D
-        },
         Builder = CarBuilder.CreateCyberTruck,
     },
     {
@@ -637,29 +585,6 @@ CarBuilder.Vehicles = {
         SpeedMultiplier = 1.7,
         RewardCash = 300,
         FrontZ = -6.0,
-        OuterContour = {
-            {  0.00, -0.88, -5.9 }, -- Bas splitter carbone
-            { -2.55, -0.88, -3.8 }, -- Haut interne pneu G
-            { -2.55, -1.80, -3.8 }, -- Bas interne pneu G
-            { -3.65, -1.80, -3.8 }, -- Bas externe pneu G
-            { -3.65, -0.20, -3.8 }, -- Flanc externe pneu G
-            { -3.20,  0.45, -5.8 }, -- Coin haut pare-chocs avant G
-            { -3.10,  0.70, -5.5 }, -- Bord capot carbone G
-            { -3.22,  0.78, -1.6 }, -- Bas rétro G
-            { -3.22,  1.12, -1.6 }, -- Haut rétro G
-            { -2.30,  1.12, -1.8 }, -- Base pare-brise G
-            { -2.30,  1.82, -0.5 }, -- Coin toit G
-            {  2.30,  1.82, -0.5 }, -- Coin toit D
-            {  2.30,  1.12, -1.8 }, -- Base pare-brise D
-            {  3.22,  1.12, -1.6 }, -- Haut rétro D
-            {  3.22,  0.78, -1.6 }, -- Bas rétro D
-            {  3.10,  0.70, -5.5 }, -- Bord capot carbone D
-            {  3.20,  0.45, -5.8 }, -- Coin haut pare-chocs avant D
-            {  3.65, -0.20, -3.8 }, -- Flanc externe pneu D
-            {  3.65, -1.80, -3.8 }, -- Bas externe pneu D
-            {  2.55, -1.80, -3.8 }, -- Bas interne pneu D
-            {  2.55, -0.88, -3.8 }, -- Haut interne pneu D
-        },
         Builder = CarBuilder.CreateDriftSupra,
     },
     {
@@ -669,29 +594,6 @@ CarBuilder.Vehicles = {
         SpeedMultiplier = 2.1,
         RewardCash = 750,
         FrontZ = -6.4,
-        OuterContour = {
-            {  0.00, -0.85, -5.9 }, -- Bas châssis central
-            { -2.55, -0.85, -3.8 }, -- Haut interne pneu G
-            { -2.55, -1.80, -3.8 }, -- Bas interne pneu G
-            { -3.65, -1.80, -3.8 }, -- Bas externe pneu G
-            { -3.65, -0.20, -3.8 }, -- Flanc externe pneu G
-            { -3.22,  0.60, -5.8 }, -- Coin haut pare-chocs avant G
-            { -3.12,  0.78, -1.6 }, -- Bas rétro G
-            { -3.12,  1.12, -1.6 }, -- Haut rétro G
-            { -2.30,  1.12, -1.8 }, -- Base pare-brise G
-            { -2.30,  2.02, -0.5 }, -- Coin toit G
-            { -1.90,  2.38,  0.4 }, -- Haut gyrophare G
-            {  1.90,  2.38,  0.4 }, -- Haut gyrophare D
-            {  2.30,  2.02, -0.5 }, -- Coin toit D
-            {  2.30,  1.12, -1.8 }, -- Base pare-brise D
-            {  3.12,  1.12, -1.6 }, -- Haut rétro D
-            {  3.12,  0.78, -1.6 }, -- Bas rétro D
-            {  3.22,  0.60, -5.8 }, -- Coin haut pare-chocs avant D
-            {  3.65, -0.20, -3.8 }, -- Flanc externe pneu D
-            {  3.65, -1.80, -3.8 }, -- Bas externe pneu D
-            {  2.55, -1.80, -3.8 }, -- Bas interne pneu D
-            {  2.55, -0.85, -3.8 }, -- Haut interne pneu D
-        },
         Builder = CarBuilder.CreatePoliceInterceptor,
     },
     {
@@ -701,32 +603,11 @@ CarBuilder.Vehicles = {
         SpeedMultiplier = 2.7,
         RewardCash = 2000,
         FrontZ = -6.8,
-        OuterContour = {
-            {  0.00, -0.75, -5.8 }, -- Bas fuselage central
-            { -2.55, -0.75, -3.8 }, -- Haut interne roue G
-            { -2.55, -1.70, -3.8 }, -- Bas interne roue G
-            { -3.65, -1.70, -3.8 }, -- Bas externe roue G
-            { -3.65, -0.20, -3.8 }, -- Flanc externe roue G
-            { -3.20,  0.25, -5.8 }, -- Coin haut fuselage Or avant G
-            { -1.60,  0.35, -1.5 }, -- Base verrière cockpit G
-            { -1.60,  1.55, -0.4 }, -- Haut verrière cockpit G
-            { -0.15,  1.55,  1.2 }, -- Base dérive dorsale G
-            { -0.15,  2.60,  1.2 }, -- Sommet dérive dorsale G
-            {  0.15,  2.60,  1.2 }, -- Sommet dérive dorsale D
-            {  0.15,  1.55,  1.2 }, -- Base dérive dorsale D
-            {  1.60,  1.55, -0.4 }, -- Haut verrière cockpit D
-            {  1.60,  0.35, -1.5 }, -- Base verrière cockpit D
-            {  3.20,  0.25, -5.8 }, -- Coin haut fuselage Or avant D
-            {  3.65, -0.20, -3.8 }, -- Flanc externe roue D
-            {  3.65, -1.70, -3.8 }, -- Bas externe roue D
-            {  2.55, -1.70, -3.8 }, -- Bas interne roue D
-            {  2.55, -0.75, -3.8 }, -- Haut interne roue D
-        },
         Builder = CarBuilder.CreateHyperionJetCar,
     },
 }
 
--- Récupère la config d'un véhicule par ID ou Index
+-- RÃ©cupÃ¨re la config d'un vÃ©hicule par ID ou Index
 function CarBuilder.GetVehicleConfig(idOrIndex: any): VehicleConfig
     if type(idOrIndex) == "number" then
         return CarBuilder.Vehicles[math.clamp(idOrIndex, 1, #CarBuilder.Vehicles)]
@@ -740,47 +621,44 @@ function CarBuilder.GetVehicleConfig(idOrIndex: any): VehicleConfig
 end
 
 -- =============================================================================
--- CRÉATION DU TARGETFRAME : BOUCLE FERMÉE EXTÉRIEURE AVEC PROJECTION PERSPECTIVE
--- Les points 3D locaux { X, Y, Z } sont projetés depuis l'œil de la caméra
--- sur le plan frontal (FrontZ) via une intersection rayon-plan exacte.
--- Résultat : chaque barre verte à l'écran coïncide au pixel près avec la pièce 3D vue depuis la caméra.
+-- CRÃ‰ATION DU TARGETFRAME PAR SCANNER RAYCAST AUTOMATIQUE
+-- â–º Instancie temporairement la vraie voiture 3D sur targetCF
+-- â–º Tire une grille de rayons depuis eyePos Ã  travers le plan contourCF
+-- â–º Collecte le profil haut + bas, simplifie (Douglas-Peucker), trace la boucle Neon verte
+-- â–º RÃ©sultat : contour mathÃ©matiquement impossible Ã  dÃ©Phaser â€” calquÃ© au laser sur la carrosserie rÃ©elle
 -- =============================================================================
 function CarBuilder.CreateTargetFrame(idOrIndex: any, centerPos: Vector3): Model
     local cfg = CarBuilder.GetVehicleConfig(idOrIndex)
 
     -- Nettoyage de tout ancien TargetFrame existant
     local oldFrame = workspace:FindFirstChild("TargetFrame")
-    if oldFrame then
-        oldFrame:Destroy()
-    end
+    if oldFrame then oldFrame:Destroy() end
 
     local frameModel = Instance.new("Model")
     frameModel.Name = "TargetFrame"
     frameModel.Parent = workspace
 
-    -- Repère géométrique identique à CameraController et GameLoop
+    -- RepÃ¨re gÃ©omÃ©trique identique Ã  CameraController et GameLoop
     local slopeVector = Vector3.new(0, 120, 400)
     local uDir = slopeVector.Unit
     local rightVec = Vector3.new(1, 0, 0)
     local normalVec = uDir:Cross(rightVec)
     local downhillDir = -uDir
 
-    -- CFrame cible du véhicule (de face face à la caméra)
+    -- CFrame cible du vÃ©hicule (de face face Ã  la camÃ©ra)
     local targetCF = CFrame.lookAt(centerPos, centerPos + downhillDir, normalVec)
 
-    -- Position de l'œil de la caméra (identique à CameraController.client.luau)
+    -- Position de l'Å“il de la camÃ©ra (identique Ã  CameraController.client.luau)
     local roadBasePos = centerPos - (uDir * 20)
     local eyePos = roadBasePos - (normalVec * 0.4)
 
-    -- Plan du contour : placé exactement devant le nez de la voiture (FrontZ - 0.20)
-    local contourCF = targetCF * CFrame.new(0, 0, cfg.FrontZ - 0.20)
-    local planeOrigin = contourCF.Position
-    local planeNormal = contourCF.LookVector
+    -- Plan du contour : devant le nez de la voiture
+    local contourCF = targetCF * CFrame.new(0, 0, cfg.FrontZ - 0.15)
 
     local NEON_GREEN = Color3.fromRGB(0, 255, 60)
     local BAR_THICKNESS = 0.12
 
-    -- 1. Repère invisible CenterPoint au centre géométrique du cadre
+    -- RepÃ¨re invisible CenterPoint
     local centerPoint = Instance.new("Part")
     centerPoint.Name = "CenterPoint"
     centerPoint.Size = Vector3.new(1, 1, 1)
@@ -798,49 +676,154 @@ function CarBuilder.CreateTargetFrame(idOrIndex: any, centerPos: Vector3): Model
     pointLight.Range = 26
     pointLight.Parent = centerPoint
 
-    -- 2. Projection perspective : chaque sommet 3D local → rayon depuis la caméra → intersection avec le plan contour
-    local function projectPointFromCamera(localPt: { number }): Vector3
-        local worldPt = targetCF:PointToWorldSpace(Vector3.new(localPt[1], localPt[2], localPt[3]))
-        local rayDir = worldPt - eyePos
-        local denom = rayDir:Dot(planeNormal)
-        if math.abs(denom) < 1e-5 then
-            return worldPt -- Rayon parallèle au plan : retour au point monde
-        end
-        local s = (planeOrigin - eyePos):Dot(planeNormal) / denom
-        return eyePos + rayDir * s
-    end
-
-    -- 3. Construction de la boucle fermée extérieure UNIQUE (aucun clone, aucune ligne interne)
-    local pts = cfg.OuterContour
-    local count = #pts
-
-    for i = 1, count do
-        local pA = pts[i]
-        local nextIdx = (i % count) + 1
-        local pB = pts[nextIdx]
-
-        local wA = projectPointFromCamera(pA)
-        local wB = projectPointFromCamera(pB)
-
-        local segVec = wB - wA
-        local segLen = segVec.Magnitude
-        local segMid = (wA + wB) / 2
-
-        if segLen > 0.02 then
-            local bar = Instance.new("Part")
-            bar.Name = string.format("Outline_%02d", i)
-            bar.Size = Vector3.new(BAR_THICKNESS, BAR_THICKNESS, segLen)
-            bar.CFrame = CFrame.lookAt(segMid, segMid + segVec.Unit)
-            bar.Material = Enum.Material.Neon
-            bar.Color = NEON_GREEN
-            bar.Anchored = true
-            bar.CanCollide = false
-            bar.CastShadow = false
-            bar.Parent = frameModel
+    -- =========================================================
+    -- Ã‰TAPE 1 : Instanciation temporaire du vrai modÃ¨le 3D
+    -- =========================================================
+    local tempCar = cfg.Builder()
+    for _, part in ipairs(tempCar:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.Anchored = true
+            part.CanCollide = true
+            part.CanQuery = true
         end
     end
+    tempCar.Parent = workspace
+    tempCar:PivotTo(targetCF)
 
-    print(string.format("[CarBuilder] TargetFrame perspective projeté créé pour %s (%d segments)", cfg.Name, count))
+    local rayParams = RaycastParams.new()
+    rayParams.FilterType = Enum.RaycastFilterType.Include
+    rayParams.FilterDescendantsInstances = { tempCar }
+
+    -- =========================================================
+    -- Ã‰TAPE 2 : Scan Raycast colonne par colonne
+    -- =========================================================
+    local topProfile: { Vector2 } = {}
+    local botProfile: { Vector2 } = {}
+
+    local xMin, xMax, xStep = -3.60, 3.60, 0.08
+    local yMin, yMax, yStep = -2.30, 2.80, 0.06
+
+    local x = xMin
+    while x <= xMax + 0.001 do
+        local firstHitY: number? = nil
+        local lastHitY: number? = nil
+
+        local y = yMin
+        while y <= yMax + 0.001 do
+            local planePt = contourCF:PointToWorldSpace(Vector3.new(x, y, 0))
+            local dir = (planePt - eyePos).Unit * 60
+            local hit = workspace:Raycast(eyePos, dir, rayParams)
+            if hit then
+                if not firstHitY then firstHitY = y end
+                lastHitY = y
+            end
+            y += yStep
+        end
+
+        if firstHitY and lastHitY then
+            table.insert(topProfile, Vector2.new(x, lastHitY :: number))
+            table.insert(botProfile, Vector2.new(x, firstHitY :: number))
+        end
+        x += xStep
+    end
+
+    -- DÃ©truit immÃ©diatement le modÃ¨le temporaire
+    tempCar:Destroy()
+
+    -- =========================================================
+    -- Ã‰TAPE 3 : Simplification Ramer-Douglas-Peucker
+    -- =========================================================
+    local function simplifyPolyline(pts: { Vector2 }, epsilon: number): { Vector2 }
+        if #pts <= 2 then return pts end
+        local maxDist = 0
+        local index = 1
+        local p1, p2 = pts[1], pts[#pts]
+        local lineVec = p2 - p1
+        local lineLen = lineVec.Magnitude
+        for i = 2, #pts - 1 do
+            local d = 0
+            if lineLen < 1e-5 then
+                d = (pts[i] - p1).Magnitude
+            else
+                local t = math.clamp((pts[i] - p1):Dot(lineVec) / (lineLen * lineLen), 0, 1)
+                local proj = p1 + lineVec * t
+                d = (pts[i] - proj).Magnitude
+            end
+            if d > maxDist then index = i; maxDist = d end
+        end
+        if maxDist > epsilon then
+            local leftPts: { Vector2 } = {}
+            for i = 1, index do table.insert(leftPts, pts[i]) end
+            local rightPts: { Vector2 } = {}
+            for i = index, #pts do table.insert(rightPts, pts[i]) end
+            local res1 = simplifyPolyline(leftPts, epsilon)
+            local res2 = simplifyPolyline(rightPts, epsilon)
+            local merged: { Vector2 } = {}
+            for i = 1, #res1 - 1 do table.insert(merged, res1[i]) end
+            for i = 1, #res2 do table.insert(merged, res2[i]) end
+            return merged
+        else
+            return { p1, p2 }
+        end
+    end
+
+    local cleanTop = simplifyPolyline(topProfile, 0.05)
+    local reversedBot: { Vector2 } = {}
+    for i = #botProfile, 1, -1 do table.insert(reversedBot, botProfile[i]) end
+    local cleanBot = simplifyPolyline(reversedBot, 0.05)
+
+    -- Polygone fermÃ© complet (haut gaucheâ†’droite, bas droiteâ†’gauche)
+    local fullPolygon: { Vector2 } = {}
+    for _, pt in ipairs(cleanTop) do table.insert(fullPolygon, pt) end
+    for _, pt in ipairs(cleanBot) do table.insert(fullPolygon, pt) end
+
+    -- =========================================================
+    -- Ã‰TAPE 4 : TracÃ© de la boucle Neon verte
+    -- =========================================================
+    local count = #fullPolygon
+    if count < 3 then
+        -- Fallback : carrÃ© de sÃ©curitÃ© si le scan ne touche rien
+        warn("[CarBuilder] Raycast scan vide pour " .. cfg.Name .. " â€” cadre fallback")
+        local fallback = { Vector2.new(-3, -1.5), Vector2.new(3, -1.5), Vector2.new(3, 2.5), Vector2.new(-3, 2.5) }
+        for i, pt in ipairs(fallback) do
+            local nextPt = fallback[(i % #fallback) + 1]
+            local wA = contourCF:PointToWorldSpace(Vector3.new(pt.X, pt.Y, 0))
+            local wB = contourCF:PointToWorldSpace(Vector3.new(nextPt.X, nextPt.Y, 0))
+            local seg = Instance.new("Part")
+            seg.Name = "Fallback_" .. i
+            seg.Size = Vector3.new(BAR_THICKNESS, BAR_THICKNESS, (wB - wA).Magnitude)
+            seg.CFrame = CFrame.lookAt((wA + wB) / 2, wB)
+            seg.Material = Enum.Material.Neon
+            seg.Color = NEON_GREEN
+            seg.Anchored = true
+            seg.CanCollide = false
+            seg.CastShadow = false
+            seg.Parent = frameModel
+        end
+    else
+        for i = 1, count do
+            local ptA = fullPolygon[i]
+            local ptB = fullPolygon[(i % count) + 1]
+            local wA = contourCF:PointToWorldSpace(Vector3.new(ptA.X, ptA.Y, 0))
+            local wB = contourCF:PointToWorldSpace(Vector3.new(ptB.X, ptB.Y, 0))
+            local segVec = wB - wA
+            local segLen = segVec.Magnitude
+            if segLen > 0.02 then
+                local bar = Instance.new("Part")
+                bar.Name = string.format("Outline_%02d", i)
+                bar.Size = Vector3.new(BAR_THICKNESS, BAR_THICKNESS, segLen)
+                bar.CFrame = CFrame.lookAt((wA + wB) / 2, (wA + wB) / 2 + segVec.Unit)
+                bar.Material = Enum.Material.Neon
+                bar.Color = NEON_GREEN
+                bar.Anchored = true
+                bar.CanCollide = false
+                bar.CastShadow = false
+                bar.Parent = frameModel
+            end
+        end
+    end
+
+    print(string.format("[CarBuilder] TargetFrame RAYCAST scannÃ© pour %s (%d segments)", cfg.Name, count))
     return frameModel
 end
 
