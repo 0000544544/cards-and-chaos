@@ -167,12 +167,17 @@ function CarBuilder.CreateLotusRally(): Model
     local scoop = createPart("RoofScoop", Vector3.new(1.6, 0.5, 1.8), root.CFrame * CFrame.new(0, 2.15, -0.6) * CFrame.Angles(math.rad(-10), 0, 0), Enum.Material.SmoothPlastic, CHARCOAL, car)
     weldParts(root, scoop)
 
-    -- 4 Roues (Rayon 1.1, Largeur 0.9, Bas à Y = -1.80)
-    for _, offset in ipairs({ Vector3.new(-3.45, -0.7, -3.7), Vector3.new(3.45, -0.7, -3.7), Vector3.new(-3.45, -0.7, 3.7), Vector3.new(3.45, -0.7, 3.7) }) do
+    -- 4 Roues droites debout (axe X = gauche-droite, pas de rotation Z)
+    -- Avant  : X = ±2.55 à ±3.65, bas Y = -1.80 | Arrière : légèrement plus haut / plus à l'intérieur
+    local wheelOffsets = {
+        Vector3.new(-3.10, -0.70, -3.8), Vector3.new(3.10, -0.70, -3.8), -- Avant
+        Vector3.new(-2.80, -0.35,  3.8), Vector3.new(2.80, -0.35,  3.8), -- Arrière
+    }
+    for _, offset in ipairs(wheelOffsets) do
         local tire = Instance.new("Part")
         tire.Shape = Enum.PartType.Cylinder
-        tire.Size = Vector3.new(0.9, 2.2, 2.2)
-        tire.CFrame = root.CFrame * CFrame.new(offset) * CFrame.Angles(0, 0, math.rad(90))
+        tire.Size = Vector3.new(1.1, 2.2, 2.2)
+        tire.CFrame = root.CFrame * CFrame.new(offset)
         tire.Material = Enum.Material.Rubber
         tire.Color = Color3.fromRGB(20, 20, 22)
         tire.Anchored = false
@@ -182,7 +187,7 @@ function CarBuilder.CreateLotusRally(): Model
 
         local rim = Instance.new("Part")
         rim.Shape = Enum.PartType.Cylinder
-        rim.Size = Vector3.new(0.96, 1.4, 1.4)
+        rim.Size = Vector3.new(1.16, 1.35, 1.35)
         rim.CFrame = tire.CFrame
         rim.Material = Enum.Material.Metal
         rim.Color = RIM_GRAY
@@ -263,12 +268,16 @@ function CarBuilder.CreateCyberTruck(): Model
     local mirR = createPart("CyberMirrorR", Vector3.new(0.65, 0.35, 0.7), root.CFrame * CFrame.new(3.3, 0.95, -1.8), Enum.Material.Metal, DARK_STEEL, car)
     weldParts(root, mirR)
 
-    -- 4 Roues polygonales cyberpunk (Diamètre 2.2, Rayon 1.1, Bas à Y = -1.80)
-    for _, offset in ipairs({ Vector3.new(-3.40, -0.7, -3.8), Vector3.new(3.40, -0.7, -3.8), Vector3.new(-3.40, -0.7, 3.8), Vector3.new(3.40, -0.7, 3.8) }) do
+    -- 4 Roues droites debout (axe X, sans rotation Z)
+    local wheelOffsets = {
+        Vector3.new(-3.10, -0.70, -3.8), Vector3.new(3.10, -0.70, -3.8),
+        Vector3.new(-2.80, -0.35,  3.8), Vector3.new(2.80, -0.35,  3.8),
+    }
+    for _, offset in ipairs(wheelOffsets) do
         local tire = Instance.new("Part")
         tire.Shape = Enum.PartType.Cylinder
-        tire.Size = Vector3.new(0.9, 2.2, 2.2)
-        tire.CFrame = root.CFrame * CFrame.new(offset) * CFrame.Angles(0, 0, math.rad(90))
+        tire.Size = Vector3.new(1.1, 2.2, 2.2)
+        tire.CFrame = root.CFrame * CFrame.new(offset)
         tire.Material = Enum.Material.Rubber
         tire.Color = BLACK_ARMOR
         tire.Anchored = false
@@ -278,7 +287,7 @@ function CarBuilder.CreateCyberTruck(): Model
 
         local cap = Instance.new("Part")
         cap.Shape = Enum.PartType.Cylinder
-        cap.Size = Vector3.new(0.96, 1.4, 1.4)
+        cap.Size = Vector3.new(1.16, 1.35, 1.35)
         cap.CFrame = tire.CFrame
         cap.Material = Enum.Material.Metal
         cap.Color = DARK_STEEL
@@ -344,12 +353,16 @@ function CarBuilder.CreateDriftSupra(): Model
     local uprightR = createPart("UprightR", Vector3.new(0.25, 1.2, 0.8), root.CFrame * CFrame.new(2.2, 1.85, 5.5), Enum.Material.Metal, CARBON, car)
     weldParts(root, uprightR)
 
-    -- Roues larges bronze (Bas à Y = -1.75)
-    for _, offset in ipairs({ Vector3.new(-3.50, -0.65, -3.7), Vector3.new(3.50, -0.65, -3.7), Vector3.new(-3.50, -0.65, 3.7), Vector3.new(3.50, -0.65, 3.7) }) do
+    -- Roues larges bronze droites debout (sans rotation Z)
+    local wheelOffsets = {
+        Vector3.new(-3.10, -0.70, -3.8), Vector3.new(3.10, -0.70, -3.8),
+        Vector3.new(-2.80, -0.35,  3.8), Vector3.new(2.80, -0.35,  3.8),
+    }
+    for _, offset in ipairs(wheelOffsets) do
         local tire = Instance.new("Part")
         tire.Shape = Enum.PartType.Cylinder
-        tire.Size = Vector3.new(0.9, 2.2, 2.2)
-        tire.CFrame = root.CFrame * CFrame.new(offset) * CFrame.Angles(0, 0, math.rad(90))
+        tire.Size = Vector3.new(1.1, 2.2, 2.2)
+        tire.CFrame = root.CFrame * CFrame.new(offset)
         tire.Material = Enum.Material.Rubber
         tire.Color = Color3.fromRGB(20, 20, 22)
         tire.Anchored = false
@@ -359,7 +372,7 @@ function CarBuilder.CreateDriftSupra(): Model
 
         local rim = Instance.new("Part")
         rim.Shape = Enum.PartType.Cylinder
-        rim.Size = Vector3.new(0.96, 1.4, 1.4)
+        rim.Size = Vector3.new(1.16, 1.35, 1.35)
         rim.CFrame = tire.CFrame
         rim.Material = Enum.Material.Metal
         rim.Color = BRONZE_WHEEL
@@ -427,12 +440,16 @@ function CarBuilder.CreatePoliceInterceptor(): Model
     local mirR = createPart("MirR", Vector3.new(0.65, 0.35, 0.7), root.CFrame * CFrame.new(2.8, 0.95, -1.6), Enum.Material.SmoothPlastic, BLACK, car)
     weldParts(root, mirR)
 
-    -- 4 Roues police (Bas à Y = -1.80)
-    for _, offset in ipairs({ Vector3.new(-3.45, -0.7, -3.8), Vector3.new(3.45, -0.7, -3.8), Vector3.new(-3.45, -0.7, 3.8), Vector3.new(3.45, -0.7, 3.8) }) do
+    -- 4 Roues police droites debout (sans rotation Z)
+    local wheelOffsets = {
+        Vector3.new(-3.10, -0.70, -3.8), Vector3.new(3.10, -0.70, -3.8),
+        Vector3.new(-2.80, -0.35,  3.8), Vector3.new(2.80, -0.35,  3.8),
+    }
+    for _, offset in ipairs(wheelOffsets) do
         local tire = Instance.new("Part")
         tire.Shape = Enum.PartType.Cylinder
-        tire.Size = Vector3.new(0.9, 2.2, 2.2)
-        tire.CFrame = root.CFrame * CFrame.new(offset) * CFrame.Angles(0, 0, math.rad(90))
+        tire.Size = Vector3.new(1.1, 2.2, 2.2)
+        tire.CFrame = root.CFrame * CFrame.new(offset)
         tire.Material = Enum.Material.Rubber
         tire.Color = Color3.fromRGB(20, 20, 22)
         tire.Anchored = false
@@ -442,7 +459,7 @@ function CarBuilder.CreatePoliceInterceptor(): Model
 
         local cap = Instance.new("Part")
         cap.Shape = Enum.PartType.Cylinder
-        cap.Size = Vector3.new(0.96, 1.4, 1.4)
+        cap.Size = Vector3.new(1.16, 1.35, 1.35)
         cap.CFrame = tire.CFrame
         cap.Material = Enum.Material.Metal
         cap.Color = STEEL
@@ -518,12 +535,16 @@ function CarBuilder.CreateHyperionJetCar(): Model
         weldParts(root, plasma)
     end
 
-    -- 4 Roues aéro (Bas à Y = -1.65)
-    for _, offset in ipairs({ Vector3.new(-3.40, -0.65, -3.8), Vector3.new(3.40, -0.65, -3.8), Vector3.new(-3.40, -0.65, 3.8), Vector3.new(3.40, -0.65, 3.8) }) do
+    -- 4 Roues aéro droites debout (sans rotation Z)
+    local wheelOffsets = {
+        Vector3.new(-3.10, -0.70, -3.8), Vector3.new(3.10, -0.70, -3.8),
+        Vector3.new(-2.80, -0.35,  3.8), Vector3.new(2.80, -0.35,  3.8),
+    }
+    for _, offset in ipairs(wheelOffsets) do
         local tire = Instance.new("Part")
         tire.Shape = Enum.PartType.Cylinder
-        tire.Size = Vector3.new(0.9, 2.0, 2.0)
-        tire.CFrame = root.CFrame * CFrame.new(offset) * CFrame.Angles(0, 0, math.rad(90))
+        tire.Size = Vector3.new(1.1, 2.0, 2.0)
+        tire.CFrame = root.CFrame * CFrame.new(offset)
         tire.Material = Enum.Material.Rubber
         tire.Color = DARK_CARBON
         tire.Anchored = false
@@ -538,7 +559,9 @@ end
 
 -- =============================================================================
 -- REGISTRE DES 5 VÉHICULES AVEC LEUR CONTOUR 3D EXACT (PROJECTION PERSPECTIVE)
--- Coordonnées { X, Y, Z } en espace local du véhicule sur les pièces réelles
+-- Coordonnées { X, Y, Z } calées sur les pièces réelles + nouvelles roues droites debout
+-- Flancs de roue : X = ±2.55 (interne) à ±3.65 (externe), Y bas = -1.80, Z avant = -3.8
+-- Pare-chocs avant : Z = -5.8 (position réelle du pare-chocs avant des modèles)
 -- =============================================================================
 CarBuilder.Vehicles = {
     {
@@ -550,30 +573,30 @@ CarBuilder.Vehicles = {
         FrontZ = -6.0,
         OuterContour = {
             {  0.00, -0.88, -5.9 }, -- Bas splitter central
-            { -3.00, -0.88, -3.7 }, -- Bas intérieur pneu G
-            { -3.00, -1.80, -3.7 }, -- Semelle interne pneu G
-            { -3.90, -1.80, -3.7 }, -- Semelle externe pneu G
-            { -3.90,  0.40, -3.7 }, -- Haut flanc externe pneu G
-            { -3.20,  0.45, -3.7 }, -- Aile avant G
-            { -3.10,  0.78, -3.7 }, -- Haut capot G
+            { -2.55, -0.88, -3.8 }, -- Haut interne pneu G
+            { -2.55, -1.80, -3.8 }, -- Bas interne pneu G
+            { -3.65, -1.80, -3.8 }, -- Bas externe pneu G
+            { -3.65, -0.20, -3.8 }, -- Flanc externe pneu G
+            { -3.20,  0.45, -5.8 }, -- Coin haut pare-chocs avant G
+            { -3.10,  0.78, -5.6 }, -- Bord capot avant G
             { -3.05,  0.78, -1.6 }, -- Bas rétroviseur G
             { -3.05,  1.12, -1.6 }, -- Haut rétroviseur G
-            { -2.40,  1.12, -1.8 }, -- Base montant pare-brise G
-            { -2.40,  2.02, -1.8 }, -- Coin supérieur toit G
-            { -0.80,  2.02, -1.5 }, -- Base prise d'air toit G
-            { -0.80,  2.40, -1.5 }, -- Haut prise d'air toit G
-            {  0.80,  2.40, -1.5 }, -- Haut prise d'air toit D
-            {  0.80,  2.02, -1.5 }, -- Base prise d'air toit D
-            {  2.40,  2.02, -1.8 }, -- Coin supérieur toit D
-            {  2.40,  1.12, -1.8 }, -- Base montant pare-brise D
+            { -2.40,  1.12, -1.8 }, -- Base pare-brise G
+            { -2.40,  2.02, -1.8 }, -- Coin toit G
+            { -0.80,  2.02, -1.5 }, -- Base prise d'air G
+            { -0.80,  2.40, -1.5 }, -- Haut prise d'air G
+            {  0.80,  2.40, -1.5 }, -- Haut prise d'air D
+            {  0.80,  2.02, -1.5 }, -- Base prise d'air D
+            {  2.40,  2.02, -1.8 }, -- Coin toit D
+            {  2.40,  1.12, -1.8 }, -- Base pare-brise D
             {  3.05,  1.12, -1.6 }, -- Haut rétroviseur D
             {  3.05,  0.78, -1.6 }, -- Bas rétroviseur D
-            {  3.10,  0.78, -3.7 }, -- Haut capot D
-            {  3.20,  0.45, -3.7 }, -- Aile avant D
-            {  3.90,  0.40, -3.7 }, -- Haut flanc externe pneu D
-            {  3.90, -1.80, -3.7 }, -- Semelle externe pneu D
-            {  3.00, -1.80, -3.7 }, -- Semelle interne pneu D
-            {  3.00, -0.88, -3.7 }, -- Bas intérieur pneu D
+            {  3.10,  0.78, -5.6 }, -- Bord capot avant D
+            {  3.20,  0.45, -5.8 }, -- Coin haut pare-chocs avant D
+            {  3.65, -0.20, -3.8 }, -- Flanc externe pneu D
+            {  3.65, -1.80, -3.8 }, -- Bas externe pneu D
+            {  2.55, -1.80, -3.8 }, -- Bas interne pneu D
+            {  2.55, -0.88, -3.8 }, -- Haut interne pneu D
         },
         Builder = CarBuilder.CreateLotusRally,
     },
@@ -586,11 +609,11 @@ CarBuilder.Vehicles = {
         FrontZ = -6.0,
         OuterContour = {
             {  0.00, -0.80, -5.8 }, -- Bas châssis central
-            { -2.95, -0.80, -3.8 }, -- Bas intérieur pneu G
-            { -2.95, -1.80, -3.8 }, -- Semelle interne pneu G
-            { -3.85, -1.80, -3.8 }, -- Semelle externe pneu G
-            { -3.85,  0.40, -3.8 }, -- Haut pneu G
-            { -3.20,  0.45, -5.8 }, -- Bord châssis / lightbar G
+            { -2.55, -0.80, -3.8 }, -- Haut interne pneu G
+            { -2.55, -1.80, -3.8 }, -- Bas interne pneu G
+            { -3.65, -1.80, -3.8 }, -- Bas externe pneu G
+            { -3.65, -0.20, -3.8 }, -- Flanc externe pneu G
+            { -3.20,  0.58, -5.8 }, -- Coin haut lightbar avant G
             { -3.62,  0.78, -1.8 }, -- Bas rétro G
             { -3.62,  1.12, -1.8 }, -- Pointe rétro G
             { -2.90,  1.12, -2.4 }, -- Base pente toit G
@@ -599,11 +622,11 @@ CarBuilder.Vehicles = {
             {  2.90,  1.12, -2.4 }, -- Base pente toit D
             {  3.62,  1.12, -1.8 }, -- Pointe rétro D
             {  3.62,  0.78, -1.8 }, -- Bas rétro D
-            {  3.20,  0.45, -5.8 }, -- Bord châssis / lightbar D
-            {  3.85,  0.40, -3.8 }, -- Haut pneu D
-            {  3.85, -1.80, -3.8 }, -- Semelle externe pneu D
-            {  2.95, -1.80, -3.8 }, -- Semelle interne pneu D
-            {  2.95, -0.80, -3.8 }, -- Bas intérieur pneu D
+            {  3.20,  0.58, -5.8 }, -- Coin haut lightbar avant D
+            {  3.65, -0.20, -3.8 }, -- Flanc externe pneu D
+            {  3.65, -1.80, -3.8 }, -- Bas externe pneu D
+            {  2.55, -1.80, -3.8 }, -- Bas interne pneu D
+            {  2.55, -0.80, -3.8 }, -- Haut interne pneu D
         },
         Builder = CarBuilder.CreateCyberTruck,
     },
@@ -616,24 +639,26 @@ CarBuilder.Vehicles = {
         FrontZ = -6.0,
         OuterContour = {
             {  0.00, -0.88, -5.9 }, -- Bas splitter carbone
-            { -3.05, -0.88, -3.7 }, -- Intérieur pneu G
-            { -3.05, -1.75, -3.7 }, -- Semelle interne pneu G
-            { -3.95, -1.75, -3.7 }, -- Semelle externe pneu G
-            { -3.95,  0.45, -3.7 }, -- Haut pneu G
-            { -3.20,  0.70, -3.7 }, -- Haut aile / capot G
+            { -2.55, -0.88, -3.8 }, -- Haut interne pneu G
+            { -2.55, -1.80, -3.8 }, -- Bas interne pneu G
+            { -3.65, -1.80, -3.8 }, -- Bas externe pneu G
+            { -3.65, -0.20, -3.8 }, -- Flanc externe pneu G
+            { -3.20,  0.45, -5.8 }, -- Coin haut pare-chocs avant G
+            { -3.10,  0.70, -5.5 }, -- Bord capot carbone G
             { -3.22,  0.78, -1.6 }, -- Bas rétro G
             { -3.22,  1.12, -1.6 }, -- Haut rétro G
             { -2.30,  1.12, -1.8 }, -- Base pare-brise G
-            { -2.30,  1.82, -0.5 }, -- Coin supérieur toit G
-            {  2.30,  1.82, -0.5 }, -- Coin supérieur toit D
+            { -2.30,  1.82, -0.5 }, -- Coin toit G
+            {  2.30,  1.82, -0.5 }, -- Coin toit D
             {  2.30,  1.12, -1.8 }, -- Base pare-brise D
             {  3.22,  1.12, -1.6 }, -- Haut rétro D
             {  3.22,  0.78, -1.6 }, -- Bas rétro D
-            {  3.20,  0.70, -3.7 }, -- Haut aile / capot D
-            {  3.95,  0.45, -3.7 }, -- Haut pneu D
-            {  3.95, -1.75, -3.7 }, -- Semelle externe pneu D
-            {  3.05, -1.75, -3.7 }, -- Semelle interne pneu D
-            {  3.05, -0.88, -3.7 }, -- Intérieur pneu D
+            {  3.10,  0.70, -5.5 }, -- Bord capot carbone D
+            {  3.20,  0.45, -5.8 }, -- Coin haut pare-chocs avant D
+            {  3.65, -0.20, -3.8 }, -- Flanc externe pneu D
+            {  3.65, -1.80, -3.8 }, -- Bas externe pneu D
+            {  2.55, -1.80, -3.8 }, -- Bas interne pneu D
+            {  2.55, -0.88, -3.8 }, -- Haut interne pneu D
         },
         Builder = CarBuilder.CreateDriftSupra,
     },
@@ -646,11 +671,11 @@ CarBuilder.Vehicles = {
         FrontZ = -6.4,
         OuterContour = {
             {  0.00, -0.85, -5.9 }, -- Bas châssis central
-            { -3.00, -0.85, -3.8 }, -- Intérieur pneu G
-            { -3.00, -1.80, -3.8 }, -- Semelle interne pneu G
-            { -3.90, -1.80, -3.8 }, -- Semelle externe pneu G
-            { -3.90,  0.40, -3.8 }, -- Haut pneu G
-            { -3.22,  0.60, -3.8 }, -- Haut aile G
+            { -2.55, -0.85, -3.8 }, -- Haut interne pneu G
+            { -2.55, -1.80, -3.8 }, -- Bas interne pneu G
+            { -3.65, -1.80, -3.8 }, -- Bas externe pneu G
+            { -3.65, -0.20, -3.8 }, -- Flanc externe pneu G
+            { -3.22,  0.60, -5.8 }, -- Coin haut pare-chocs avant G
             { -3.12,  0.78, -1.6 }, -- Bas rétro G
             { -3.12,  1.12, -1.6 }, -- Haut rétro G
             { -2.30,  1.12, -1.8 }, -- Base pare-brise G
@@ -661,11 +686,11 @@ CarBuilder.Vehicles = {
             {  2.30,  1.12, -1.8 }, -- Base pare-brise D
             {  3.12,  1.12, -1.6 }, -- Haut rétro D
             {  3.12,  0.78, -1.6 }, -- Bas rétro D
-            {  3.22,  0.60, -3.8 }, -- Haut aile D
-            {  3.90,  0.40, -3.8 }, -- Haut pneu D
-            {  3.90, -1.80, -3.8 }, -- Semelle externe pneu D
-            {  3.00, -1.80, -3.8 }, -- Semelle interne pneu D
-            {  3.00, -0.85, -3.8 }, -- Intérieur pneu D
+            {  3.22,  0.60, -5.8 }, -- Coin haut pare-chocs avant D
+            {  3.65, -0.20, -3.8 }, -- Flanc externe pneu D
+            {  3.65, -1.80, -3.8 }, -- Bas externe pneu D
+            {  2.55, -1.80, -3.8 }, -- Bas interne pneu D
+            {  2.55, -0.85, -3.8 }, -- Haut interne pneu D
         },
         Builder = CarBuilder.CreatePoliceInterceptor,
     },
@@ -678,11 +703,11 @@ CarBuilder.Vehicles = {
         FrontZ = -6.8,
         OuterContour = {
             {  0.00, -0.75, -5.8 }, -- Bas fuselage central
-            { -2.95, -0.75, -3.8 }, -- Intérieur roue G
-            { -2.95, -1.65, -3.8 }, -- Semelle interne roue G
-            { -3.85, -1.65, -3.8 }, -- Semelle externe roue G
-            { -3.85,  0.35, -3.8 }, -- Haut roue G
-            { -3.20,  0.25, -3.8 }, -- Bord fuselage Or G
+            { -2.55, -0.75, -3.8 }, -- Haut interne roue G
+            { -2.55, -1.70, -3.8 }, -- Bas interne roue G
+            { -3.65, -1.70, -3.8 }, -- Bas externe roue G
+            { -3.65, -0.20, -3.8 }, -- Flanc externe roue G
+            { -3.20,  0.25, -5.8 }, -- Coin haut fuselage Or avant G
             { -1.60,  0.35, -1.5 }, -- Base verrière cockpit G
             { -1.60,  1.55, -0.4 }, -- Haut verrière cockpit G
             { -0.15,  1.55,  1.2 }, -- Base dérive dorsale G
@@ -691,11 +716,11 @@ CarBuilder.Vehicles = {
             {  0.15,  1.55,  1.2 }, -- Base dérive dorsale D
             {  1.60,  1.55, -0.4 }, -- Haut verrière cockpit D
             {  1.60,  0.35, -1.5 }, -- Base verrière cockpit D
-            {  3.20,  0.25, -3.8 }, -- Bord fuselage Or D
-            {  3.85,  0.35, -3.8 }, -- Haut roue D
-            {  3.85, -1.65, -3.8 }, -- Semelle externe roue D
-            {  2.95, -1.65, -3.8 }, -- Semelle interne roue D
-            {  2.95, -0.75, -3.8 }, -- Intérieur roue D
+            {  3.20,  0.25, -5.8 }, -- Coin haut fuselage Or avant D
+            {  3.65, -0.20, -3.8 }, -- Flanc externe roue D
+            {  3.65, -1.70, -3.8 }, -- Bas externe roue D
+            {  2.55, -1.70, -3.8 }, -- Bas interne roue D
+            {  2.55, -0.75, -3.8 }, -- Haut interne roue D
         },
         Builder = CarBuilder.CreateHyperionJetCar,
     },
