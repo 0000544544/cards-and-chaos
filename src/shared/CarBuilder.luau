@@ -1,4 +1,4 @@
-﻿--!strict
+--!strict
 --[[
     STOP AT THE FRAME - CAR BUILDER & TARGET FRAME GENERATOR (MODULE SCRIPT)
     GÃ©nÃ¨re procÃ©duralement les 5 vÃ©hicules avec soubassement noir dÃ©taillÃ©,

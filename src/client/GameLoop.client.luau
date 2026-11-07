@@ -513,7 +513,7 @@ local function onPlayerInput()
         gradeText = "FRAME PERFECT!"
         gradeColor = Color3.fromRGB(255, 215, 0)
         rewardAmount = currentConfig.RewardCash
-        -- Snap visuel ultra-satisfaisant : emboîtement parfait dans le cadre
+        -- Snap visuel ultra-satisfaisant : emboîtement parfait dans le cadre (pitch = 0)
         currentCar:PivotTo(TargetCFrame)
         triggerNeonFlash()
         triggerScreenShake(0.9, 0.4)
@@ -521,6 +521,8 @@ local function onPlayerInput()
         gradeText = "PERFECT!"
         gradeColor = Color3.fromRGB(0, 255, 80)
         rewardAmount = math.floor(currentConfig.RewardCash * 0.75)
+        -- Garde l'angle de tangage (pitch = 0) à l'arrêt pour être à plat face au contour
+        currentCar:PivotTo(CFrame.new(root.Position) * TargetCFrame.Rotation)
         triggerScreenShake(0.4, 0.2)
     elseif distance < 5.0 then
         gradeText = "GOOD!"
