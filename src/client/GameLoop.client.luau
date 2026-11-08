@@ -49,6 +49,7 @@ local VEHICLE_ENGINES: { [string]: string } = {
     drift_supra = "rbxasset://sounds/satf_engine_supra.wav",
     police_interceptor = "rbxasset://sounds/satf_engine_police.wav",
     hyperion_jetcar = "rbxasset://sounds/satf_engine_jet.wav",
+    flash_mcqueen = "rbxasset://sounds/satf_engine_supra.wav",
 }
 
 local engineSounds: { [string]: Sound } = {}

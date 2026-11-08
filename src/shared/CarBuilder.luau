@@ -6,6 +6,8 @@
     dÃ©limitant exclusivement le contour extÃ©rieur (vide Ã  l'intÃ©rieur, aucun clone fantÃ´me, aucune ligne interne).
 ]]
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 local CarBuilder = {}
 
 export type ContourPoint = { number } -- { X, Y, Z } en coords locales du vÃ©hicule
@@ -17,7 +19,7 @@ export type VehicleConfig = {
     SpeedMultiplier: number,
     RewardCash: number,
     FrontZ: number,
-    OuterContour: { ContourPoint },
+    OuterContour: { ContourPoint }?,
     Builder: () -> Model,
 }
 
@@ -530,6 +532,65 @@ function CarBuilder.CreateHyperionJetCar(): Model
 end
 
 -- =============================================================================
+-- #6 FLASH MCQUEEN ⚡ (SLOT MODÈLE IMPORTÉ OU PLACEHOLDER DE REPLI)
+-- =============================================================================
+function CarBuilder.CreateFlashMcQueen(): Model
+    -- 1. Recherche du modèle template importé dans ReplicatedStorage
+    local template: Instance? = nil
+    local importedFolder = ReplicatedStorage:FindFirstChild("ImportedVehicles")
+    if importedFolder then
+        template = importedFolder:FindFirstChild("FlashMcQueen")
+    end
+    if not template then
+        template = ReplicatedStorage:FindFirstChild("FlashMcQueen")
+    end
+
+    if template and template:IsA("Model") then
+        local car = template:Clone()
+
+        -- S'il n'a pas de PrimaryPart défini, lui attribue automatiquement sa première BasePart
+        if not car.PrimaryPart then
+            for _, desc in ipairs(car:GetDescendants()) do
+                if desc:IsA("BasePart") then
+                    car.PrimaryPart = desc
+                    break
+                end
+            end
+        end
+
+        -- S'assure que toutes ses pièces ont CanCollide = false et Anchored = true par défaut pour le saut
+        for _, desc in ipairs(car:GetDescendants()) do
+            if desc:IsA("BasePart") then
+                desc.CanCollide = false
+                desc.Anchored = true
+            end
+        end
+
+        return car
+    end
+
+    -- 2. Fallback temporaire si non importé : boîte rouge vif avec RootPart
+    local car = Instance.new("Model")
+    car.Name = "FlashMcQueen_Placeholder"
+
+    local root = Instance.new("Part")
+    root.Name = "RootPart"
+    root.Size = Vector3.new(6.5, 2, 12)
+    root.CFrame = CFrame.new(0, 0, 0)
+    root.Material = Enum.Material.SmoothPlastic
+    root.Color = Color3.fromRGB(235, 20, 25)
+    root.Anchored = true
+    root.CanCollide = false
+    root.Parent = car
+
+    car.PrimaryPart = root
+
+    addDetailedUndercarriage(root, car, 6.5, 12.0)
+    return car
+end
+
+
+-- =============================================================================
 -- REGISTRE DES 5 VÃ‰HICULES (OuterContour supprimÃ© â€” scan Raycast automatique)
 -- =============================================================================
 CarBuilder.Vehicles = {
@@ -577,6 +638,15 @@ CarBuilder.Vehicles = {
         RewardCash = 2000,
         FrontZ = -6.8,
         Builder = CarBuilder.CreateHyperionJetCar,
+    },
+    {
+        Id = "flash_mcqueen",
+        Index = 6,
+        Name = "#6 Flash McQueen ⚡",
+        SpeedMultiplier = 3.2,
+        RewardCash = 5000,
+        FrontZ = -6.0,
+        Builder = CarBuilder.CreateFlashMcQueen,
     },
 }
 
