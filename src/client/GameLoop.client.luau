@@ -13,12 +13,56 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local SoundService = game:GetService("SoundService")
+local Debris = game:GetService("Debris")
 
 local CarBuilder = require(ReplicatedStorage:WaitForChild("CarBuilder") :: ModuleScript)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
 local camera = Workspace.CurrentCamera or Workspace:WaitForChild("Camera") :: Camera
+
+-- =============================================================================
+-- 0. EFFETS SONORES (SFX)
+-- =============================================================================
+local sfxFolder = Instance.new("Folder")
+sfxFolder.Name = "GameSFX"
+sfxFolder.Parent = SoundService
+
+local function createSoundTemplate(name: string, id: string, volume: number, pitch: number): Sound
+    local s = Instance.new("Sound")
+    s.Name = name
+    s.SoundId = id
+    s.Volume = volume
+    s.PlaybackSpeed = pitch
+    s.RollOffMaxDistance = 10000
+    s.Parent = sfxFolder
+    return s
+end
+
+-- 1. Décollage : whoosh / accélération rapide
+local soundLaunch = createSoundTemplate("SFX_Launch", "rbxassetid://9120769331", 0.75, 1.1)
+-- 2. Succès : cloche cristalline / Ding aigu
+local soundSuccess = createSoundTemplate("SFX_Success", "rbxassetid://7128958209", 1.0, 1.0)
+local soundFramePerfect = createSoundTemplate("SFX_FramePerfect", "rbxassetid://7128958209", 1.25, 1.2)
+-- 3. Raté : fracas de tôle / impact crash
+local soundCrash = createSoundTemplate("SFX_Crash", "rbxassetid://672502023", 1.0, 1.0)
+-- 4. Clic UI : clic discret pour le changement de véhicule
+local soundClick = createSoundTemplate("SFX_Click", "rbxassetid://9119720940", 0.45, 1.2)
+
+local function playSFX(template: Sound, overridePitch: number?, overrideVolume: number?)
+    task.spawn(function()
+        local s = template:Clone()
+        if overridePitch then s.PlaybackSpeed = overridePitch end
+        if overrideVolume then s.Volume = overrideVolume end
+        s.Parent = SoundService
+        s:Play()
+        s.Ended:Once(function()
+            s:Destroy()
+        end)
+        Debris:AddItem(s, 5)
+    end)
+end
 
 -- =============================================================================
 -- 1. CONNEXION RÉSEAU (REMOTES)
@@ -314,6 +358,7 @@ local function updateVehicleUI()
 end
 
 local function applyVehicleChange(newIndex: number)
+    playSFX(soundClick)
     currentVehicleIndex = math.clamp(newIndex, 1, totalVehicles)
     updateVehicleUI()
 
@@ -517,6 +562,7 @@ local function onPlayerInput()
         currentCar:PivotTo(TargetCFrame)
         triggerNeonFlash()
         triggerScreenShake(0.9, 0.4)
+        playSFX(soundFramePerfect, 1.25, 1.2)
     elseif distance < 2.5 then
         gradeText = "PERFECT!"
         gradeColor = Color3.fromRGB(0, 255, 80)
@@ -524,14 +570,17 @@ local function onPlayerInput()
         -- Garde l'angle de tangage (pitch = 0) à l'arrêt pour être à plat face au contour
         currentCar:PivotTo(CFrame.new(root.Position) * TargetCFrame.Rotation)
         triggerScreenShake(0.4, 0.2)
+        playSFX(soundSuccess, 1.0, 1.0)
     elseif distance < 5.0 then
         gradeText = "GOOD!"
         gradeColor = Color3.fromRGB(255, 215, 45)
         rewardAmount = math.floor(currentConfig.RewardCash * 0.40)
+        playSFX(soundSuccess, 0.85, 0.7)
     else
         gradeText = "RATÉ!"
         gradeColor = Color3.fromRGB(255, 50, 50)
         rewardAmount = 0
+        playSFX(soundCrash, 1.0, 1.0)
         -- Crash physique spectaculaire en cas de raté
         task.defer(function()
             for _, part in ipairs(currentCar:GetDescendants()) do
@@ -612,6 +661,7 @@ local function startNextJump()
     currentCar:PivotTo(startCF)
 
     isJumping = true
+    playSFX(soundLaunch, 1.1, 0.75)
 end
 
 RunService.RenderStepped:Connect(function(dt)
