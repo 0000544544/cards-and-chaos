@@ -559,10 +559,10 @@ function CarBuilder.CreateHyperionJetCar(): Model
 end
 
 -- =============================================================================
--- #6 FLASH MCQUEEN ⚡ (MODÈLE IMPORTÉ OU NASCAR STOCK-CAR PROCÉDURAL DÉTAILLÉ)
+-- #6 FLASH MCQUEEN ⚡ (MODÈLE IMPORTÉ AUTO-CALIBRÉ OU NASCAR CURVÉ DÉTAILLÉ)
 -- =============================================================================
 function CarBuilder.CreateFlashMcQueen(): Model
-    -- 1. Recherche d'un modèle template importé (via .rbxm Rojo ou ReplicatedStorage)
+    -- 1. Recherche d'un modèle template importé (via src/shared/FlashMcQueen.rbxm ou ReplicatedStorage)
     local template: Instance? = nil
     local importedFolder = ReplicatedStorage:FindFirstChild("ImportedVehicles")
     if importedFolder then
@@ -574,24 +574,60 @@ function CarBuilder.CreateFlashMcQueen(): Model
 
     if template and template:IsA("Model") then
         local car = template:Clone()
-        if not car.PrimaryPart then
-            for _, desc in ipairs(car:GetDescendants()) do
-                if desc:IsA("BasePart") then
-                    car.PrimaryPart = desc
-                    break
-                end
-            end
-        end
+        car.Name = "FlashMcQueen"
+
+        -- Nettoyage de tout script, siège ou son parasite provenant de la Toolbox
         for _, desc in ipairs(car:GetDescendants()) do
-            if desc:IsA("BasePart") then
-                desc.CanCollide = false
-                desc.Anchored = true
+            if desc:IsA("Script") or desc:IsA("LocalScript") or desc:IsA("VehicleSeat") or desc:IsA("Seat") or desc:IsA("Sound") then
+                desc:Destroy()
             end
         end
+
+        -- Calcule sa boîte englobante actuelle
+        local bbCF, bbSize = car:GetBoundingBox()
+
+        -- Si le modèle est orienté sur l'axe X au lieu de Z (longueur sur X), rotation automatique de 90°
+        if bbSize.X > bbSize.Z then
+            car:PivotTo(bbCF * CFrame.Angles(0, math.rad(90), 0))
+            bbCF, bbSize = car:GetBoundingBox()
+        end
+
+        -- Redimensionnement automatique pour que sa largeur (X) fasse exactement 6.2 studs
+        if bbSize.X > 0.01 then
+            local scaleRatio = 6.2 / bbSize.X
+            car:ScaleTo(scaleRatio)
+            bbCF, bbSize = car:GetBoundingBox()
+        end
+
+        -- Création d'une Part invisible "RootPart" centrée géométriquement avec le bas des roues à Y = -2.0
+        local rootY = bbCF.Position.Y - (bbSize.Y / 2) + 2.0
+        local rootCF = CFrame.new(bbCF.Position.X, rootY, bbCF.Position.Z)
+
+        local root = Instance.new("Part")
+        root.Name = "RootPart"
+        root.Size = Vector3.new(1, 1, 1)
+        root.CFrame = rootCF
+        root.Transparency = 1
+        root.CanCollide = false
+        root.Anchored = true
+        root.Parent = car
+
+        -- Soude toutes les BaseParts au RootPart, CanCollide = false, CanQuery = true, Anchored = false
+        for _, desc in ipairs(car:GetDescendants()) do
+            if desc:IsA("BasePart") and desc ~= root then
+                desc.Anchored = false
+                desc.CanCollide = false
+                desc.CanQuery = true
+                weldParts(root, desc)
+            end
+        end
+
+        car.PrimaryPart = root
+        addDetailedUndercarriage(root, car, 6.2, math.max(bbSize.Z, 11.5))
         return car
     end
 
-    -- 2. NASCAR stock-car procédural détaillé "Lightning McQueen"
+    -- 2. NASCAR stock-car procédural courbé & aérodynamique (si aucun .rbxm présent)
     local car = Instance.new("Model")
     car.Name = "FlashMcQueen"
 
@@ -615,47 +651,73 @@ function CarBuilder.CreateFlashMcQueen(): Model
     local RIM_GOLD     = Color3.fromRGB(210, 175, 55)
     local HEADLIGHT    = Color3.fromRGB(255, 252, 225)
 
-    -- ===== CARROSSERIE NASCAR PROFILÉE =====
+    -- Fonction d'aide pour ajouter une forme courbée avec SpecialMesh
+    local function createCurvedPart(name: string, size: Vector3, cf: CFrame, meshType: Enum.MeshType, col: Color3): Part
+        local p = createPart(name, size, cf, Enum.Material.SmoothPlastic, col, car)
+        local sm = Instance.new("SpecialMesh")
+        sm.MeshType = meshType
+        sm.Parent = p
+        weldParts(root, p)
+        return p
+    end
+
+    -- ===== CARROSSERIE NASCAR ARRONDIE & BOMBÉE =====
     -- Châssis principal bas de caisse
     local base = createPart("Base", Vector3.new(6.4, 1.2, 12.0),
         root.CFrame * CFrame.new(0, -0.2, 0), Enum.Material.SmoothPlastic, MCQUEEN_RED, car)
     weldParts(root, base)
 
-    -- Splitter avant carbone noir
+    -- Splitter avant carbone profilé
     local splitter = createPart("Splitter", Vector3.new(6.6, 0.3, 1.6),
         root.CFrame * CFrame.new(0, -0.72, -6.2), Enum.Material.SmoothPlastic, CARBON_BLACK, car)
     weldParts(root, splitter)
 
-    -- Capot avant plongeant aérodynamique (incliné -8°)
-    local hood = createPart("Hood", Vector3.new(6.2, 0.55, 4.2),
+    -- Nez avant arrondi plongeant (SpecialMesh Sphere)
+    createCurvedPart("FrontNoseRound", Vector3.new(6.2, 0.95, 2.6),
+        root.CFrame * CFrame.new(0, -0.05, -5.5), Enum.MeshType.Sphere, MCQUEEN_RED)
+
+    -- Capot avant plongeant incliné
+    local hood = createPart("Hood", Vector3.new(6.0, 0.55, 4.2),
         root.CFrame * CFrame.new(0, 0.42, -3.5) * CFrame.Angles(math.rad(-8), 0, 0),
         Enum.Material.SmoothPlastic, MCQUEEN_RED, car)
     weldParts(root, hood)
 
-    -- Ailes avant galbées surplombant les roues
-    local fenderFL = createPart("FenderFL", Vector3.new(1.4, 0.6, 3.0),
-        root.CFrame * CFrame.new(-2.8, 0.15, -3.8), Enum.Material.SmoothPlastic, MCQUEEN_RED, car)
-    weldParts(root, fenderFL)
-    local fenderFR = createPart("FenderFR", Vector3.new(1.4, 0.6, 3.0),
-        root.CFrame * CFrame.new(2.8, 0.15, -3.8), Enum.Material.SmoothPlastic, MCQUEEN_RED, car)
-    weldParts(root, fenderFR)
+    -- Bombe aérodynamique centrale du capot (SpecialMesh Sphere)
+    createCurvedPart("HoodBulgeRound", Vector3.new(5.6, 0.70, 4.0),
+        root.CFrame * CFrame.new(0, 0.48, -3.5) * CFrame.Angles(math.rad(-8), 0, 0),
+        Enum.MeshType.Sphere, MCQUEEN_RED)
 
-    -- Pont arrière / coffre
+    -- 4 Ailes galbées bombées au-dessus des roues (SpecialMesh Sphere)
+    createCurvedPart("FenderFL_Round", Vector3.new(1.35, 0.95, 3.4),
+        root.CFrame * CFrame.new(-2.85, 0.22, -3.8), Enum.MeshType.Sphere, MCQUEEN_RED)
+    createCurvedPart("FenderFR_Round", Vector3.new(1.35, 0.95, 3.4),
+        root.CFrame * CFrame.new(2.85, 0.22, -3.8), Enum.MeshType.Sphere, MCQUEEN_RED)
+    createCurvedPart("FenderRL_Round", Vector3.new(1.35, 1.05, 3.6),
+        root.CFrame * CFrame.new(-2.85, 0.28, 3.8), Enum.MeshType.Sphere, MCQUEEN_RED)
+    createCurvedPart("FenderRR_Round", Vector3.new(1.35, 1.05, 3.6),
+        root.CFrame * CFrame.new(2.85, 0.28, 3.8), Enum.MeshType.Sphere, MCQUEEN_RED)
+
+    -- Flancs cintrés arrondis (SpecialMesh Sphere pour courber les portières)
+    createCurvedPart("SideWaistL", Vector3.new(0.65, 1.15, 7.8),
+        root.CFrame * CFrame.new(-3.12, -0.15, 0.1), Enum.MeshType.Sphere, MCQUEEN_RED)
+    createCurvedPart("SideWaistR", Vector3.new(0.65, 1.15, 7.8),
+        root.CFrame * CFrame.new(3.12, -0.15, 0.1), Enum.MeshType.Sphere, MCQUEEN_RED)
+
+    -- Pont arrière / coffre arrondi
     local rearDeck = createPart("RearDeck", Vector3.new(6.2, 0.85, 3.4),
         root.CFrame * CFrame.new(0, 0.50, 4.0), Enum.Material.SmoothPlastic, MCQUEEN_RED, car)
     weldParts(root, rearDeck)
 
-    -- Ailes arrière galbées
-    local fenderRL = createPart("FenderRL", Vector3.new(1.4, 0.7, 3.2),
-        root.CFrame * CFrame.new(-2.8, 0.20, 3.8), Enum.Material.SmoothPlastic, MCQUEEN_RED, car)
-    weldParts(root, fenderRL)
-    local fenderRR = createPart("FenderRR", Vector3.new(1.4, 0.7, 3.2),
-        root.CFrame * CFrame.new(2.8, 0.20, 3.8), Enum.Material.SmoothPlastic, MCQUEEN_RED, car)
-    weldParts(root, fenderRR)
+    createCurvedPart("RearBumperRound", Vector3.new(6.2, 0.95, 2.0),
+        root.CFrame * CFrame.new(0, 0.18, 5.7), Enum.MeshType.Sphere, MCQUEEN_RED)
 
-    -- ===== TOIT & VITRES =====
-    -- Toit profilé NASCAR
-    local roof = createPart("Roof", Vector3.new(4.6, 0.35, 4.2),
+    -- ===== TOIT EN DÔME BOMBÉ & VITRES NASCAR =====
+    -- Dôme de toit profilé fluide (SpecialMesh Sphere)
+    createCurvedPart("RoofDome", Vector3.new(4.8, 1.35, 4.6),
+        root.CFrame * CFrame.new(0, 1.68, 0.35), Enum.MeshType.Sphere, MCQUEEN_RED)
+
+    -- Toit plat de renfort
+    local roof = createPart("Roof", Vector3.new(4.4, 0.35, 4.0),
         root.CFrame * CFrame.new(0, 1.88, 0.3), Enum.Material.SmoothPlastic, MCQUEEN_RED, car)
     weldParts(root, roof)
 
@@ -697,37 +759,35 @@ function CarBuilder.CreateFlashMcQueen(): Model
     weldParts(root, rearWin)
 
     -- ===== ÉCLAIRS LATÉRAUX "KA-CHOW" (NÉON OR + ORANGE) =====
-    -- 3 segments inclinés sur chaque flanc pour dessiner l'éclair
     -- Flanc GAUCHE
     local boltL1 = createPart("BoltL1", Vector3.new(0.12, 0.55, 2.8),
-        root.CFrame * CFrame.new(-3.22, 0.15, -2.0) * CFrame.Angles(0, 0, math.rad(12)),
+        root.CFrame * CFrame.new(-3.25, 0.15, -2.0) * CFrame.Angles(0, 0, math.rad(12)),
         Enum.Material.Neon, GOLD, car)
     weldParts(root, boltL1)
     local boltL2 = createPart("BoltL2", Vector3.new(0.12, 0.50, 1.8),
-        root.CFrame * CFrame.new(-3.22, 0.40, 0.4) * CFrame.Angles(0, 0, math.rad(-15)),
+        root.CFrame * CFrame.new(-3.25, 0.40, 0.4) * CFrame.Angles(0, 0, math.rad(-15)),
         Enum.Material.Neon, ORANGE, car)
     weldParts(root, boltL2)
     local boltL3 = createPart("BoltL3", Vector3.new(0.12, 0.55, 2.6),
-        root.CFrame * CFrame.new(-3.22, 0.10, 2.6) * CFrame.Angles(0, 0, math.rad(10)),
+        root.CFrame * CFrame.new(-3.25, 0.10, 2.6) * CFrame.Angles(0, 0, math.rad(10)),
         Enum.Material.Neon, GOLD, car)
     weldParts(root, boltL3)
 
     -- Flanc DROIT (symétrique)
     local boltR1 = createPart("BoltR1", Vector3.new(0.12, 0.55, 2.8),
-        root.CFrame * CFrame.new(3.22, 0.15, -2.0) * CFrame.Angles(0, 0, math.rad(-12)),
+        root.CFrame * CFrame.new(3.25, 0.15, -2.0) * CFrame.Angles(0, 0, math.rad(-12)),
         Enum.Material.Neon, GOLD, car)
     weldParts(root, boltR1)
     local boltR2 = createPart("BoltR2", Vector3.new(0.12, 0.50, 1.8),
-        root.CFrame * CFrame.new(3.22, 0.40, 0.4) * CFrame.Angles(0, 0, math.rad(15)),
+        root.CFrame * CFrame.new(3.25, 0.40, 0.4) * CFrame.Angles(0, 0, math.rad(15)),
         Enum.Material.Neon, ORANGE, car)
     weldParts(root, boltR2)
     local boltR3 = createPart("BoltR3", Vector3.new(0.12, 0.55, 2.6),
-        root.CFrame * CFrame.new(3.22, 0.10, 2.6) * CFrame.Angles(0, 0, math.rad(-10)),
+        root.CFrame * CFrame.new(3.25, 0.10, 2.6) * CFrame.Angles(0, 0, math.rad(-10)),
         Enum.Material.Neon, GOLD, car)
     weldParts(root, boltR3)
 
     -- ===== GRAND AILERON ARRIÈRE PISTON CUP =====
-    -- Supports d'aileron inclinés
     local wingStrutL = createPart("WingStrutL", Vector3.new(0.3, 1.5, 0.6),
         root.CFrame * CFrame.new(-1.8, 1.75, 5.5) * CFrame.Angles(math.rad(8), 0, 0),
         Enum.Material.SmoothPlastic, CARBON_BLACK, car)
@@ -736,12 +796,12 @@ function CarBuilder.CreateFlashMcQueen(): Model
         root.CFrame * CFrame.new(1.8, 1.75, 5.5) * CFrame.Angles(math.rad(8), 0, 0),
         Enum.Material.SmoothPlastic, CARBON_BLACK, car)
     weldParts(root, wingStrutR)
-    -- Lame d'aileron
+
     local wing = createPart("RearWingSpoiler", Vector3.new(6.6, 0.25, 1.9),
         root.CFrame * CFrame.new(0, 2.55, 5.7) * CFrame.Angles(math.rad(-5), 0, 0),
         Enum.Material.SmoothPlastic, MCQUEEN_RED, car)
     weldParts(root, wing)
-    -- Endplates de l'aileron
+
     local endplateL = createPart("EndplateL", Vector3.new(0.15, 0.8, 1.6),
         root.CFrame * CFrame.new(-3.35, 2.35, 5.7), Enum.Material.SmoothPlastic, DARK_RED, car)
     weldParts(root, endplateL)
@@ -765,12 +825,12 @@ function CarBuilder.CreateFlashMcQueen(): Model
         root.CFrame * CFrame.new(2.3, 0.35, 6.05), Enum.Material.Neon, Color3.fromRGB(255, 20, 20), car)
     weldParts(root, tailR)
 
-    -- ===== NUMÉRO "95" (DÉCALS DORS DROIT / GAUCHE SUR LE CAPOT) =====
+    -- ===== NUMÉRO "95" =====
     local numL = createPart("Number95_L", Vector3.new(0.1, 1.1, 1.6),
-        root.CFrame * CFrame.new(-3.22, 0.65, 0.0), Enum.Material.Neon, GOLD, car)
+        root.CFrame * CFrame.new(-3.25, 0.65, 0.0), Enum.Material.Neon, GOLD, car)
     weldParts(root, numL)
     local numR = createPart("Number95_R", Vector3.new(0.1, 1.1, 1.6),
-        root.CFrame * CFrame.new(3.22, 0.65, 0.0), Enum.Material.Neon, GOLD, car)
+        root.CFrame * CFrame.new(3.25, 0.65, 0.0), Enum.Material.Neon, GOLD, car)
     weldParts(root, numR)
 
     -- ===== 4 ROUES AVEC JANTES DORÉES =====
@@ -870,7 +930,7 @@ CarBuilder.Vehicles = {
         Name = "#6 Flash McQueen ⚡",
         SpeedMultiplier = 3.2,
         RewardCash = 5000,
-        FrontZ = -6.0,
+        FrontZ = -6.2,
         Builder = CarBuilder.CreateFlashMcQueen,
     },
 }
