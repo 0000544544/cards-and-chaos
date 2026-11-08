@@ -1300,80 +1300,87 @@ local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
 local camera = Workspace.CurrentCamera or Workspace:WaitForChild("Camera") :: Camera
 
 -- =============================================================================
--- 0. EFFETS SONORES (SFX) & PRÉCHARGEMENT
+-- 0. EFFETS SONORES (SFX) & MOTEURS PROCÉDURAUX ROBLOX
 -- =============================================================================
 local sfxFolder = Instance.new("Folder")
 sfxFolder.Name = "GameSFX"
 sfxFolder.Parent = SoundService
 
-local function createSoundTemplate(name: string, id: string, volume: number, pitch: number): Sound
+local function createSoundTemplate(name: string, id: string, volume: number, pitch: number, looped: boolean?): Sound
     local s = Instance.new("Sound")
     s.Name = name
     s.SoundId = id
     s.Volume = volume
     s.PlaybackSpeed = pitch
+    s.Looped = looped or false
     s.RollOffMaxDistance = 10000
     s.Parent = sfxFolder
     return s
 end
 
--- 1. Décollage : son court et propre de moteur / turbo (coupé net dès appui)
-local soundLaunch = createSoundTemplate("SFX_Launch", "rbxassetid://9114224721", 0.45, 1.25)
--- 2. Clic raté en l'air : buzzer / coup de frein immédiat
-local soundWrongClick = createSoundTemplate("SFX_WrongClick", "rbxassetid://4590662766", 0.7, 0.9)
--- 3. Fracas d'impact sur la route : tôle lourde & écrasement
-local soundCrashImpact = createSoundTemplate("SFX_CrashImpact", "rbxassetid://9114224354", 1.2, 1.05)
--- 4. Succès : cloche cristalline / Ding aigu
-local soundSuccess = createSoundTemplate("SFX_Success", "rbxassetid://7128958209", 1.0, 1.0)
-local soundFramePerfect = createSoundTemplate("SFX_FramePerfect", "rbxassetid://7128958209", 1.25, 1.2)
--- 5. Clic UI : clic mécanique discret
+-- 1. Sons de moteurs continus spécifiques pour chaque véhicule (bouclables)
+local VEHICLE_ENGINES: { [string]: string } = {
+    lotus_rally = "rbxasset://sounds/satf_engine_rally.wav",
+    cyber_truck = "rbxasset://sounds/satf_engine_cyber.wav",
+    drift_supra = "rbxasset://sounds/satf_engine_supra.wav",
+    police_interceptor = "rbxasset://sounds/satf_engine_police.wav",
+    hyperion_jetcar = "rbxasset://sounds/satf_engine_jet.wav",
+}
+
+local engineSounds: { [string]: Sound } = {}
+for id, assetPath in pairs(VEHICLE_ENGINES) do
+    engineSounds[id] = createSoundTemplate("Engine_" .. id, assetPath, 0.45, 1.0, true)
+end
+
+-- 2. Son d'échec / raté : double buzzer "TZZZ - TZZZ" grave et sec
+local soundFailTzzz = createSoundTemplate("SFX_FailTzzz", "rbxasset://sounds/satf_fail_tzzz.wav", 0.85, 1.0)
+
+-- 3. Son de réussite : accord court, mat et satisfaisant
+local soundHitClean = createSoundTemplate("SFX_HitClean", "rbxasset://sounds/satf_hit_clean.wav", 0.90, 1.0)
+
+-- 4. Clic UI : clic mécanique discret
 local soundClick = createSoundTemplate("SFX_Click", "rbxassetid://9119720940", 0.45, 1.2)
 
--- Préchargement asynchrone pour éliminer toute latence au premier déclenchement
+-- Préchargement asynchrone pour éliminer toute latence
 task.spawn(function()
-    ContentProvider:PreloadAsync({
-        soundLaunch,
-        soundWrongClick,
-        soundCrashImpact,
-        soundSuccess,
-        soundFramePerfect,
-        soundClick,
-    })
+    local list: { Instance } = { soundFailTzzz, soundHitClean, soundClick }
+    for _, eng in pairs(engineSounds) do
+        table.insert(list, eng)
+    end
+    ContentProvider:PreloadAsync(list)
 end)
 
-local activeLaunchSound: Sound? = nil
+local activeEngineSound: Sound? = nil
 
-local function playLaunchSFX()
-    if activeLaunchSound then
-        activeLaunchSound:Stop()
-        activeLaunchSound:Destroy()
-        activeLaunchSound = nil
+local function startEngineSound(vehicleId: string)
+    if activeEngineSound then
+        activeEngineSound:Stop()
+        activeEngineSound:Destroy()
+        activeEngineSound = nil
     end
-    local s = soundLaunch:Clone()
-    s.Parent = SoundService
-    s:Play()
-    activeLaunchSound = s
-    s.Ended:Once(function()
-        if activeLaunchSound == s then
-            activeLaunchSound = nil
-        end
-        s:Destroy()
-    end)
-end
-
-local function stopLaunchSFX()
-    if activeLaunchSound then
-        activeLaunchSound:Stop()
-        activeLaunchSound:Destroy()
-        activeLaunchSound = nil
+    local template = engineSounds[vehicleId] or engineSounds["lotus_rally"]
+    if template then
+        local s = template:Clone()
+        s.Parent = SoundService
+        s.TimePosition = 0
+        s.PlaybackSpeed = 0.85
+        s:Play()
+        activeEngineSound = s
     end
 end
 
-local function playSFX(template: Sound, overridePitch: number?, overrideVolume: number?, timePos: number?): Sound
+local function stopEngineSound()
+    if activeEngineSound then
+        activeEngineSound:Stop()
+        activeEngineSound:Destroy()
+        activeEngineSound = nil
+    end
+end
+
+local function playSFX(template: Sound, overridePitch: number?, overrideVolume: number?): Sound
     local s = template:Clone()
     if overridePitch then s.PlaybackSpeed = overridePitch end
     if overrideVolume then s.Volume = overrideVolume end
-    if timePos then s.TimePosition = timePos end
     s.Parent = SoundService
     s:Play()
     s.Ended:Once(function()
@@ -1677,7 +1684,7 @@ local function updateVehicleUI()
 end
 
 local function applyVehicleChange(newIndex: number)
-    stopLaunchSFX()
+    stopEngineSound()
     playSFX(soundClick)
     currentVehicleIndex = math.clamp(newIndex, 1, totalVehicles)
     updateVehicleUI()
@@ -1723,9 +1730,10 @@ local function triggerScreenShake(intensity: number, duration: number)
     end)
 end
 
-local function triggerNeonFlash()
+local function triggerFlash(col: Color3?)
+    flashFrame.BackgroundColor3 = col or Color3.fromRGB(255, 235, 120)
     flashFrame.BackgroundTransparency = 0.35
-    local tween = TweenService:Create(flashFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+    local tween = TweenService:Create(flashFrame, TweenInfo.new(0.30, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
         BackgroundTransparency = 1,
     })
     tween:Play()
@@ -1848,7 +1856,7 @@ local function onPlayerInput()
     if not isJumping or hasStopped or not currentCar then return end
     hasStopped = true
     isJumping = false
-    stopLaunchSFX()
+    stopEngineSound()
 
     local root = currentCar.PrimaryPart
     if not root then return end
@@ -1880,9 +1888,9 @@ local function onPlayerInput()
 
         -- Snap visuel ultra-satisfaisant : emboîtement parfait dans le cadre (pitch = 0)
         currentCar:PivotTo(TargetCFrame)
-        triggerNeonFlash()
+        triggerFlash(Color3.fromRGB(255, 235, 120))
         triggerScreenShake(0.9, 0.4)
-        playSFX(soundFramePerfect, 1.25, 1.2)
+        playSFX(soundHitClean, 1.25, 1.1)
     elseif distance < 2.5 then
         gradeText = "PERFECT!"
         gradeColor = Color3.fromRGB(0, 255, 80)
@@ -1896,7 +1904,7 @@ local function onPlayerInput()
         -- Garde l'angle de tangage (pitch = 0) à l'arrêt pour être à plat face au contour
         currentCar:PivotTo(CFrame.new(root.Position) * TargetCFrame.Rotation)
         triggerScreenShake(0.4, 0.2)
-        playSFX(soundSuccess, 1.0, 1.0)
+        playSFX(soundHitClean, 1.05, 1.0)
     elseif distance < 5.0 then
         gradeText = "GOOD!"
         gradeColor = Color3.fromRGB(255, 215, 45)
@@ -1907,16 +1915,20 @@ local function onPlayerInput()
             if part:IsA("BasePart") then part.Anchored = true end
         end
 
-        playSFX(soundSuccess, 0.85, 0.7)
+        playSFX(soundHitClean, 0.90, 0.85)
     else
         gradeText = "RATÉ!"
         gradeColor = Color3.fromRGB(255, 50, 50)
         rewardAmount = 0
 
-        -- a) À l'instant précis du clic : joue le buzzer / freinage en l'air
-        playSFX(soundWrongClick, 0.9, 0.7)
+        -- 1. Double buzzer d'erreur "TZZZ - TZZZ" sec et grave
+        playSFX(soundFailTzzz, 1.0, 0.85)
 
-        -- b) Dé-ancre immédiatement toutes les pièces SANS attendre task.defer
+        -- 2. Tremblement d'écran immédiat + flash rouge
+        triggerScreenShake(0.8, 0.35)
+        triggerFlash(Color3.fromRGB(255, 40, 40))
+
+        -- 3. Dé-ancre immédiatement toutes les pièces SANS attendre
         for _, part in ipairs(currentCar:GetDescendants()) do
             if part:IsA("BasePart") then
                 part.Anchored = false
@@ -1924,47 +1936,9 @@ local function onPlayerInput()
             end
         end
 
-        -- Poussée tangente vers le bas et rotation désordonnée
+        -- 4. Impulsion de chute et rotation en silence (pas de bruit de casserole)
         root.AssemblyLinearVelocity = Vector3.new(math.random(-8, 8), -32, -65)
         root.AssemblyAngularVelocity = Vector3.new(math.random(-10, 10), math.random(-6, 6), math.random(-12, 12))
-
-        -- c) Déclenchement unique du fracas lourd + secousse UNIQUEMENT quand la voiture percute la route
-        local hasCrashedOnRoad = false
-        local function onRoadImpact()
-            if hasCrashedOnRoad then return end
-            hasCrashedOnRoad = true
-            playSFX(soundCrashImpact, 1.05, 1.2, 0.08)
-            triggerScreenShake(0.75, 0.35)
-        end
-
-        for _, part in ipairs(currentCar:GetDescendants()) do
-            if part:IsA("BasePart") then
-                local conn: RBXScriptConnection? = nil
-                conn = part.Touched:Connect(function(hit)
-                    if hasCrashedOnRoad then
-                        if conn then conn:Disconnect() end
-                        return
-                    end
-                    if hit and (hit.Name:find("Road") or hit.Name:find("Sidewalk") or hit.Name:find("Curb") or (hit.Parent and hit.Parent.Name == "SanFranciscoStreet")) then
-                        onRoadImpact()
-                        if conn then conn:Disconnect() end
-                    end
-                end)
-            end
-        end
-
-        local hbConn: RBXScriptConnection? = nil
-        hbConn = RunService.Heartbeat:Connect(function()
-            if hasCrashedOnRoad or not currentCar or not currentCar.PrimaryPart then
-                if hbConn then hbConn:Disconnect() end
-                return
-            end
-            local distToRoad = (root.Position - midSurfacePos):Dot(normalVec)
-            if distToRoad <= 1.8 then
-                onRoadImpact()
-                if hbConn then hbConn:Disconnect() end
-            end
-        end)
     end
 
     -- 5. Transmission sécurisée au serveur pour mise à jour du Cash, Streak et Titre
@@ -2034,7 +2008,7 @@ local function startNextJump()
     currentCar:PivotTo(startCF)
 
     isJumping = true
-    playLaunchSFX()
+    startEngineSound(currentConfig.Id)
 end
 
 RunService.RenderStepped:Connect(function(dt)
@@ -2046,6 +2020,13 @@ RunService.RenderStepped:Connect(function(dt)
 
     local targetCF = getJumpCFrame(tNorm)
     currentCar:PivotTo(targetCF)
+
+    -- Variation dynamique du régime moteur pendant le saut (accélération audible)
+    if activeEngineSound then
+        local speedMult = currentConfig.SpeedMultiplier
+        local basePitch = 0.85 + (tNorm * 0.45) * math.clamp(speedMult * 0.85, 0.9, 1.3)
+        activeEngineSound.PlaybackSpeed = math.clamp(basePitch, 0.85, 1.45)
+    end
 
     -- Animation des gyrophares pour l'Interceptor
     if currentConfig.Id == "police_interceptor" then
