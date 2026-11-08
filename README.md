@@ -1,115 +1,70 @@
-# 👑 SOVEREIGN: CARDS & DOMINION (ROBLOX EDITION)
+# ⚡ STOP AT THE FRAME (ROBLOX EDITION)
 
-> **Jeu Roblox Compétitif de Collection de Cartes, Gacha / Roulette (Gambling), Système Anti-P2W de Mérite & Hôtel des Ventes (Achat / Revente)**
-
----
-
-## 🌟 1. VUE D'ENSEMBLE & PILIERS DE JEU
-
-*SOVEREIGN: CARDS & DOMINION* est conçu en s'appuyant sur les architectures de dark-fantasy, de combat en arène et de théorie des jeux développées dans le workspace (*Crypt of the Sovereign*, *Neon Space Survivor*, *f409 - Evolutionary Game Theory*).
-
-### 🃏 Les 5 Piliers Clés :
-1. **🎰 Gambling & Invocations (L'Autel du Destin) :**
-   - Roulette de tirage de cartes avec 6 paliers de rareté (*Commun*, *Rare*, *Épique*, *Légendaire*, *Mythique*, *Divin Céleste*).
-   - Système de **Pity** (garantie Épique tous les 10 tirages, Légendaire à 50, Mythique à 200).
-   - Annonce serveur mondiale spectaculaire à chaque tirage de rareté Légendaire+.
-2. **⚡ Le Système de Mérite (Anti-Pay-To-Win) :**
-   - Les **Points de Mérite** NE PEUVENT PAS être achetés avec de l'argent réel ou gagnés au hasard !
-   - Ils s'obtiennent **strictement au combat** : victoires en arène 1v1, séries de victoires (*Win Streaks*), parades parfaites (*Parry timing à 0.3s*).
-   - Utilisés au **Sanctuaire du Mérite** pour **Transcender** une carte en version **Prestige Souverain** (+20% d'efficacité, bordure holographique).
-3. **⚖️ Hôtel des Ventes & Achat-Revente (Trading & Marketplace) :**
-   - Bourse mondiale des cartes avec recherche, filtres et achat instantané (*Buyout*).
-   - Mécanique d'**Achat / Revente (Flipping)** : acheter des cartes sous-évaluées pour les revendre au prix fort.
-   - **Taxe déflationniste de 5%** sur chaque transaction pour assainir l'économie et prévenir l'hyperinflation.
-   - Système d'échange direct entre joueurs (**P2P Trade**) avec vérification en 2 étapes et compte à rebours anti-arnaque de 3 secondes.
-4. **⚔️ Arène Compétitive 1v1 & Classement Elo :**
-   - File d'attente compétitive avec appariement automatique basé sur l'Elo (*Formule d'échecs standard K=32*).
-   - 7 Paliers compétitifs : *Bronze*, *Argent*, *Or*, *Platine*, *Diamant*, *Maître Suprême*, *LE SOUVERAIN*.
-   - Combat en temps réel dans le Colisée Céleste (90 secondes, barres de PV, compte à rebours, annonces de victoire).
-5. **🎴 Deck-Building & Synergies :**
-   - Composition d'un deck de 4 Compétences Actives (touches 1, 2, 3, 4) + 2 Aptitudes Passives.
-   - Synergies d'affinités élémentaires (ex: 3 cartes d'Acier = bonus de vitesse d'attaque, 2 cartes du Vide = vol de vie).
+> **Jeu Roblox d'adresse, de réflexes et de précision millimétrée (style arcade viral TikTok / Shorts).**
+> Une voiture est propulsée à grande vitesse dans les airs au-dessus d'une colline raide style San Francisco. Le joueur doit appuyer au moment exact où la silhouette du véhicule s'emboîte parfaitement dans le cadre vert néon (*TargetFrame*).
 
 ---
 
-## 🎮 2. COMMANDES DE JEU (PC & MOBILE)
+## 🎮 1. CONCEPT & GAMEPLAY
 
-| Touche / Action | Rôle |
-|---|---|
-| **1, 2, 3, 4** | Lancer les 4 compétences actives équipées dans le Deck |
-| **A / Q** | **Foulée / Dash d'esquive** (0.35s d'invulnérabilité *I-frame*) |
-| **F** | **Posture de Parade (Parry)** (Fenêtre de 0.3s : contre-attaque, étourdit l'adversaire et octroie +15 Mérite) |
-| **E** | Interagir avec les 4 Autels du Hub central |
-| **Boutons HUD** | Ouvrir le Deck, l'Invocation, le Marché, les Échanges ou l'Arène |
-
----
-
-## 🏛️ 3. LES 4 AUTELS DU HUB CENTRAL
-
-Le jeu génère automatiquement un Hub 3D en obsidienne avec 4 Autels interactifs équipés de `ProximityPrompt` :
-1. **Autel du Destin (Violet / Néon) :** Tirage 1x (100 Or) ou 10x (900 Or) avec compteur de Pity et révélation de cartes.
-2. **Hôtel des Ventes (Émeraude) :** Consultation des offres, achat immédiat, et mise en vente de vos cartes.
-3. **Porte de l'Arène (Rubis) :** Entrée dans la file 1v1 classée et téléportation vers le Colisée Céleste.
-4. **Sanctuaire du Mérite (Or Céleste) :** Transcendance des cartes au rang Souverain Prestige (500 Mérite requis).
+- **Le Saut Parabolique :** Le véhicule décolle avec un cabrage dynamique, culmine au-dessus de la cible, puis redescend en rasant le cadre vert néon avec une tangente parfaitement lisse ($sin^2$).
+- **L'Arrêt d'Urgence :** Le joueur clique ou appuie sur `Espace` pour figer instantanément la voiture.
+- **Le Frame Grading :**
+  - 🏆 **FRAME PERFECT!** (< 0.8 stud) : 100% de la prime, snap visuel immédiat dans le cadre, flash néon doré plein écran, secousse de caméra et cloche cristalline.
+  - 🟢 **PERFECT!** (< 2.5 studs) : 75% de la prime, alignement à plat face au cadre, son de succès et maintien de la série.
+  - 🟡 **GOOD!** (< 5.0 studs) : 40% de la prime.
+  - 💥 **RATÉ!** (≥ 5.0 studs) : 0$, remise à zéro de la série, dé-ancrage physique de la voiture qui s'écrase sur la route avec fracas de tôle.
 
 ---
 
-## 🚀 4. LANCEMENT DU PROJET
+## 🚗 2. LE GARAGE (5 VÉHICULES PROCÉDURAUX)
 
-Vous pouvez lancer le jeu de 3 façons différentes :
+Tous les modèles 3D sont générés procéduralement sans aucun mesh ni asset externe :
 
-### Option A — Double-clic direct (Le plus rapide)
-Double-cliquez sur `launch_studio.bat` (ou à la racine sur `launch_roblox_game.bat`).  
-Le fichier de place Roblox `SovereignDominion.rbxl` s'ouvrira immédiatement dans **Roblox Studio**.
-
-### Option B — Live Sync avec Rojo
-Si vous préférez coder dans votre éditeur favori et synchroniser en direct dans Roblox Studio :
-```bash
-# Dans roblox-card-dominion :
-serve_rojo.bat
-```
-Puis dans Roblox Studio, ouvrez le plugin Rojo et cliquez sur **Connect**.
-
-### Option C — Recompiler le projet
-Pour reconstruire les fichiers de place après modification des scripts :
-```bash
-rebuild.bat
-```
+| # | Véhicule | Vitesse | Prime | Description |
+|---|---|---|---|---|
+| **#1** | **Lotus Rally** | `x1.00` | **$50** | Voiture de rallye rouge vif compacte, idéale pour débuter |
+| **#2** | **Cyber Truck** | `x1.35` | **$120** | Pick-up futuriste blindé en acier brossé avec lightbars cyan |
+| **#3** | **Drift Supra** | `x1.70` | **$300** | Sportive japonaise orange vif, splitter carbone et aileron GT |
+| **#4** | **Police Interceptor** | `x2.10` | **$750** | Berline de police noire et blanche, pare-buffle et gyrophares animés |
+| **#5** | **Hyperion JetCar** | `x2.70` | **$2000** | Hypercar dorée avec verrière de chasseur et réacteurs à plasma |
 
 ---
 
-## 📂 5. STRUCTURE DU CODE SOURCE
+## ⌨️ 3. COMMANDES DE JEU
 
-```
+| Action | Raccourcis PC | Mobile / Tactile |
+|---|---|---|
+| **Figer le véhicule** | `Barre d'Espace` ou `Clic Gauche` | `Appui sur l'écran` |
+| **Changer de voiture** | `[Q] / [D]` ou `[←] / [→]` | Boutons `[◀]` et `[▶]` du HUD |
+
+---
+
+## 🛠️ 4. ARCHITECTURE DU CODE (ROJO & LUAU)
+
+```text
 roblox-card-dominion/
-├── default.project.json           # Configuration du DataModel Rojo
-├── SovereignDominion.rbxl         # Fichier binaire Roblox Place
-├── SovereignDominion.rbxlx        # Fichier XML Roblox Place
-├── launch_studio.bat              # Script de lancement direct dans Studio
-├── serve_rojo.bat                 # Serveur de synchronisation Rojo
-├── rebuild.bat                    # Script de recompilation
+├── default.project.json                    # Configuration du mapping Rojo
+├── StopAtTheFrame.rbxl                     # Fichier place Roblox binaire
+├── StopAtTheFrame.rbxlx                    # Fichier place Roblox XML
+├── launch_studio.bat                       # Raccourci pour lancer Roblox Studio
+├── rebuild.bat                             # Script de compilation Rojo automatique
+├── serve_rojo.bat                          # Serveur de synchronisation en direct
 └── src/
-    ├── shared/                    # Modules partagés (ReplicatedStorage.Shared)
-    │   ├── CardsData.luau         # Codex de 30+ compétences et cartes
-    │   ├── CardUtils.luau         # Calculs de stats, synergies et instances
-    │   ├── RarityConfig.luau      # Probabilités Gacha, Pity et multiplicateurs
-    │   ├── RankConfig.luau        # Tiers Elo, formules et gains de Mérite
-    │   ├── MarketConfig.luau      # Paramètres du Marché et taxes déflationnistes
-    │   └── NetworkEvents.luau     # RPC RemoteEvents & RemoteFunctions
-    ├── server/                    # Scripts serveur (ServerScriptService.Server)
-    │   ├── init.server.luau       # Bootstrap du serveur
-    │   ├── DataManager.luau       # DataStore persistant avec fallback mémoire
-    │   ├── GachaManager.luau      # Moteur d'invocation et alertes mondiales
-    │   ├── MarketManager.luau     # Hôtel des Ventes & Achat-Revente
-    │   ├── TradeManager.luau      # Échanges P2P sécurisés
-    │   ├── ArenaManager.luau      # File 1v1, gestion de round et calcul Elo
-    │   ├── CombatService.luau     # Hitboxes, parade et esquive serveur
-    │   ├── MeritManager.luau      # Transcendance et recyclage des cartes
-    │   └── MapBuilder.luau        # Génération procédurale du Hub et du Colisée
-    └── client/                    # Scripts client (StarterPlayerScripts.Client)
-        ├── init.client.luau       # Bootstrap du client
-        ├── CombatController.luau  # Gestion des inputs de combat (1-4, Q, F)
-        ├── InteractionController.luau # Détection des autels (Touche E)
-        └── ui/
-            └── UIManager.luau     # Interface complète Dark Fantasy / Glassmorphism
+    ├── client/
+    │   ├── CameraController.client.luau    # Caméra fixe Scriptable en contre-plongée (20 studs)
+    │   └── GameLoop.client.luau            # Trajectoire sin², inputs, audio SFX et HUD
+    ├── server/
+    │   ├── WorldBuilder.server.luau        # Génération procédurale de la rue San Francisco
+    │   └── GameServer.server.luau          # Leaderstats (Cash, Streak, Titre), RemoteEvents
+    └── shared/
+        └── CarBuilder.luau                 # Modèles 3D des 5 voitures & scanner laser Raycast
 ```
+
+---
+
+## 🚀 5. SCRIPTS UTILITAIRES
+
+- **`launch_studio.bat` :** Ouvre directement la place `StopAtTheFrame.rbxl` dans Roblox Studio.
+- **`rebuild.bat` :** Compile le code Luau vers `StopAtTheFrame.rbxl` et `StopAtTheFrame.rbxlx` puis les copie automatiquement à la racine.
+- **`serve_rojo.bat` :** Démarre le serveur local Rojo pour le live-sync pendant le développement dans Studio.

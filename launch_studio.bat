@@ -1,6 +1,6 @@
 @echo off
 cd /d "%~dp0"
 echo ========================================================
-echo  LANCEMENT DE SOVEREIGN: CARDS OF DESTINY DANS ROBLOX STUDIO
+echo  LANCEMENT DE STOP AT THE FRAME DANS ROBLOX STUDIO
 echo ========================================================
-start "" "SovereignDominion.rbxl"
+start "" "StopAtTheFrame.rbxl"

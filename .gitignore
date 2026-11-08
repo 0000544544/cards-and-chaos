@@ -1,7 +1,4 @@
-# .gitignore for CARDS & CHAOS (Roblox Luau / Rojo)
-check_xml.py
-print_part.py
-verify_syntax.py
+# .gitignore for Stop at the Frame (Roblox Luau / Rojo)
 
 # OS / Editor
 .DS_Store
@@ -10,6 +7,10 @@ Thumbs.db
 *.lock
 .vscode/
 .idea/
+
+# Node / Rojo cache
+node_modules/
+.rojo/
 
 # Logs
 *.log

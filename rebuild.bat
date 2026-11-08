@@ -1,12 +1,13 @@
 @echo off
 cd /d "%~dp0"
 echo ========================================================
-echo  COMPILATION DU MONDE 3D ET DU CODE ROBLOX (.rbxl & .rbxlx)
+echo  COMPILATION DU PROJET STOP AT THE FRAME (.rbxl & .rbxlx)
 echo ========================================================
-call python generate_project.py
-call npx --yes rojo build -o SovereignDominion.rbxl
-call npx --yes rojo build -o SovereignDominion.rbxlx
+call npx --yes rojo build -o StopAtTheFrame.rbxl
+call npx --yes rojo build -o StopAtTheFrame.rbxlx
+copy /Y "StopAtTheFrame.rbxl" "..\StopAtTheFrame.rbxl" >nul
+copy /Y "StopAtTheFrame.rbxlx" "..\StopAtTheFrame.rbxlx" >nul
 echo ========================================================
-echo  Compilation terminee avec succes !
+echo  Compilation terminee avec succes ! Fichiers a jour.
 echo ========================================================
 pause
