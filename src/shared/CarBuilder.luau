@@ -532,10 +532,10 @@ function CarBuilder.CreateHyperionJetCar(): Model
 end
 
 -- =============================================================================
--- #6 FLASH MCQUEEN ⚡ (SLOT MODÈLE IMPORTÉ OU PLACEHOLDER DE REPLI)
+-- #6 FLASH MCQUEEN ⚡ (MODÈLE IMPORTÉ OU NASCAR STOCK-CAR PROCÉDURAL DÉTAILLÉ)
 -- =============================================================================
 function CarBuilder.CreateFlashMcQueen(): Model
-    -- 1. Recherche du modèle template importé dans ReplicatedStorage
+    -- 1. Recherche d'un modèle template importé (via .rbxm Rojo ou ReplicatedStorage)
     local template: Instance? = nil
     local importedFolder = ReplicatedStorage:FindFirstChild("ImportedVehicles")
     if importedFolder then
@@ -547,8 +547,6 @@ function CarBuilder.CreateFlashMcQueen(): Model
 
     if template and template:IsA("Model") then
         local car = template:Clone()
-
-        -- S'il n'a pas de PrimaryPart défini, lui attribue automatiquement sa première BasePart
         if not car.PrimaryPart then
             for _, desc in ipairs(car:GetDescendants()) do
                 if desc:IsA("BasePart") then
@@ -557,35 +555,235 @@ function CarBuilder.CreateFlashMcQueen(): Model
                 end
             end
         end
-
-        -- S'assure que toutes ses pièces ont CanCollide = false et Anchored = true par défaut pour le saut
         for _, desc in ipairs(car:GetDescendants()) do
             if desc:IsA("BasePart") then
                 desc.CanCollide = false
                 desc.Anchored = true
             end
         end
-
         return car
     end
 
-    -- 2. Fallback temporaire si non importé : boîte rouge vif avec RootPart
+    -- 2. NASCAR stock-car procédural détaillé "Lightning McQueen"
     local car = Instance.new("Model")
-    car.Name = "FlashMcQueen_Placeholder"
+    car.Name = "FlashMcQueen"
 
     local root = Instance.new("Part")
     root.Name = "RootPart"
-    root.Size = Vector3.new(6.5, 2, 12)
-    root.CFrame = CFrame.new(0, 0, 0)
-    root.Material = Enum.Material.SmoothPlastic
-    root.Color = Color3.fromRGB(235, 20, 25)
-    root.Anchored = true
+    root.Size = Vector3.new(1, 1, 1)
+    root.Transparency = 1
     root.CanCollide = false
+    root.Anchored = true
     root.Parent = car
-
     car.PrimaryPart = root
 
-    addDetailedUndercarriage(root, car, 6.5, 12.0)
+    local MCQUEEN_RED  = Color3.fromRGB(230, 20, 25)
+    local DARK_RED     = Color3.fromRGB(165, 12, 18)
+    local CARBON_BLACK = Color3.fromRGB(20, 22, 25)
+    local GOLD         = Color3.fromRGB(255, 215, 0)
+    local ORANGE       = Color3.fromRGB(255, 115, 0)
+    local WHITE_GLASS  = Color3.fromRGB(230, 240, 250)
+    local EYE_BLUE     = Color3.fromRGB(55, 130, 220)
+    local PUPIL_BLACK  = Color3.fromRGB(8, 8, 12)
+    local RIM_GOLD     = Color3.fromRGB(210, 175, 55)
+    local HEADLIGHT    = Color3.fromRGB(255, 252, 225)
+
+    -- ===== CARROSSERIE NASCAR PROFILÉE =====
+    -- Châssis principal bas de caisse
+    local base = createPart("Base", Vector3.new(6.4, 1.2, 12.0),
+        root.CFrame * CFrame.new(0, -0.2, 0), Enum.Material.SmoothPlastic, MCQUEEN_RED, car)
+    weldParts(root, base)
+
+    -- Splitter avant carbone noir
+    local splitter = createPart("Splitter", Vector3.new(6.6, 0.3, 1.6),
+        root.CFrame * CFrame.new(0, -0.72, -6.2), Enum.Material.SmoothPlastic, CARBON_BLACK, car)
+    weldParts(root, splitter)
+
+    -- Capot avant plongeant aérodynamique (incliné -8°)
+    local hood = createPart("Hood", Vector3.new(6.2, 0.55, 4.2),
+        root.CFrame * CFrame.new(0, 0.42, -3.5) * CFrame.Angles(math.rad(-8), 0, 0),
+        Enum.Material.SmoothPlastic, MCQUEEN_RED, car)
+    weldParts(root, hood)
+
+    -- Ailes avant galbées surplombant les roues
+    local fenderFL = createPart("FenderFL", Vector3.new(1.4, 0.6, 3.0),
+        root.CFrame * CFrame.new(-2.8, 0.15, -3.8), Enum.Material.SmoothPlastic, MCQUEEN_RED, car)
+    weldParts(root, fenderFL)
+    local fenderFR = createPart("FenderFR", Vector3.new(1.4, 0.6, 3.0),
+        root.CFrame * CFrame.new(2.8, 0.15, -3.8), Enum.Material.SmoothPlastic, MCQUEEN_RED, car)
+    weldParts(root, fenderFR)
+
+    -- Pont arrière / coffre
+    local rearDeck = createPart("RearDeck", Vector3.new(6.2, 0.85, 3.4),
+        root.CFrame * CFrame.new(0, 0.50, 4.0), Enum.Material.SmoothPlastic, MCQUEEN_RED, car)
+    weldParts(root, rearDeck)
+
+    -- Ailes arrière galbées
+    local fenderRL = createPart("FenderRL", Vector3.new(1.4, 0.7, 3.2),
+        root.CFrame * CFrame.new(-2.8, 0.20, 3.8), Enum.Material.SmoothPlastic, MCQUEEN_RED, car)
+    weldParts(root, fenderRL)
+    local fenderRR = createPart("FenderRR", Vector3.new(1.4, 0.7, 3.2),
+        root.CFrame * CFrame.new(2.8, 0.20, 3.8), Enum.Material.SmoothPlastic, MCQUEEN_RED, car)
+    weldParts(root, fenderRR)
+
+    -- ===== TOIT & VITRES =====
+    -- Toit profilé NASCAR
+    local roof = createPart("Roof", Vector3.new(4.6, 0.35, 4.2),
+        root.CFrame * CFrame.new(0, 1.88, 0.3), Enum.Material.SmoothPlastic, MCQUEEN_RED, car)
+    weldParts(root, roof)
+
+    -- Pare-brise incliné (fond blanc/clair pour les yeux)
+    local windshield = createPart("Windshield", Vector3.new(4.5, 1.65, 0.2),
+        root.CFrame * CFrame.new(0, 1.20, -1.9) * CFrame.Angles(math.rad(-33), 0, 0),
+        Enum.Material.Glass, WHITE_GLASS, car)
+    windshield.Reflectance = 0.15
+    windshield.Transparency = 0.15
+    weldParts(root, windshield)
+
+    -- ===== YEUX EMBLÉMATIQUES SUR LE PARE-BRISE =====
+    -- Iris gauche (bleu)
+    local eyeL = createPart("EyeIrisL", Vector3.new(1.0, 0.85, 0.08),
+        root.CFrame * CFrame.new(-0.85, 1.30, -2.08) * CFrame.Angles(math.rad(-33), 0, 0),
+        Enum.Material.SmoothPlastic, EYE_BLUE, car)
+    weldParts(root, eyeL)
+    -- Pupille gauche (noire)
+    local pupilL = createPart("EyePupilL", Vector3.new(0.45, 0.45, 0.09),
+        root.CFrame * CFrame.new(-0.85, 1.30, -2.12) * CFrame.Angles(math.rad(-33), 0, 0),
+        Enum.Material.SmoothPlastic, PUPIL_BLACK, car)
+    weldParts(root, pupilL)
+    -- Iris droit (bleu)
+    local eyeR = createPart("EyeIrisR", Vector3.new(1.0, 0.85, 0.08),
+        root.CFrame * CFrame.new(0.85, 1.30, -2.08) * CFrame.Angles(math.rad(-33), 0, 0),
+        Enum.Material.SmoothPlastic, EYE_BLUE, car)
+    weldParts(root, eyeR)
+    -- Pupille droite (noire)
+    local pupilR = createPart("EyePupilR", Vector3.new(0.45, 0.45, 0.09),
+        root.CFrame * CFrame.new(0.85, 1.30, -2.12) * CFrame.Angles(math.rad(-33), 0, 0),
+        Enum.Material.SmoothPlastic, PUPIL_BLACK, car)
+    weldParts(root, pupilR)
+
+    -- Lunette arrière
+    local rearWin = createPart("RearWindow", Vector3.new(4.5, 1.4, 0.2),
+        root.CFrame * CFrame.new(0, 1.25, 2.6) * CFrame.Angles(math.rad(30), 0, 0),
+        Enum.Material.Glass, CARBON_BLACK, car)
+    rearWin.Reflectance = 0.30
+    weldParts(root, rearWin)
+
+    -- ===== ÉCLAIRS LATÉRAUX "KA-CHOW" (NÉON OR + ORANGE) =====
+    -- 3 segments inclinés sur chaque flanc pour dessiner l'éclair
+    -- Flanc GAUCHE
+    local boltL1 = createPart("BoltL1", Vector3.new(0.12, 0.55, 2.8),
+        root.CFrame * CFrame.new(-3.22, 0.15, -2.0) * CFrame.Angles(0, 0, math.rad(12)),
+        Enum.Material.Neon, GOLD, car)
+    weldParts(root, boltL1)
+    local boltL2 = createPart("BoltL2", Vector3.new(0.12, 0.50, 1.8),
+        root.CFrame * CFrame.new(-3.22, 0.40, 0.4) * CFrame.Angles(0, 0, math.rad(-15)),
+        Enum.Material.Neon, ORANGE, car)
+    weldParts(root, boltL2)
+    local boltL3 = createPart("BoltL3", Vector3.new(0.12, 0.55, 2.6),
+        root.CFrame * CFrame.new(-3.22, 0.10, 2.6) * CFrame.Angles(0, 0, math.rad(10)),
+        Enum.Material.Neon, GOLD, car)
+    weldParts(root, boltL3)
+
+    -- Flanc DROIT (symétrique)
+    local boltR1 = createPart("BoltR1", Vector3.new(0.12, 0.55, 2.8),
+        root.CFrame * CFrame.new(3.22, 0.15, -2.0) * CFrame.Angles(0, 0, math.rad(-12)),
+        Enum.Material.Neon, GOLD, car)
+    weldParts(root, boltR1)
+    local boltR2 = createPart("BoltR2", Vector3.new(0.12, 0.50, 1.8),
+        root.CFrame * CFrame.new(3.22, 0.40, 0.4) * CFrame.Angles(0, 0, math.rad(15)),
+        Enum.Material.Neon, ORANGE, car)
+    weldParts(root, boltR2)
+    local boltR3 = createPart("BoltR3", Vector3.new(0.12, 0.55, 2.6),
+        root.CFrame * CFrame.new(3.22, 0.10, 2.6) * CFrame.Angles(0, 0, math.rad(-10)),
+        Enum.Material.Neon, GOLD, car)
+    weldParts(root, boltR3)
+
+    -- ===== GRAND AILERON ARRIÈRE PISTON CUP =====
+    -- Supports d'aileron inclinés
+    local wingStrutL = createPart("WingStrutL", Vector3.new(0.3, 1.5, 0.6),
+        root.CFrame * CFrame.new(-1.8, 1.75, 5.5) * CFrame.Angles(math.rad(8), 0, 0),
+        Enum.Material.SmoothPlastic, CARBON_BLACK, car)
+    weldParts(root, wingStrutL)
+    local wingStrutR = createPart("WingStrutR", Vector3.new(0.3, 1.5, 0.6),
+        root.CFrame * CFrame.new(1.8, 1.75, 5.5) * CFrame.Angles(math.rad(8), 0, 0),
+        Enum.Material.SmoothPlastic, CARBON_BLACK, car)
+    weldParts(root, wingStrutR)
+    -- Lame d'aileron
+    local wing = createPart("RearWingSpoiler", Vector3.new(6.6, 0.25, 1.9),
+        root.CFrame * CFrame.new(0, 2.55, 5.7) * CFrame.Angles(math.rad(-5), 0, 0),
+        Enum.Material.SmoothPlastic, MCQUEEN_RED, car)
+    weldParts(root, wing)
+    -- Endplates de l'aileron
+    local endplateL = createPart("EndplateL", Vector3.new(0.15, 0.8, 1.6),
+        root.CFrame * CFrame.new(-3.35, 2.35, 5.7), Enum.Material.SmoothPlastic, DARK_RED, car)
+    weldParts(root, endplateL)
+    local endplateR = createPart("EndplateR", Vector3.new(0.15, 0.8, 1.6),
+        root.CFrame * CFrame.new(3.35, 2.35, 5.7), Enum.Material.SmoothPlastic, DARK_RED, car)
+    weldParts(root, endplateR)
+
+    -- ===== PHARES AVANT NÉON =====
+    local headL = createPart("HeadlightL", Vector3.new(1.4, 0.45, 0.2),
+        root.CFrame * CFrame.new(-2.2, 0.05, -6.05), Enum.Material.Neon, HEADLIGHT, car)
+    weldParts(root, headL)
+    local headR = createPart("HeadlightR", Vector3.new(1.4, 0.45, 0.2),
+        root.CFrame * CFrame.new(2.2, 0.05, -6.05), Enum.Material.Neon, HEADLIGHT, car)
+    weldParts(root, headR)
+
+    -- Feux arrière rouges
+    local tailL = createPart("TaillightL", Vector3.new(1.2, 0.4, 0.15),
+        root.CFrame * CFrame.new(-2.3, 0.35, 6.05), Enum.Material.Neon, Color3.fromRGB(255, 20, 20), car)
+    weldParts(root, tailL)
+    local tailR = createPart("TaillightR", Vector3.new(1.2, 0.4, 0.15),
+        root.CFrame * CFrame.new(2.3, 0.35, 6.05), Enum.Material.Neon, Color3.fromRGB(255, 20, 20), car)
+    weldParts(root, tailR)
+
+    -- ===== NUMÉRO "95" (DÉCALS DORS DROIT / GAUCHE SUR LE CAPOT) =====
+    local numL = createPart("Number95_L", Vector3.new(0.1, 1.1, 1.6),
+        root.CFrame * CFrame.new(-3.22, 0.65, 0.0), Enum.Material.Neon, GOLD, car)
+    weldParts(root, numL)
+    local numR = createPart("Number95_R", Vector3.new(0.1, 1.1, 1.6),
+        root.CFrame * CFrame.new(3.22, 0.65, 0.0), Enum.Material.Neon, GOLD, car)
+    weldParts(root, numR)
+
+    -- ===== 4 ROUES AVEC JANTES DORÉES =====
+    local wheelOffsets = {
+        Vector3.new(-2.55, -0.95, -3.8), Vector3.new(2.55, -0.95, -3.8),
+        Vector3.new(-2.55, -0.95,  3.8), Vector3.new(2.55, -0.95,  3.8),
+    }
+    for _, offset in ipairs(wheelOffsets) do
+        local tire = Instance.new("Part")
+        tire.Shape = Enum.PartType.Cylinder
+        tire.Size = Vector3.new(1.0, 2.1, 2.1)
+        tire.CFrame = root.CFrame * CFrame.new(offset)
+        tire.Material = Enum.Material.Rubber
+        tire.Color = Color3.fromRGB(20, 20, 22)
+        tire.Anchored = false
+        tire.CanCollide = false
+        tire.Parent = car
+        weldParts(root, tire)
+
+        local rim = Instance.new("Part")
+        rim.Shape = Enum.PartType.Cylinder
+        rim.Size = Vector3.new(1.05, 1.3, 1.3)
+        rim.CFrame = tire.CFrame
+        rim.Material = Enum.Material.Metal
+        rim.Color = RIM_GOLD
+        rim.Anchored = false
+        rim.CanCollide = false
+        rim.Parent = car
+        weldParts(root, rim)
+    end
+
+    -- Rétroviseurs
+    local mirL = createPart("MirrorL", Vector3.new(0.7, 0.35, 0.8),
+        root.CFrame * CFrame.new(-2.7, 0.95, -1.5), Enum.Material.SmoothPlastic, DARK_RED, car)
+    weldParts(root, mirL)
+    local mirR = createPart("MirrorR", Vector3.new(0.7, 0.35, 0.8),
+        root.CFrame * CFrame.new(2.7, 0.95, -1.5), Enum.Material.SmoothPlastic, DARK_RED, car)
+    weldParts(root, mirR)
+
+    addDetailedUndercarriage(root, car, 6.4, 12.0)
     return car
 end
 
