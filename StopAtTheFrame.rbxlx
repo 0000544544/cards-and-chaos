@@ -930,7 +930,7 @@ CarBuilder.Vehicles = {
         Name = "#6 Flash McQueen ⚡",
         SpeedMultiplier = 3.2,
         RewardCash = 5000,
-        FrontZ = -6.2,
+        FrontZ = -6.0,
         Builder = CarBuilder.CreateFlashMcQueen,
     },
 }
@@ -1159,270 +1159,12 @@ return CarBuilder
 ]]></string>
       </Properties>
     </Item>
-    <Item class="Model" referent="3">
-      <Properties>
-        <string name="Name">FlashMcQueen</string>
-        <BinaryString name="AttributesSerialize"></BinaryString>
-        <token name="ModelStreamingMode">0</token>
-        <bool name="NeedsPivotMigration">false</bool>
-      </Properties>
-      <Item class="Part" referent="4">
-        <Properties>
-          <string name="Name">VisualMesh</string>
-          <bool name="Anchored">true</bool>
-          <CoordinateFrame name="CFrame">
-            <X>0</X>
-            <Y>0.15</Y>
-            <Z>-0.6</Z>
-            <R00>1</R00>
-            <R01>0</R01>
-            <R02>0</R02>
-            <R10>0</R10>
-            <R11>1</R11>
-            <R12>0</R12>
-            <R20>0</R20>
-            <R21>0</R21>
-            <R22>1</R22>
-          </CoordinateFrame>
-          <bool name="CanCollide">false</bool>
-          <bool name="CanQuery">true</bool>
-          <bool name="CanTouch">false</bool>
-          <Color3uint8 name="Color3uint8">15079962</Color3uint8>
-          <Vector3 name="size">
-            <X>6.2</X>
-            <Y>1.2</Y>
-            <Z>11.6</Z>
-          </Vector3>
-          <float name="Transparency">0</float>
-        </Properties>
-        <Item class="SpecialMesh" referent="5">
-          <Properties>
-            <string name="Name">Mesh</string>
-            <Content name="MeshContent">
-              <uri>rbxassetid://785847639</uri>
-            </Content>
-            <token name="MeshType">5</token>
-            <Vector3 name="Scale">
-              <X>3.456</X>
-              <Y>3.456</Y>
-              <Z>3.456</Z>
-            </Vector3>
-            <Content name="TextureContent">
-              <uri>rbxassetid://785848960</uri>
-            </Content>
-          </Properties>
-        </Item>
-      </Item>
-      <Item class="Part" referent="6">
-        <Properties>
-          <string name="Name">ScanHood</string>
-          <bool name="Anchored">true</bool>
-          <CoordinateFrame name="CFrame">
-            <X>0</X>
-            <Y>0.45</Y>
-            <Z>-3.6</Z>
-            <R00>1</R00>
-            <R01>0</R01>
-            <R02>0</R02>
-            <R10>0</R10>
-            <R11>0.99</R11>
-            <R12>0.14</R12>
-            <R20>0</R20>
-            <R21>-0.14</R21>
-            <R22>0.99</R22>
-          </CoordinateFrame>
-          <bool name="CanCollide">false</bool>
-          <bool name="CanQuery">true</bool>
-          <bool name="CanTouch">false</bool>
-          <Vector3 name="size">
-            <X>5.8</X>
-            <Y>0.6</Y>
-            <Z>3.8</Z>
-          </Vector3>
-          <float name="Transparency">1</float>
-        </Properties>
-      </Item>
-      <Item class="Part" referent="7">
-        <Properties>
-          <string name="Name">ScanRoof</string>
-          <bool name="Anchored">true</bool>
-          <CoordinateFrame name="CFrame">
-            <X>0</X>
-            <Y>1.7</Y>
-            <Z>0.1</Z>
-            <R00>1</R00>
-            <R01>0</R01>
-            <R02>0</R02>
-            <R10>0</R10>
-            <R11>1</R11>
-            <R12>0</R12>
-            <R20>0</R20>
-            <R21>0</R21>
-            <R22>1</R22>
-          </CoordinateFrame>
-          <bool name="CanCollide">false</bool>
-          <bool name="CanQuery">true</bool>
-          <bool name="CanTouch">false</bool>
-          <Vector3 name="size">
-            <X>4.6</X>
-            <Y>1.4</Y>
-            <Z>4.2</Z>
-          </Vector3>
-          <float name="Transparency">1</float>
-        </Properties>
-      </Item>
-      <Item class="Part" referent="8">
-        <Properties>
-          <string name="Name">ScanWing</string>
-          <bool name="Anchored">true</bool>
-          <CoordinateFrame name="CFrame">
-            <X>0</X>
-            <Y>2.3</Y>
-            <Z>4.1</Z>
-            <R00>1</R00>
-            <R01>0</R01>
-            <R02>0</R02>
-            <R10>0</R10>
-            <R11>1</R11>
-            <R12>0</R12>
-            <R20>0</R20>
-            <R21>0</R21>
-            <R22>1</R22>
-          </CoordinateFrame>
-          <bool name="CanCollide">false</bool>
-          <bool name="CanQuery">true</bool>
-          <bool name="CanTouch">false</bool>
-          <Vector3 name="size">
-            <X>6.4</X>
-            <Y>0.4</Y>
-            <Z>1.6</Z>
-          </Vector3>
-          <float name="Transparency">1</float>
-        </Properties>
-      </Item>
-      <Item class="Part" referent="9">
-        <Properties>
-          <string name="Name">WheelFL</string>
-          <bool name="Anchored">true</bool>
-          <CoordinateFrame name="CFrame">
-            <X>-2.55</X>
-            <Y>-0.95</Y>
-            <Z>-3.8</Z>
-            <R00>1</R00>
-            <R01>0</R01>
-            <R02>0</R02>
-            <R10>0</R10>
-            <R11>1</R11>
-            <R12>0</R12>
-            <R20>0</R20>
-            <R21>0</R21>
-            <R22>1</R22>
-          </CoordinateFrame>
-          <bool name="CanCollide">false</bool>
-          <bool name="CanQuery">true</bool>
-          <token name="shape">2</token>
-          <Vector3 name="size">
-            <X>1</X>
-            <Y>2.1</Y>
-            <Z>2.1</Z>
-          </Vector3>
-          <float name="Transparency">1</float>
-        </Properties>
-      </Item>
-      <Item class="Part" referent="10">
-        <Properties>
-          <string name="Name">WheelFR</string>
-          <bool name="Anchored">true</bool>
-          <CoordinateFrame name="CFrame">
-            <X>2.55</X>
-            <Y>-0.95</Y>
-            <Z>-3.8</Z>
-            <R00>1</R00>
-            <R01>0</R01>
-            <R02>0</R02>
-            <R10>0</R10>
-            <R11>1</R11>
-            <R12>0</R12>
-            <R20>0</R20>
-            <R21>0</R21>
-            <R22>1</R22>
-          </CoordinateFrame>
-          <bool name="CanCollide">false</bool>
-          <bool name="CanQuery">true</bool>
-          <token name="shape">2</token>
-          <Vector3 name="size">
-            <X>1</X>
-            <Y>2.1</Y>
-            <Z>2.1</Z>
-          </Vector3>
-          <float name="Transparency">1</float>
-        </Properties>
-      </Item>
-      <Item class="Part" referent="11">
-        <Properties>
-          <string name="Name">WheelRL</string>
-          <bool name="Anchored">true</bool>
-          <CoordinateFrame name="CFrame">
-            <X>-2.55</X>
-            <Y>-0.95</Y>
-            <Z>3.8</Z>
-            <R00>1</R00>
-            <R01>0</R01>
-            <R02>0</R02>
-            <R10>0</R10>
-            <R11>1</R11>
-            <R12>0</R12>
-            <R20>0</R20>
-            <R21>0</R21>
-            <R22>1</R22>
-          </CoordinateFrame>
-          <bool name="CanCollide">false</bool>
-          <bool name="CanQuery">true</bool>
-          <token name="shape">2</token>
-          <Vector3 name="size">
-            <X>1</X>
-            <Y>2.1</Y>
-            <Z>2.1</Z>
-          </Vector3>
-          <float name="Transparency">1</float>
-        </Properties>
-      </Item>
-      <Item class="Part" referent="12">
-        <Properties>
-          <string name="Name">WheelRR</string>
-          <bool name="Anchored">true</bool>
-          <CoordinateFrame name="CFrame">
-            <X>2.55</X>
-            <Y>-0.95</Y>
-            <Z>3.8</Z>
-            <R00>1</R00>
-            <R01>0</R01>
-            <R02>0</R02>
-            <R10>0</R10>
-            <R11>1</R11>
-            <R12>0</R12>
-            <R20>0</R20>
-            <R21>0</R21>
-            <R22>1</R22>
-          </CoordinateFrame>
-          <bool name="CanCollide">false</bool>
-          <bool name="CanQuery">true</bool>
-          <token name="shape">2</token>
-          <Vector3 name="size">
-            <X>1</X>
-            <Y>2.1</Y>
-            <Z>2.1</Z>
-          </Vector3>
-          <float name="Transparency">1</float>
-        </Properties>
-      </Item>
-    </Item>
   </Item>
-  <Item class="ServerScriptService" referent="13">
+  <Item class="ServerScriptService" referent="3">
     <Properties>
       <string name="Name">ServerScriptService</string>
     </Properties>
-    <Item class="Script" referent="14">
+    <Item class="Script" referent="4">
       <Properties>
         <string name="Name">GameServer</string>
         <token name="RunContext">0</token>
@@ -1558,7 +1300,7 @@ print("[GameServer] Système d'économie, streaks et titres Stop Frameur initial
 ]]></string>
       </Properties>
     </Item>
-    <Item class="Script" referent="15">
+    <Item class="Script" referent="5">
       <Properties>
         <string name="Name">WorldBuilder</string>
         <token name="RunContext">0</token>
@@ -1737,15 +1479,15 @@ print("[WorldBuilder] Rue San Francisco en pente et TargetFrame initialisés ave
       </Properties>
     </Item>
   </Item>
-  <Item class="StarterPlayer" referent="16">
+  <Item class="StarterPlayer" referent="6">
     <Properties>
       <string name="Name">StarterPlayer</string>
     </Properties>
-    <Item class="StarterPlayerScripts" referent="17">
+    <Item class="StarterPlayerScripts" referent="7">
       <Properties>
         <string name="Name">StarterPlayerScripts</string>
       </Properties>
-      <Item class="LocalScript" referent="18">
+      <Item class="LocalScript" referent="8">
         <Properties>
           <string name="Name">CameraController</string>
           <string name="Source"><![CDATA[--!strict
@@ -1857,7 +1599,7 @@ print("[CameraController] Caméra fixe Scriptable initialisée avec succès.")
 ]]></string>
         </Properties>
       </Item>
-      <Item class="LocalScript" referent="19">
+      <Item class="LocalScript" referent="9">
         <Properties>
           <string name="Name">GameLoop</string>
           <string name="Source"><![CDATA[--!strict
@@ -2656,12 +2398,12 @@ print("[GameLoop] Trajectoire, boucle fermée TargetFrame et système de grading
       </Item>
     </Item>
   </Item>
-  <Item class="Workspace" referent="20">
+  <Item class="Workspace" referent="10">
     <Properties>
       <string name="Name">Workspace</string>
       <bool name="NeedsPivotMigration">false</bool>
     </Properties>
-    <Item class="Part" referent="21">
+    <Item class="Part" referent="11">
       <Properties>
         <string name="Name">Baseplate</string>
         <bool name="Anchored">true</bool>

@@ -903,7 +903,7 @@ CarBuilder.Vehicles = {
         Name = "#6 Flash McQueen ⚡",
         SpeedMultiplier = 3.2,
         RewardCash = 5000,
-        FrontZ = -6.2,
+        FrontZ = -6.0,
         Builder = CarBuilder.CreateFlashMcQueen,
     },
 }
