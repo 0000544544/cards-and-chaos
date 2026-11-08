@@ -1,0 +1,214 @@
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
+	<External>null</External>
+	<External>nil</External>
+	<Item class="Model" referent="RBX_FLASHMCQUEEN">
+		<Properties>
+			<string name="Name">FlashMcQueen</string>
+			<BinaryString name="AttributesSerialize"></BinaryString>
+			<token name="ModelStreamingMode">0</token>
+			<bool name="NeedsPivotMigration">false</bool>
+		</Properties>
+
+		<!-- Visual Textured 3D Mesh Part (Official Disney/Pixar Lightning McQueen) -->
+		<Item class="Part" referent="RBX_BODY_VISUAL">
+			<Properties>
+				<string name="Name">VisualMesh</string>
+				<bool name="Anchored">true</bool>
+				<bool name="CanCollide">false</bool>
+				<bool name="CanQuery">true</bool>
+				<bool name="CanTouch">false</bool>
+				<CoordinateFrame name="CFrame">
+					<X>0</X>
+					<Y>0.15</Y>
+					<Z>-0.6</Z>
+					<R00>1</R00>
+					<R01>0</R01>
+					<R02>0</R02>
+					<R10>0</R10>
+					<R11>1</R11>
+					<R12>0</R12>
+					<R20>0</R20>
+					<R21>0</R21>
+					<R22>1</R22>
+				</CoordinateFrame>
+				<Color3 name="Color">
+					<R>0.9</R>
+					<G>0.1</G>
+					<B>0.1</B>
+				</Color3>
+				<float name="Transparency">0</float>
+				<Vector3 name="size">
+					<X>6.2</X>
+					<Y>1.2</Y>
+					<Z>11.6</Z>
+				</Vector3>
+			</Properties>
+			<Item class="SpecialMesh" referent="RBX_OFFICIAL_MESH">
+				<Properties>
+					<string name="Name">Mesh</string>
+					<Content name="MeshId"><url>rbxassetid://785847639</url></Content>
+					<token name="MeshType">5</token>
+					<Vector3 name="Scale">
+						<X>3.456</X>
+						<Y>3.456</Y>
+						<Z>3.456</Z>
+					</Vector3>
+					<Content name="TextureId"><url>rbxassetid://785848960</url></Content>
+				</Properties>
+			</Item>
+		</Item>
+
+		<!-- Hood Silhouette Part for Raycast Scanner -->
+		<Item class="Part" referent="RBX_SCAN_HOOD">
+			<Properties>
+				<string name="Name">ScanHood</string>
+				<bool name="Anchored">true</bool>
+				<bool name="CanCollide">false</bool>
+				<bool name="CanQuery">true</bool>
+				<bool name="CanTouch">false</bool>
+				<CoordinateFrame name="CFrame">
+					<X>0</X>
+					<Y>0.45</Y>
+					<Z>-3.6</Z>
+					<R00>1</R00><R01>0</R01><R02>0</R02>
+					<R10>0</R10><R11>0.99</R11><R12>0.14</R12>
+					<R20>0</R20><R21>-0.14</R21><R22>0.99</R22>
+				</CoordinateFrame>
+				<float name="Transparency">1</float>
+				<Vector3 name="size">
+					<X>5.8</X>
+					<Y>0.6</Y>
+					<Z>3.8</Z>
+				</Vector3>
+			</Properties>
+		</Item>
+
+		<!-- Cockpit / Roof Silhouette Part for Raycast Scanner -->
+		<Item class="Part" referent="RBX_SCAN_ROOF">
+			<Properties>
+				<string name="Name">ScanRoof</string>
+				<bool name="Anchored">true</bool>
+				<bool name="CanCollide">false</bool>
+				<bool name="CanQuery">true</bool>
+				<bool name="CanTouch">false</bool>
+				<CoordinateFrame name="CFrame">
+					<X>0</X>
+					<Y>1.7</Y>
+					<Z>0.1</Z>
+					<R00>1</R00><R01>0</R01><R02>0</R02>
+					<R10>0</R10><R11>1</R11><R12>0</R12>
+					<R20>0</R20><R21>0</R21><R22>1</R22>
+				</CoordinateFrame>
+				<float name="Transparency">1</float>
+				<Vector3 name="size">
+					<X>4.6</X>
+					<Y>1.4</Y>
+					<Z>4.2</Z>
+				</Vector3>
+			</Properties>
+		</Item>
+
+		<!-- Rear Wing Spoiler Silhouette Part for Raycast Scanner -->
+		<Item class="Part" referent="RBX_SCAN_WING">
+			<Properties>
+				<string name="Name">ScanWing</string>
+				<bool name="Anchored">true</bool>
+				<bool name="CanCollide">false</bool>
+				<bool name="CanQuery">true</bool>
+				<bool name="CanTouch">false</bool>
+				<CoordinateFrame name="CFrame">
+					<X>0</X>
+					<Y>2.3</Y>
+					<Z>4.1</Z>
+					<R00>1</R00><R01>0</R01><R02>0</R02>
+					<R10>0</R10><R11>1</R11><R12>0</R12>
+					<R20>0</R20><R21>0</R21><R22>1</R22>
+				</CoordinateFrame>
+				<float name="Transparency">1</float>
+				<Vector3 name="size">
+					<X>6.4</X>
+					<Y>0.4</Y>
+					<Z>1.6</Z>
+				</Vector3>
+			</Properties>
+		</Item>
+
+		<!-- 4 Wheels Cylinders for Raycast Scanner -->
+		<Item class="Part" referent="RBX_WHEEL_FL">
+			<Properties>
+				<string name="Name">WheelFL</string>
+				<token name="shape">2</token>
+				<bool name="Anchored">true</bool>
+				<bool name="CanCollide">false</bool>
+				<bool name="CanQuery">true</bool>
+				<CoordinateFrame name="CFrame">
+					<X>-2.55</X><Y>-0.95</Y><Z>-3.8</Z>
+					<R00>1</R00><R01>0</R01><R02>0</R02>
+					<R10>0</R10><R11>1</R11><R12>0</R12>
+					<R20>0</R20><R21>0</R21><R22>1</R22>
+				</CoordinateFrame>
+				<float name="Transparency">1</float>
+				<Vector3 name="size">
+					<X>1.0</X><Y>2.1</Y><Z>2.1</Z>
+				</Vector3>
+			</Properties>
+		</Item>
+		<Item class="Part" referent="RBX_WHEEL_FR">
+			<Properties>
+				<string name="Name">WheelFR</string>
+				<token name="shape">2</token>
+				<bool name="Anchored">true</bool>
+				<bool name="CanCollide">false</bool>
+				<bool name="CanQuery">true</bool>
+				<CoordinateFrame name="CFrame">
+					<X>2.55</X><Y>-0.95</Y><Z>-3.8</Z>
+					<R00>1</R00><R01>0</R01><R02>0</R02>
+					<R10>0</R10><R11>1</R11><R12>0</R12>
+					<R20>0</R20><R21>0</R21><R22>1</R22>
+				</CoordinateFrame>
+				<float name="Transparency">1</float>
+				<Vector3 name="size">
+					<X>1.0</X><Y>2.1</Y><Z>2.1</Z>
+				</Vector3>
+			</Properties>
+		</Item>
+		<Item class="Part" referent="RBX_WHEEL_RL">
+			<Properties>
+				<string name="Name">WheelRL</string>
+				<token name="shape">2</token>
+				<bool name="Anchored">true</bool>
+				<bool name="CanCollide">false</bool>
+				<bool name="CanQuery">true</bool>
+				<CoordinateFrame name="CFrame">
+					<X>-2.55</X><Y>-0.95</Y><Z>3.8</Z>
+					<R00>1</R00><R01>0</R01><R02>0</R02>
+					<R10>0</R10><R11>1</R11><R12>0</R12>
+					<R20>0</R20><R21>0</R21><R22>1</R22>
+				</CoordinateFrame>
+				<float name="Transparency">1</float>
+				<Vector3 name="size">
+					<X>1.0</X><Y>2.1</Y><Z>2.1</Z>
+				</Vector3>
+			</Properties>
+		</Item>
+		<Item class="Part" referent="RBX_WHEEL_RR">
+			<Properties>
+				<string name="Name">WheelRR</string>
+				<token name="shape">2</token>
+				<bool name="Anchored">true</bool>
+				<bool name="CanCollide">false</bool>
+				<bool name="CanQuery">true</bool>
+				<CoordinateFrame name="CFrame">
+					<X>2.55</X><Y>-0.95</Y><Z>3.8</Z>
+					<R00>1</R00><R01>0</R01><R02>0</R02>
+					<R10>0</R10><R11>1</R11><R12>0</R12>
+					<R20>0</R20><R21>0</R21><R22>1</R22>
+				</CoordinateFrame>
+				<float name="Transparency">1</float>
+				<Vector3 name="size">
+					<X>1.0</X><Y>2.1</Y><Z>2.1</Z>
+				</Vector3>
+			</Properties>
+		</Item>
+	</Item>
+</roblox>
