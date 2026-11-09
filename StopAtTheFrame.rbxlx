@@ -1172,13 +1172,18 @@ return CarBuilder
 --[[
     STOP AT THE FRAME - GAME SERVER (SERVER SCRIPT)
     Gère l'économie, les leaderstats (Cash $, Streak 🔥, Titre),
-    les récompenses de saut et l'attribution des titres de Stop Frameur.
+    les récompenses de saut et l'initialisation des Services (DataManager, Garage, Grue).
 ]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local CarBuilder = require(ReplicatedStorage:WaitForChild("CarBuilder") :: ModuleScript)
+
+-- Services Serveur
+local DataManager = require(script.Parent.Services.DataManager)
+local GarageService = require(script.Parent.Services.GarageService)
+local CraneService = require(script.Parent.Services.CraneService)
 
 -- 1. Configuration des dossiers réseau
 local remotesFolder = ReplicatedStorage:FindFirstChild("Remotes") :: Folder?
@@ -1210,10 +1215,8 @@ local function calculateTitle(streak: number, framePerfects: number): string
     end
 end
 
-local playerStats: { [Player]: { FramePerfects: number } } = {}
-
 local function setupPlayer(player: Player)
-    playerStats[player] = { FramePerfects = 0 }
+    local data = DataManager.LoadData(player)
 
     local leaderstats = Instance.new("Folder")
     leaderstats.Name = "leaderstats"
@@ -1221,23 +1224,22 @@ local function setupPlayer(player: Player)
 
     local cashVal = Instance.new("IntValue")
     cashVal.Name = "Cash"
-    cashVal.Value = 100 -- 100$ de bienvenue pour démarrer
+    cashVal.Value = data.Cash
     cashVal.Parent = leaderstats
 
     local streakVal = Instance.new("IntValue")
     streakVal.Name = "Streak"
-    streakVal.Value = 0
+    streakVal.Value = data.Streak
     streakVal.Parent = leaderstats
 
     local titleVal = Instance.new("StringValue")
     titleVal.Name = "Title"
-    titleVal.Value = "Réflexes de Tortue"
+    titleVal.Value = data.Title
     titleVal.Parent = leaderstats
 
-    -- Valeur masquée pour suivre les Frame Perfects totaux
     local fpVal = Instance.new("IntValue")
     fpVal.Name = "TotalFramePerfects"
-    fpVal.Value = 0
+    fpVal.Value = data.TotalFramePerfects
     fpVal.Parent = player
 end
 
@@ -1247,10 +1249,6 @@ for _, p in ipairs(Players:GetPlayers()) do
         setupPlayer(p)
     end)
 end
-
-Players.PlayerRemoving:Connect(function(player)
-    playerStats[player] = nil
-end)
 
 -- 3. Traitement des résultats de saut soumis par le client
 submitEvent.OnServerEvent:Connect(function(player: Player, vehicleId: any, grade: any, distance: any, accuracy: any)
@@ -1272,19 +1270,18 @@ submitEvent.OnServerEvent:Connect(function(player: Player, vehicleId: any, grade
     if gradeStr == "FRAME PERFECT!" then
         streakVal.Value += 1
         fpVal.Value += 1
-        -- 100% de la prime + bonus de streak
         local reward = math.floor(baseReward + (streakVal.Value * 15))
-        cashVal.Value += reward
+        DataManager.AddCash(player, reward)
 
     elseif gradeStr == "PERFECT!" then
         streakVal.Value += 1
         local reward = math.floor(baseReward * 0.75 + (streakVal.Value * 8))
-        cashVal.Value += reward
+        DataManager.AddCash(player, reward)
 
     elseif gradeStr == "GOOD!" then
         streakVal.Value += 1
         local reward = math.floor(baseReward * 0.40)
-        cashVal.Value += reward
+        DataManager.AddCash(player, reward)
 
     else
         -- RATÉ : Réinitialisation du streak
@@ -1296,11 +1293,385 @@ submitEvent.OnServerEvent:Connect(function(player: Player, vehicleId: any, grade
     titleVal.Value = newTitle
 end)
 
-print("[GameServer] Système d'économie, streaks et titres Stop Frameur initialisé.")
+print("[GameServer] Services initialisés : DataManager, GarageService (Revenu passif), CraneService (Pêche).")
 ]]></string>
       </Properties>
     </Item>
-    <Item class="Script" referent="5">
+    <Item class="Folder" referent="5">
+      <Properties>
+        <string name="Name">Services</string>
+      </Properties>
+      <Item class="ModuleScript" referent="6">
+        <Properties>
+          <string name="Name">CraneService</string>
+          <string name="Source"><![CDATA[--!strict
+--[[
+    STOP AT THE FRAME - CRANE SERVICE (SERVICE MODULE)
+    Gère le Mode Pêche (Grue & Aimant sous-marin) :
+    - Déploiement physique du câble et de l'aimant dans les profondeurs aquatiques.
+    - Détection d'accrochage par Raycast sous-marin.
+    - Tirage de loot procédural par palier de profondeur et puissance magnétique.
+    - Remontée du véhicule et ajout automatique à l'inventaire du joueur.
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+
+local DataManager = require(script.Parent.DataManager)
+
+local CraneService = {}
+
+-- Paliers de profondeur aquatique et table de loot
+export type LootEntry = {
+    VehicleId: string,
+    Name: string,
+    Rarity: string,
+    MinDepth: number,
+    Weight: number,
+}
+
+local LOOT_TABLE: { LootEntry } = {
+    { VehicleId = "lotus_rally",        Name = "Lotus Rally",        Rarity = "Commune",    MinDepth = 0,   Weight = 50 },
+    { VehicleId = "cyber_truck",        Name = "Cyber Truck",        Rarity = "Peu Commune",MinDepth = 25,  Weight = 30 },
+    { VehicleId = "drift_supra",        Name = "Drift Supra",        Rarity = "Rare",       MinDepth = 50,  Weight = 15 },
+    { VehicleId = "police_interceptor", Name = "Police Interceptor", Rarity = "Épique",     MinDepth = 80,  Weight = 8  },
+    { VehicleId = "hyperion_jetcar",    Name = "Hyperion JetCar",    Rarity = "Légendaire", MinDepth = 110, Weight = 4  },
+    { VehicleId = "flash_mcqueen",      Name = "Flash McQueen ⚡",    Rarity = "Mythique",   MinDepth = 140, Weight = 1  },
+}
+
+-- Événements réseau pour la Grue
+local remotesFolder = ReplicatedStorage:FindFirstChild("Remotes") :: Folder?
+if not remotesFolder then
+    remotesFolder = Instance.new("Folder")
+    remotesFolder.Name = "Remotes"
+    remotesFolder.Parent = ReplicatedStorage
+end
+
+local deployCraneEvent = remotesFolder:FindFirstChild("DeployCrane") :: RemoteEvent?
+if not deployCraneEvent then
+    deployCraneEvent = Instance.new("RemoteEvent")
+    deployCraneEvent.Name = "DeployCrane"
+    deployCraneEvent.Parent = remotesFolder
+end
+
+local craneHookedEvent = remotesFolder:FindFirstChild("CraneHooked") :: RemoteEvent?
+if not craneHookedEvent then
+    craneHookedEvent = Instance.new("RemoteEvent")
+    craneHookedEvent.Name = "CraneHooked"
+    craneHookedEvent.Parent = remotesFolder
+end
+
+-- Tirage aléatoire pondéré selon la profondeur atteinte
+function CraneService.RollLoot(depth: number, magnetPower: number): LootEntry
+    local availablePool: { LootEntry } = {}
+    local totalWeight = 0
+
+    for _, entry in ipairs(LOOT_TABLE) do
+        -- L'aimant puissant permet de repêcher des véhicules de paliers plus profonds plus facilement
+        local effectiveMin = math.max(0, entry.MinDepth - (magnetPower - 1) * 15)
+        if depth >= effectiveMin then
+            table.insert(availablePool, entry)
+            totalWeight += entry.Weight
+        end
+    end
+
+    if #availablePool == 0 or totalWeight <= 0 then
+        return LOOT_TABLE[1]
+    end
+
+    local roll = math.random() * totalWeight
+    local current = 0
+    for _, entry in ipairs(availablePool) do
+        current += entry.Weight
+        if roll <= current then
+            return entry
+        end
+    end
+
+    return availablePool[#availablePool]
+end
+
+-- Traitement du déploiement de la grue par le client
+deployCraneEvent.OnServerEvent:Connect(function(player: Player, targetDepth: any)
+    local data = DataManager.GetData(player)
+    if not data then return end
+
+    local requestedDepth = math.clamp(tonumber(targetDepth) or 20, 10, 250)
+    -- Plafond de profondeur selon le niveau du câble
+    local maxCableDepth = 30 + (data.Crane.CableLengthLevel * 25)
+    local actualDepth = math.min(requestedDepth, maxCableDepth)
+
+    -- Tirage de la trouvaille sous-marine
+    local loot = CraneService.RollLoot(actualDepth, data.Crane.MagneticPowerLevel)
+
+    -- Ajout du véhicule à l'inventaire du joueur
+    local isNew = DataManager.AddVehicleToInventory(player, loot.VehicleId)
+
+    -- Notification au client avec animation de remontée
+    if craneHookedEvent then
+        craneHookedEvent:FireClient(player, loot.VehicleId, loot.Name, loot.Rarity, actualDepth, isNew)
+    end
+end)
+
+return CraneService
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="7">
+        <Properties>
+          <string name="Name">DataManager</string>
+          <string name="Source"><![CDATA[--!strict
+--[[
+    STOP AT THE FRAME - DATA MANAGER (SERVICE MODULE)
+    Gère la persistance DataStore des joueurs :
+    - Économie (Cash $, Streak 🔥, Titre)
+    - Inventaire de véhicules pêchés et débloqués
+    - Showroom (Véhicules exposés générant du cash passif)
+    - Améliorations de la Grue (Longueur de câble, Puissance aimant, Vitesse treuil)
+]]
+
+local DataStoreService = game:GetService("DataStoreService")
+local Players = game:GetService("Players")
+
+local DataManager = {}
+
+export type PlayerData = {
+    Cash: number,
+    Streak: number,
+    TotalFramePerfects: number,
+    Title: string,
+    Inventory: { string }, -- Liste des IDs de véhicules possédés
+    Showroom: { [number]: string }, -- SlotIndex -> VehicleId
+    Crane: {
+        CableLengthLevel: number,
+        MagneticPowerLevel: number,
+        WinchSpeedLevel: number,
+    },
+}
+
+local DATA_VERSION = "SATF_V1_PlayerData"
+local playerDataStore: DataStore? = nil
+
+local success, ds = pcall(function()
+    return DataStoreService:GetDataStore(DATA_VERSION)
+end)
+if success and ds then
+    playerDataStore = ds
+else
+    warn("[DataManager] DataStore non disponible en mode hors-ligne Studio. Utilisation de la mémoire cache.")
+end
+
+local sessionCache: { [Player]: PlayerData } = {}
+
+local DEFAULT_DATA: PlayerData = {
+    Cash = 100,
+    Streak = 0,
+    TotalFramePerfects = 0,
+    Title = "Réflexes de Tortue",
+    Inventory = { "lotus_rally" },
+    Showroom = { [1] = "lotus_rally" },
+    Crane = {
+        CableLengthLevel = 1,
+        MagneticPowerLevel = 1,
+        WinchSpeedLevel = 1,
+    },
+}
+
+local function cloneDefaultData(): PlayerData
+    local copy: PlayerData = {
+        Cash = DEFAULT_DATA.Cash,
+        Streak = DEFAULT_DATA.Streak,
+        TotalFramePerfects = DEFAULT_DATA.TotalFramePerfects,
+        Title = DEFAULT_DATA.Title,
+        Inventory = {},
+        Showroom = {},
+        Crane = {
+            CableLengthLevel = DEFAULT_DATA.Crane.CableLengthLevel,
+            MagneticPowerLevel = DEFAULT_DATA.Crane.MagneticPowerLevel,
+            WinchSpeedLevel = DEFAULT_DATA.Crane.WinchSpeedLevel,
+        },
+    }
+    for _, id in ipairs(DEFAULT_DATA.Inventory) do
+        table.insert(copy.Inventory, id)
+    end
+    for slot, id in pairs(DEFAULT_DATA.Showroom) do
+        copy.Showroom[slot] = id
+    end
+    return copy
+end
+
+function DataManager.LoadData(player: Player): PlayerData
+    if sessionCache[player] then
+        return sessionCache[player]
+    end
+
+    local loadedData: PlayerData = cloneDefaultData()
+    if playerDataStore then
+        local key = "Player_" .. tostring(player.UserId)
+        local ok, result = pcall(function()
+            return playerDataStore:GetAsync(key)
+        end)
+        if ok and type(result) == "table" then
+            if type(result.Cash) == "number" then loadedData.Cash = result.Cash end
+            if type(result.Streak) == "number" then loadedData.Streak = result.Streak end
+            if type(result.TotalFramePerfects) == "number" then loadedData.TotalFramePerfects = result.TotalFramePerfects end
+            if type(result.Title) == "string" then loadedData.Title = result.Title end
+            if type(result.Inventory) == "table" then loadedData.Inventory = result.Inventory end
+            if type(result.Showroom) == "table" then loadedData.Showroom = result.Showroom end
+            if type(result.Crane) == "table" then
+                loadedData.Crane.CableLengthLevel = result.Crane.CableLengthLevel or 1
+                loadedData.Crane.MagneticPowerLevel = result.Crane.MagneticPowerLevel or 1
+                loadedData.Crane.WinchSpeedLevel = result.Crane.WinchSpeedLevel or 1
+            end
+        end
+    end
+
+    sessionCache[player] = loadedData
+    return loadedData
+end
+
+function DataManager.SaveData(player: Player)
+    local data = sessionCache[player]
+    if not data or not playerDataStore then return end
+
+    local key = "Player_" .. tostring(player.UserId)
+    pcall(function()
+        playerDataStore:SetAsync(key, data)
+    end)
+end
+
+function DataManager.GetData(player: Player): PlayerData?
+    return sessionCache[player]
+end
+
+function DataManager.AddCash(player: Player, amount: number)
+    local data = sessionCache[player]
+    if not data then return end
+    data.Cash = math.max(0, data.Cash + amount)
+    local leaderstats = player:FindFirstChild("leaderstats")
+    if leaderstats then
+        local cashVal = leaderstats:FindFirstChild("Cash") :: IntValue?
+        if cashVal then cashVal.Value = data.Cash end
+    end
+end
+
+function DataManager.AddVehicleToInventory(player: Player, vehicleId: string): boolean
+    local data = sessionCache[player]
+    if not data then return false end
+    for _, id in ipairs(data.Inventory) do
+        if id == vehicleId then
+            -- Doublon : compensation en cash
+            DataManager.AddCash(player, 500)
+            return false
+        end
+    end
+    table.insert(data.Inventory, vehicleId)
+    return true
+end
+
+function DataManager.UnloadPlayer(player: Player)
+    DataManager.SaveData(player)
+    sessionCache[player] = nil
+end
+
+Players.PlayerRemoving:Connect(function(player)
+    DataManager.UnloadPlayer(player)
+end)
+
+game:BindToClose(function()
+    for _, player in ipairs(Players:GetPlayers()) do
+        DataManager.SaveData(player)
+    end
+end)
+
+return DataManager
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="8">
+        <Properties>
+          <string name="Name">GarageService</string>
+          <string name="Source"><![CDATA[--!strict
+--[[
+    STOP AT THE FRAME - GARAGE SERVICE (SERVICE MODULE)
+    Gère le Showroom du Garage et la génération de cash passif :
+    - Chaque véhicule exposé dans le hangar rapporte du Cash en continu ($ / sec).
+    - Plus le véhicule est rare et prestigieux, plus le rendement passif est élevé.
+    - Synchronise les gains avec DataManager et les leaderstats du joueur.
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+
+local DataManager = require(script.Parent.DataManager)
+local CarBuilder = require(ReplicatedStorage:WaitForChild("CarBuilder") :: ModuleScript)
+
+local GarageService = {}
+
+-- Rendement passif ($ / seconde) selon la rareté du véhicule
+local PASSIVE_RATES: { [string]: number } = {
+    lotus_rally        = 2,   -- Tier 1
+    cyber_truck        = 5,   -- Tier 2
+    drift_supra        = 12,  -- Tier 3
+    police_interceptor = 25,  -- Tier 4
+    hyperion_jetcar    = 60,  -- Tier 5
+    flash_mcqueen      = 150, -- Tier 6 (Légendaire / Piston Cup)
+}
+
+-- Événements réseau pour le Garage
+local remotesFolder = ReplicatedStorage:FindFirstChild("Remotes") :: Folder?
+if not remotesFolder then
+    remotesFolder = Instance.new("Folder")
+    remotesFolder.Name = "Remotes"
+    remotesFolder.Parent = ReplicatedStorage
+end
+
+local garageUpdateEvent = remotesFolder:FindFirstChild("GaragePassiveTick") :: RemoteEvent?
+if not garageUpdateEvent then
+    garageUpdateEvent = Instance.new("RemoteEvent")
+    garageUpdateEvent.Name = "GaragePassiveTick"
+    garageUpdateEvent.Parent = remotesFolder
+end
+
+function GarageService.GetPassiveRateForVehicle(vehicleId: string): number
+    return PASSIVE_RATES[vehicleId] or 2
+end
+
+function GarageService.CalculateTotalIncomePerSecond(player: Player): number
+    local data = DataManager.GetData(player)
+    if not data then return 0 end
+
+    local totalRate = 0
+    for _, vId in pairs(data.Showroom) do
+        totalRate += GarageService.GetPassiveRateForVehicle(vId)
+    end
+    return totalRate
+end
+
+-- Boucle de génération de revenu passif (Toutes les 2 secondes)
+local TICK_INTERVAL = 2.0
+task.spawn(function()
+    while true do
+        task.wait(TICK_INTERVAL)
+        for _, player in ipairs(Players:GetPlayers()) do
+            local incomeRate = GarageService.CalculateTotalIncomePerSecond(player)
+            if incomeRate > 0 then
+                local gained = math.floor(incomeRate * TICK_INTERVAL)
+                DataManager.AddCash(player, gained)
+                if garageUpdateEvent then
+                    garageUpdateEvent:FireClient(player, gained, incomeRate)
+                end
+            end
+        end
+    end
+end)
+
+return GarageService
+]]></string>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Script" referent="9">
       <Properties>
         <string name="Name">WorldBuilder</string>
         <token name="RunContext">0</token>
@@ -1479,15 +1850,15 @@ print("[WorldBuilder] Rue San Francisco en pente et TargetFrame initialisés ave
       </Properties>
     </Item>
   </Item>
-  <Item class="StarterPlayer" referent="6">
+  <Item class="StarterPlayer" referent="10">
     <Properties>
       <string name="Name">StarterPlayer</string>
     </Properties>
-    <Item class="StarterPlayerScripts" referent="7">
+    <Item class="StarterPlayerScripts" referent="11">
       <Properties>
         <string name="Name">StarterPlayerScripts</string>
       </Properties>
-      <Item class="LocalScript" referent="8">
+      <Item class="LocalScript" referent="12">
         <Properties>
           <string name="Name">CameraController</string>
           <string name="Source"><![CDATA[--!strict
@@ -1599,7 +1970,7 @@ print("[CameraController] Caméra fixe Scriptable initialisée avec succès.")
 ]]></string>
         </Properties>
       </Item>
-      <Item class="LocalScript" referent="9">
+      <Item class="LocalScript" referent="13">
         <Properties>
           <string name="Name">GameLoop</string>
           <string name="Source"><![CDATA[--!strict
@@ -2398,12 +2769,12 @@ print("[GameLoop] Trajectoire, boucle fermée TargetFrame et système de grading
       </Item>
     </Item>
   </Item>
-  <Item class="Workspace" referent="10">
+  <Item class="Workspace" referent="14">
     <Properties>
       <string name="Name">Workspace</string>
       <bool name="NeedsPivotMigration">false</bool>
     </Properties>
-    <Item class="Part" referent="11">
+    <Item class="Part" referent="15">
       <Properties>
         <string name="Name">Baseplate</string>
         <bool name="Anchored">true</bool>

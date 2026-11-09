@@ -1,5 +1,9 @@
 # .gitignore for Stop at the Frame (Roblox Luau / Rojo)
 
+# Secrets & Environment variables
+.env
+*.env.local
+
 # OS / Editor
 .DS_Store
 Thumbs.db
@@ -14,3 +18,4 @@ node_modules/
 
 # Logs
 *.log
+

@@ -2,13 +2,18 @@
 --[[
     STOP AT THE FRAME - GAME SERVER (SERVER SCRIPT)
     Gère l'économie, les leaderstats (Cash $, Streak 🔥, Titre),
-    les récompenses de saut et l'attribution des titres de Stop Frameur.
+    les récompenses de saut et l'initialisation des Services (DataManager, Garage, Grue).
 ]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local CarBuilder = require(ReplicatedStorage:WaitForChild("CarBuilder") :: ModuleScript)
+
+-- Services Serveur
+local DataManager = require(script.Parent.Services.DataManager)
+local GarageService = require(script.Parent.Services.GarageService)
+local CraneService = require(script.Parent.Services.CraneService)
 
 -- 1. Configuration des dossiers réseau
 local remotesFolder = ReplicatedStorage:FindFirstChild("Remotes") :: Folder?
@@ -40,10 +45,8 @@ local function calculateTitle(streak: number, framePerfects: number): string
     end
 end
 
-local playerStats: { [Player]: { FramePerfects: number } } = {}
-
 local function setupPlayer(player: Player)
-    playerStats[player] = { FramePerfects = 0 }
+    local data = DataManager.LoadData(player)
 
     local leaderstats = Instance.new("Folder")
     leaderstats.Name = "leaderstats"
@@ -51,23 +54,22 @@ local function setupPlayer(player: Player)
 
     local cashVal = Instance.new("IntValue")
     cashVal.Name = "Cash"
-    cashVal.Value = 100 -- 100$ de bienvenue pour démarrer
+    cashVal.Value = data.Cash
     cashVal.Parent = leaderstats
 
     local streakVal = Instance.new("IntValue")
     streakVal.Name = "Streak"
-    streakVal.Value = 0
+    streakVal.Value = data.Streak
     streakVal.Parent = leaderstats
 
     local titleVal = Instance.new("StringValue")
     titleVal.Name = "Title"
-    titleVal.Value = "Réflexes de Tortue"
+    titleVal.Value = data.Title
     titleVal.Parent = leaderstats
 
-    -- Valeur masquée pour suivre les Frame Perfects totaux
     local fpVal = Instance.new("IntValue")
     fpVal.Name = "TotalFramePerfects"
-    fpVal.Value = 0
+    fpVal.Value = data.TotalFramePerfects
     fpVal.Parent = player
 end
 
@@ -77,10 +79,6 @@ for _, p in ipairs(Players:GetPlayers()) do
         setupPlayer(p)
     end)
 end
-
-Players.PlayerRemoving:Connect(function(player)
-    playerStats[player] = nil
-end)
 
 -- 3. Traitement des résultats de saut soumis par le client
 submitEvent.OnServerEvent:Connect(function(player: Player, vehicleId: any, grade: any, distance: any, accuracy: any)
@@ -102,19 +100,18 @@ submitEvent.OnServerEvent:Connect(function(player: Player, vehicleId: any, grade
     if gradeStr == "FRAME PERFECT!" then
         streakVal.Value += 1
         fpVal.Value += 1
-        -- 100% de la prime + bonus de streak
         local reward = math.floor(baseReward + (streakVal.Value * 15))
-        cashVal.Value += reward
+        DataManager.AddCash(player, reward)
 
     elseif gradeStr == "PERFECT!" then
         streakVal.Value += 1
         local reward = math.floor(baseReward * 0.75 + (streakVal.Value * 8))
-        cashVal.Value += reward
+        DataManager.AddCash(player, reward)
 
     elseif gradeStr == "GOOD!" then
         streakVal.Value += 1
         local reward = math.floor(baseReward * 0.40)
-        cashVal.Value += reward
+        DataManager.AddCash(player, reward)
 
     else
         -- RATÉ : Réinitialisation du streak
@@ -126,4 +123,4 @@ submitEvent.OnServerEvent:Connect(function(player: Player, vehicleId: any, grade
     titleVal.Value = newTitle
 end)
 
-print("[GameServer] Système d'économie, streaks et titres Stop Frameur initialisé.")
+print("[GameServer] Services initialisés : DataManager, GarageService (Revenu passif), CraneService (Pêche).")
