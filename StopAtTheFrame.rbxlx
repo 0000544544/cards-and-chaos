@@ -1936,6 +1936,265 @@ local frameBaseCF = CFrame.fromMatrix(frameCenterPos, rightVec, normalVec)
 CarBuilder.CreateTargetFrame("lotus_rally", frameCenterPos, frameBaseCF)
 
 print("[WorldBuilder] Rue San Francisco en pente et TargetFrame initialisés avec succès.")
+
+
+-- =============================================================================
+-- 7. LE PORT MARITIME, LE BASSIN AQUATIQUE & LA GRUE INDUSTRIELLE (MODE PÊCHE)
+-- =============================================================================
+local docksFolder = Instance.new("Folder")
+docksFolder.Name = "SanFranciscoDocks"
+docksFolder.Parent = Workspace
+
+-- A. Dalle principale du Quai (Béton industriel et pavés portuaires)
+local dockFloor = createPart(
+    "DockPlaza",
+    Vector3.new(140, 4, 105),
+    CFrame.new(0, -1, -90),
+    Enum.Material.Concrete,
+    Color3.fromRGB(90, 95, 102),
+    true,
+    docksFolder
+)
+
+-- Promenade en bois traité le long de la ligne d'eau
+local woodBoardwalk = createPart(
+    "WoodBoardwalk",
+    Vector3.new(140, 0.4, 18),
+    CFrame.new(0, 1.15, -133),
+    Enum.Material.WoodPlanks,
+    Color3.fromRGB(115, 85, 60),
+    true,
+    docksFolder
+)
+
+-- Bordure de quai en poutres massives d'amarrage
+local dockEdgeBeam = createPart(
+    "DockEdgeBeam",
+    Vector3.new(140, 1.6, 2.5),
+    CFrame.new(0, 1.6, -141),
+    Enum.Material.WoodPlanks,
+    Color3.fromRGB(65, 45, 30),
+    true,
+    docksFolder
+)
+
+-- Bollards d'amarrage maritimes en fonte noire le long du quai
+for x = -60, 60, 15 do
+    local bollard = Instance.new("Part")
+    bollard.Name = "Bollard_" .. x
+    bollard.Shape = Enum.PartType.Cylinder
+    bollard.Size = Vector3.new(2.4, 1.2, 1.2)
+    bollard.CFrame = CFrame.new(x, 2.2, -140) * CFrame.Angles(0, 0, math.rad(90))
+    bollard.Material = Enum.Material.Metal
+    bollard.Color = Color3.fromRGB(20, 22, 25)
+    bollard.Anchored = true
+    bollard.CanCollide = true
+    bollard.Parent = docksFolder
+end
+
+-- Conteneurs maritimes décoratifs empilés sur les côtés du port
+local containerColors = {
+    Color3.fromRGB(210, 45, 35),  -- Rouge brique
+    Color3.fromRGB(35, 110, 195), -- Bleu marine
+    Color3.fromRGB(225, 160, 20), -- Jaune cargo
+    Color3.fromRGB(35, 140, 65),  -- Vert industriel
+}
+
+local function buildCargoContainer(name: string, pos: Vector3, rotY: number, colorIdx: number)
+    local cont = createPart(
+        name,
+        Vector3.new(9, 9, 22),
+        CFrame.new(pos) * CFrame.Angles(0, math.rad(rotY), 0),
+        Enum.Material.CorrugatedMetal,
+        containerColors[colorIdx],
+        true,
+        docksFolder
+    )
+    -- Portes de conteneur
+    createPart(name .. "_Doors", Vector3.new(8.2, 8.2, 0.4), cont.CFrame * CFrame.new(0, 0, 11.1), Enum.Material.Metal, Color3.fromRGB(30, 32, 35), false, docksFolder)
+end
+
+buildCargoContainer("Container_L1", Vector3.new(-52, 5.5, -80), 12, 1)
+buildCargoContainer("Container_L2", Vector3.new(-53, 14.5, -80), 8, 2)
+buildCargoContainer("Container_L3", Vector3.new(-40, 5.5, -95), -5, 3)
+
+buildCargoContainer("Container_R1", Vector3.new(52, 5.5, -80), -10, 4)
+buildCargoContainer("Container_R2", Vector3.new(51, 14.5, -80), -12, 1)
+buildCargoContainer("Container_R3", Vector3.new(42, 5.5, -95), 4, 3)
+
+-- Point d'apparition principal (Spawn) au centre du Quai Maritime
+local spawnLocation = Instance.new("SpawnLocation")
+spawnLocation.Name = "DockSpawnPoint"
+spawnLocation.Size = Vector3.new(12, 0.5, 12)
+spawnLocation.CFrame = CFrame.new(0, 1.25, -75)
+spawnLocation.Material = Enum.Material.Concrete
+spawnLocation.Color = Color3.fromRGB(75, 80, 88)
+spawnLocation.Anchored = true
+spawnLocation.CanCollide = true
+spawnLocation.Neutral = true
+spawnLocation.Parent = docksFolder
+
+-- B. Le Grand Bassin Aquatique & Fonds Marins
+local waterBasin = createPart(
+    "WaterSurface",
+    Vector3.new(180, 1, 150),
+    CFrame.new(0, -0.2, -215),
+    Enum.Material.Glass,
+    Color3.fromRGB(25, 150, 215),
+    false,
+    docksFolder
+)
+waterBasin.Transparency = 0.42
+waterBasin.Reflectance = 0.35
+
+-- Fond marin sableux sous-marin
+local seaBed = createPart(
+    "SeaBed",
+    Vector3.new(180, 6, 150),
+    CFrame.new(0, -38, -215),
+    Enum.Material.Sand,
+    Color3.fromRGB(35, 45, 52),
+    true,
+    docksFolder
+)
+
+-- Épave sous-marine visible sous l'eau transparente
+local wreckRally = CarBuilder.CreateLotusRally()
+wreckRally.Name = "SunkenWreck_Lotus"
+wreckRally.Parent = docksFolder
+wreckRally:PivotTo(CFrame.new(0, -34, -165) * CFrame.Angles(math.rad(15), math.rad(45), math.rad(-10)))
+for _, p in ipairs(wreckRally:GetDescendants()) do
+    if p:IsA("BasePart") then
+        p.Material = Enum.Material.CorrodedMetal
+        p.Color = Color3.fromRGB(90, 60, 45)
+        p.Anchored = true
+        p.CanCollide = false
+    end
+end
+
+-- Bulles d'eau qui montent de l'épave vers la surface
+local bubbleEmitter = Instance.new("ParticleEmitter")
+bubbleEmitter.Name = "UnderwaterBubbles"
+bubbleEmitter.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+bubbleEmitter.Color = ColorSequence.new(Color3.fromRGB(180, 240, 255))
+bubbleEmitter.Size = NumberSequence.new(0.6, 1.4)
+bubbleEmitter.Transparency = NumberSequence.new(0.3, 0.7)
+bubbleEmitter.Rate = 12
+bubbleEmitter.Speed = NumberRange.new(4, 9)
+bubbleEmitter.SpreadAngle = Vector2.new(15, 15)
+local bubbleAnchor = Instance.new("Part")
+bubbleAnchor.Name = "BubbleAnchor"
+bubbleAnchor.Size = Vector3.new(1, 1, 1)
+bubbleAnchor.CFrame = CFrame.new(0, -32, -165)
+bubbleAnchor.Transparency = 1
+bubbleAnchor.Anchored = true
+bubbleAnchor.CanCollide = false
+bubbleAnchor.Parent = docksFolder
+bubbleEmitter.Parent = bubbleAnchor
+
+-- C. La Grande Grue Industrielle Jaune Caterpillar (Mode Pêche)
+local craneModel = Instance.new("Model")
+craneModel.Name = "IndustrialFishingCrane"
+craneModel.Parent = docksFolder
+
+local CRANE_YELLOW = Color3.fromRGB(240, 185, 20)
+local CRANE_DARK   = Color3.fromRGB(28, 30, 35)
+local CRANE_NEON   = Color3.fromRGB(0, 255, 200)
+
+-- Socle lourd cylindrique
+local craneBase = Instance.new("Part")
+craneBase.Name = "CraneBase"
+craneBase.Shape = Enum.PartType.Cylinder
+craneBase.Size = Vector3.new(3, 14, 14)
+craneBase.CFrame = CFrame.new(0, 2.5, -135) * CFrame.Angles(0, 0, math.rad(90))
+craneBase.Material = Enum.Material.Metal
+craneBase.Color = CRANE_DARK
+craneBase.Anchored = true
+craneBase.CanCollide = true
+craneBase.Parent = craneModel
+
+-- Mât vertical en treillis jaune
+local craneMast = createPart("CraneMast", Vector3.new(5, 30, 5), CFrame.new(0, 17, -135), Enum.Material.DiamondPlate, CRANE_YELLOW, true, craneModel)
+
+-- Cabine d'opérateur vitrée avec gyrophare orange
+local craneCabin = createPart("CraneCabin", Vector3.new(7, 6, 8), CFrame.new(4.5, 25, -135), Enum.Material.SmoothPlastic, CRANE_DARK, true, craneModel)
+local cabinGlass = createPart("CabinGlass", Vector3.new(0.3, 4.5, 6.5), craneCabin.CFrame * CFrame.new(3.5, 0.2, 0), Enum.Material.Glass, Color3.fromRGB(180, 225, 255), false, craneModel)
+cabinGlass.Transparency = 0.3
+
+local beaconLight = createPart("CraneBeacon", Vector3.new(1.2, 1.2, 1.2), craneCabin.CFrame * CFrame.new(0, 3.6, 0), Enum.Material.Neon, Color3.fromRGB(255, 140, 0), false, craneModel)
+
+-- Flèche horizontale (Boom) surplombant le bassin aquatique
+local craneBoom = createPart("CraneBoom", Vector3.new(4.5, 4.5, 50), CFrame.new(0, 32, -160), Enum.Material.DiamondPlate, CRANE_YELLOW, true, craneModel)
+
+-- Câble métallique et Tête d'électro-aimant suspendue
+local winchCable = createPart("WinchCable", Vector3.new(0.35, 24, 0.35), CFrame.new(0, 18, -165), Enum.Material.Metal, CRANE_DARK, false, craneModel)
+
+local craneMagnet = Instance.new("Part")
+craneMagnet.Name = "CraneMagnet"
+craneMagnet.Shape = Enum.PartType.Cylinder
+craneMagnet.Size = Vector3.new(2.5, 8, 8)
+craneMagnet.CFrame = CFrame.new(0, 5.5, -165) * CFrame.Angles(0, 0, math.rad(90))
+craneMagnet.Material = Enum.Material.Metal
+craneMagnet.Color = CRANE_DARK
+craneMagnet.Anchored = true
+craneMagnet.CanCollide = true
+craneMagnet.Parent = craneModel
+
+-- Anneau néon électromagnétique lumineux sous l'aimant
+local magnetRing = createPart("MagnetNeonRing", Vector3.new(7.2, 0.4, 7.2), craneMagnet.CFrame * CFrame.new(-1.1, 0, 0) * CFrame.Angles(0, 0, math.rad(90)), Enum.Material.Neon, CRANE_NEON, false, craneModel)
+
+local magnetLight = Instance.new("PointLight")
+magnetLight.Name = "MagnetLight"
+magnetLight.Color = CRANE_NEON
+magnetLight.Brightness = 3.5
+magnetLight.Range = 25
+magnetLight.Parent = craneMagnet
+
+-- Pupitre de commande au sol avec ProximityPrompt pour piloter la Grue
+local craneConsole = createPart("CraneControlConsole", Vector3.new(3, 3.5, 2), CFrame.new(0, 2.75, -126), Enum.Material.Metal, CRANE_DARK, true, craneModel)
+local consoleScreen = createPart("ConsoleScreen", Vector3.new(2.2, 1.4, 0.2), craneConsole.CFrame * CFrame.new(0, 0.6, 1.0), Enum.Material.Neon, Color3.fromRGB(0, 230, 255), false, craneModel)
+
+local cranePrompt = Instance.new("ProximityPrompt")
+cranePrompt.Name = "CraneControlPrompt"
+cranePrompt.ActionText = "Contrôler la Grue"
+cranePrompt.ObjectText = "Mode Pêche Sous-Marine 🎣"
+cranePrompt.KeyboardKeyCode = Enum.KeyCode.E
+cranePrompt.MaxActivationDistance = 14
+cranePrompt.HoldDuration = 0
+cranePrompt.Parent = craneConsole
+
+-- D. Portique Lumineux d'Entrée vers la Pente 1v1 (Stop the Frame)
+local gateModel = Instance.new("Model")
+gateModel.Name = "StopTheFrameEntryGate"
+gateModel.Parent = docksFolder
+
+local GATE_POS_Z = -38
+local pillarL = createPart("GatePillar_L", Vector3.new(2.5, 18, 2.5), CFrame.new(-18, 9, GATE_POS_Z), Enum.Material.Metal, Color3.fromRGB(35, 38, 42), true, gateModel)
+local pillarR = createPart("GatePillar_R", Vector3.new(2.5, 18, 2.5), CFrame.new(18, 9, GATE_POS_Z), Enum.Material.Metal, Color3.fromRGB(35, 38, 42), true, gateModel)
+local crossbeam = createPart("GateCrossbeam", Vector3.new(38, 3, 2.5), CFrame.new(0, 17, GATE_POS_Z), Enum.Material.Metal, Color3.fromRGB(35, 38, 42), true, gateModel)
+
+-- Enseigne Néon de Course
+local neonSign = createPart("NeonSign_StopTheFrame", Vector3.new(32, 2.2, 0.5), CFrame.new(0, 17, GATE_POS_Z + 1.4), Enum.Material.Neon, Color3.fromRGB(255, 225, 0), false, gateModel)
+
+-- Feux de départ de course (Vert, Orange, Rouge)
+local lightGreen  = createPart("LightGreen", Vector3.new(1.2, 1.2, 0.6), CFrame.new(-6, 14, GATE_POS_Z + 1.3), Enum.Material.Neon, Color3.fromRGB(0, 255, 60), false, gateModel)
+local lightYellow = createPart("LightYellow", Vector3.new(1.2, 1.2, 0.6), CFrame.new(0, 14, GATE_POS_Z + 1.3), Enum.Material.Neon, Color3.fromRGB(255, 190, 0), false, gateModel)
+local lightRed    = createPart("LightRed", Vector3.new(1.2, 1.2, 0.6), CFrame.new(6, 14, GATE_POS_Z + 1.3), Enum.Material.Neon, Color3.fromRGB(255, 30, 30), false, gateModel)
+
+-- Borne d'enregistrement Stop The Frame avec ProximityPrompt
+local raceTerminal = createPart("RaceTerminal", Vector3.new(3, 3.5, 2), CFrame.new(-12, 2.75, GATE_POS_Z - 5), Enum.Material.Metal, Color3.fromRGB(25, 28, 32), true, gateModel)
+createPart("TerminalScreen", Vector3.new(2.2, 1.4, 0.2), raceTerminal.CFrame * CFrame.new(0, 0.6, -1.0), Enum.Material.Neon, Color3.fromRGB(255, 230, 60), false, gateModel)
+
+local racePrompt = Instance.new("ProximityPrompt")
+racePrompt.Name = "StartRacePrompt"
+racePrompt.ActionText = "Lancer le Défi"
+racePrompt.ObjectText = "Pente 1v1 Stop the Frame ⚡"
+racePrompt.KeyboardKeyCode = Enum.KeyCode.E
+racePrompt.MaxActivationDistance = 14
+racePrompt.HoldDuration = 0
+racePrompt.Parent = raceTerminal
+
+print("[WorldBuilder] Quai Maritime, Bassin Aquatique et Grue Industrielle initialisés avec succès.")
 ]]></string>
       </Properties>
     </Item>
@@ -1953,11 +2212,11 @@ print("[WorldBuilder] Rue San Francisco en pente et TargetFrame initialisés ave
           <string name="Name">CameraController</string>
           <string name="Source"><![CDATA[--!strict
 --[[
-    STOP AT THE FRAME - CAMERA CONTROLLER (CLIENT SCRIPT)
-    Verrouille la caméra en mode Scriptable en bas de la colline,
-    orientée vers le haut pour cadrer le "TargetFrame" vert au premier plan
-    avec la pente raide et les immeubles pastel en arrière-plan.
-    Désactive également les contrôles du joueur.
+    STOP AT THE FRAME - MULTI-MODE CAMERA CONTROLLER (CLIENT SCRIPT)
+    Gère la caméra selon le mode de jeu actuel :
+    - "Hub" (Quai / Port) : Caméra libre à la 3e personne (Custom) sur l'avatar du joueur.
+    - "StopTheFrame" (Pari 1v1) : Caméra fixe Scriptable en contre-plongée vers le cadre vert.
+    - "Crane" (Mode Pêche) : Caméra aérienne Scriptable surplombant la grue et le bassin aquatique.
 ]]
 
 local Players = game:GetService("Players")
@@ -1967,11 +2226,38 @@ local Workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 local camera = Workspace.CurrentCamera or Workspace:WaitForChild("Camera") :: Camera
 
--- 1. Verrouillage initial de la caméra
-camera.CameraType = Enum.CameraType.Scriptable
+-- Mode par défaut : Hub (Marche libre sur le quai)
+if not player:GetAttribute("CurrentMode") then
+    player:SetAttribute("CurrentMode", "Hub")
+end
 
--- 2. Désactivation des contrôles du joueur
-local function disablePlayerControls()
+-- Paramètres géométriques de la pente San Francisco
+local slopeVector = Vector3.new(0, 120, 400)
+local uDir = slopeVector.Unit
+local rightVec = Vector3.new(1, 0, 0)
+local normalVec = uDir:Cross(rightVec)
+
+-- Calcul de la CFrame de caméra fixe pour le mode "StopTheFrame"
+local fixedSlopeCameraCFrame: CFrame? = nil
+
+local function computeSlopeCameraCFrame(): CFrame
+    local currentTarget = Workspace:FindFirstChild("TargetFrame")
+    local cp = currentTarget and currentTarget:FindFirstChild("CenterPoint") :: BasePart?
+    local targetPos = (cp and cp.Position) or Vector3.new(0, 66.84, 158.22)
+
+    local roadBasePos = targetPos - (uDir * 20)
+    local eyePos = roadBasePos - (normalVec * 0.4)
+    local lookTarget = targetPos + (normalVec * 0.3)
+
+    return CFrame.lookAt(eyePos, lookTarget)
+end
+
+-- CFrame de la caméra pour le Mode Pêche (vue haute derrière la grue)
+local craneCameraCFrame = CFrame.lookAt(Vector3.new(0, 42, -105), Vector3.new(0, 8, -165))
+
+-- Gestion des contrôles du joueur
+local playerControls: any = nil
+local function setupPlayerControls()
     local playerScripts = player:WaitForChild("PlayerScripts")
     local playerModule = playerScripts:WaitForChild("PlayerModule", 5)
     if playerModule then
@@ -1979,93 +2265,466 @@ local function disablePlayerControls()
             local module = require(playerModule) :: any
             return module:GetControls()
         end)
-        if success and controls and controls.Disable then
-            controls:Disable()
-            print("[CameraController] Contrôles joueur désactivés.")
+        if success and controls then
+            playerControls = controls
         end
     end
 end
-task.spawn(disablePlayerControls)
+task.spawn(setupPlayerControls)
 
--- 3. Masquer le personnage du joueur pour ne pas gêner la vue
-local function setupCharacter(char: Model)
-    for _, part in ipairs(char:GetDescendants()) do
-        if part:IsA("BasePart") then
-            part.LocalTransparencyModifier = 1
-        elseif part:IsA("Decal") then
-            part.Transparency = 1
+local function setPlayerControlsEnabled(enabled: boolean)
+    if playerControls then
+        if enabled and playerControls.Enable then
+            playerControls:Enable()
+        elseif not enabled and playerControls.Disable then
+            playerControls:Disable()
         end
     end
+end
 
-    local hrp = char:WaitForChild("HumanoidRootPart", 5) :: BasePart?
-    if hrp then
-        hrp.Anchored = true
-        hrp.CFrame = CFrame.new(0, -50, 0) -- Placé sous la scène
+-- Mise à jour du mode de caméra
+local function onModeChanged()
+    local mode = tostring(player:GetAttribute("CurrentMode") or "Hub")
+
+    if mode == "Hub" then
+        camera.CameraType = Enum.CameraType.Custom
+        local char = player.Character
+        if char then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then
+                camera.CameraSubject = hum
+            end
+        end
+        setPlayerControlsEnabled(true)
+        print("[CameraController] Mode Hub actif (Caméra libre 3e personne).")
+
+    elseif mode == "StopTheFrame" then
+        camera.CameraType = Enum.CameraType.Scriptable
+        fixedSlopeCameraCFrame = computeSlopeCameraCFrame()
+        setPlayerControlsEnabled(false)
+        print("[CameraController] Mode StopTheFrame actif (Caméra fixe sur la pente).")
+
+    elseif mode == "Crane" then
+        camera.CameraType = Enum.CameraType.Scriptable
+        camera.CFrame = craneCameraCFrame
+        setPlayerControlsEnabled(false)
+        print("[CameraController] Mode Pêche / Grue actif (Caméra aérienne bassin).")
     end
 end
 
-if player.Character then
-    setupCharacter(player.Character)
-end
-player.CharacterAdded:Connect(setupCharacter)
+player:GetAttributeChangedSignal("CurrentMode"):Connect(onModeChanged)
+task.spawn(onModeChanged)
 
--- 4. Recherche du TargetFrame et calcul de la position idéale de caméra
-local targetFrame = Workspace:WaitForChild("TargetFrame", 15) :: Model?
-local centerPoint = (targetFrame and targetFrame:WaitForChild("CenterPoint", 10)) :: BasePart?
-
--- Paramètres géométriques de la pente
-local slopeVector = Vector3.new(0, 120, 400)
-local uDir = slopeVector.Unit -- Monte vers le sommet
-local rightVec = Vector3.new(1, 0, 0)
-local normalVec = uDir:Cross(rightVec) -- Perpendiculaire au sol vers le haut
-
--- Position fixe de la caméra : rapprochée à ~20 studs du cadre vert (en contre-plongée légère)
--- Le TargetFrame occupe ainsi une place imposante et majestueuse au premier plan de l'écran.
-local fixedCameraCFrame: CFrame? = nil
-
-local function computeCameraCFrame(): CFrame
-    local currentTarget = Workspace:FindFirstChild("TargetFrame")
-    local cp = currentTarget and currentTarget:FindFirstChild("CenterPoint") :: BasePart?
-    local targetPos = (cp and cp.Position) or (centerPoint and centerPoint.Position) or Vector3.new(0, 66.84, 158.22)
-
-    -- Rapprochement à 20 studs devant le TargetFrame le long de la pente
-    local roadBasePos = targetPos - (uDir * 20)
-    -- Contre-plongée légère : caméra placée sous le centre pour une visée ascendante dynamique
-    local eyePos = roadBasePos - (normalVec * 0.4)
-    local lookTarget = targetPos + (normalVec * 0.3)
-
-    return CFrame.lookAt(eyePos, lookTarget)
-end
-
-fixedCameraCFrame = computeCameraCFrame()
-
--- 5. Maintien strict de la caméra à chaque frame de rendu
+-- Maintien de la caméra Scriptable pendant les modes actifs
 local function onRenderStep()
-    camera.CameraType = Enum.CameraType.Scriptable
-    if not fixedCameraCFrame or (centerPoint and not fixedCameraCFrame) then
-        fixedCameraCFrame = computeCameraCFrame()
-    end
-    if fixedCameraCFrame then
-        local shake = camera:GetAttribute("ShakeOffset")
-        if shake and typeof(shake) == "Vector3" then
-            camera.CFrame = fixedCameraCFrame * CFrame.new(shake)
-        else
-            camera.CFrame = fixedCameraCFrame
+    local mode = tostring(player:GetAttribute("CurrentMode") or "Hub")
+
+    if mode == "StopTheFrame" then
+        camera.CameraType = Enum.CameraType.Scriptable
+        if not fixedSlopeCameraCFrame then
+            fixedSlopeCameraCFrame = computeSlopeCameraCFrame()
         end
+        if fixedSlopeCameraCFrame then
+            local shake = camera:GetAttribute("ShakeOffset")
+            if shake and typeof(shake) == "Vector3" then
+                camera.CFrame = fixedSlopeCameraCFrame * CFrame.new(shake)
+            else
+                camera.CFrame = fixedSlopeCameraCFrame
+            end
+        end
+
+    elseif mode == "Crane" then
+        camera.CameraType = Enum.CameraType.Scriptable
+        camera.CFrame = craneCameraCFrame
     end
 end
 
 RunService.RenderStepped:Connect(onRenderStep)
-print("[CameraController] Caméra fixe Scriptable initialisée avec succès.")
+print("[CameraController] Multi-mode Camera Controller initialisé avec succès.")
 ]]></string>
         </Properties>
       </Item>
       <Item class="LocalScript" referent="14">
         <Properties>
-          <string name="Name">GameLoop</string>
+          <string name="Name">CraneController</string>
           <string name="Source"><![CDATA[--!strict
 --[[
-    STOP AT THE FRAME - GAME LOOP & FRAME GRADING (CLIENT SCRIPT)
+    STOP AT THE FRAME - CRANE CONTROLLER (CLIENT SCRIPT)
+    Gère l'interface et les animations du Mode Pêche (Grue & Aimant sous-marin) :
+    - Descente physique de l'électro-aimant dans le bassin aquatique.
+    - Déclenchement de l'événement DeployCrane vers CraneService.
+    - Remontée du câble avec le véhicule repêché accroché à l'aimant.
+    - Affichage de la carte de récompense de véhicule.
+]]
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local SoundService = game:GetService("SoundService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
+
+local CarBuilder = require(ReplicatedStorage:WaitForChild("CarBuilder") :: ModuleScript)
+
+-- Remotes
+local remotesFolder = ReplicatedStorage:WaitForChild("Remotes", 10) :: Folder?
+local deployCraneEvent: RemoteEvent? = nil
+local craneHookedEvent: RemoteEvent? = nil
+if remotesFolder then
+    deployCraneEvent = remotesFolder:WaitForChild("DeployCrane", 10) :: RemoteEvent?
+    craneHookedEvent = remotesFolder:WaitForChild("CraneHooked", 10) :: RemoteEvent?
+end
+
+-- Récupération de la Grue dans le Workspace
+local docks = Workspace:WaitForChild("SanFranciscoDocks", 15) :: Folder?
+local craneModel = (docks and docks:WaitForChild("IndustrialFishingCrane", 15)) :: Model?
+local craneMagnet = (craneModel and craneModel:WaitForChild("CraneMagnet", 10)) :: BasePart?
+local winchCable = (craneModel and craneModel:WaitForChild("WinchCable", 10)) :: BasePart?
+
+local MAGNET_REST_Y = 5.5
+local MAGNET_WATER_Y = -0.5
+local MAGNET_DEEP_Y = -33.0
+
+-- Sons SFX pour la Grue
+local sfxFolder = SoundService:FindFirstChild("GameSFX") or Instance.new("Folder")
+sfxFolder.Name = "GameSFX"
+sfxFolder.Parent = SoundService
+
+local function createSound(name: string, id: string, vol: number): Sound
+    local s = Instance.new("Sound")
+    s.Name = name
+    s.SoundId = id
+    s.Volume = vol
+    s.RollOffMaxDistance = 5000
+    s.Parent = sfxFolder
+    return s
+end
+
+local soundWinch = createSound("SFX_Winch", "rbxasset://sounds/action_swim.mp3", 0.8)
+local soundZap   = createSound("SFX_Zap", "rbxasset://sounds/electronicpingshort.wav", 1.0)
+local soundCheer = createSound("SFX_Cheer", "rbxasset://sounds/victory.wav", 0.9)
+
+-- =============================================================================
+-- INTERFACE UTILISATEUR DE LA GRUE (ScreenGui)
+-- =============================================================================
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CraneHUD"
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.Enabled = false
+screenGui.Parent = playerGui
+
+-- Panneau de commande bas de l'écran
+local controlPanel = Instance.new("Frame")
+controlPanel.Name = "ControlPanel"
+controlPanel.Size = UDim2.new(0, 560, 0, 150)
+controlPanel.AnchorPoint = Vector2.new(0.5, 1)
+controlPanel.Position = UDim2.new(0.5, 0, 1, -25)
+controlPanel.BackgroundColor3 = Color3.fromRGB(18, 22, 28)
+controlPanel.BorderSizePixel = 0
+controlPanel.Parent = screenGui
+
+local panelCorner = Instance.new("UICorner")
+panelCorner.CornerRadius = UDim.new(0, 16)
+panelCorner.Parent = controlPanel
+
+local panelStroke = Instance.new("UIStroke")
+panelStroke.Color = Color3.fromRGB(0, 220, 255)
+panelStroke.Thickness = 2
+panelStroke.Parent = controlPanel
+
+-- Titre
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "TitleLabel"
+titleLabel.Size = UDim2.new(1, -30, 0, 28)
+titleLabel.Position = UDim2.new(0, 15, 0, 10)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Font = Enum.Font.FredokaOne
+titleLabel.TextSize = 22
+titleLabel.TextColor3 = Color3.fromRGB(0, 240, 255)
+titleLabel.Text = "🎣 POSTE DE COMMANDE : PÊCHE SOUS-MARINE"
+titleLabel.Parent = controlPanel
+
+-- Jauge de statut
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Name = "StatusLabel"
+statusLabel.Size = UDim2.new(1, -30, 0, 22)
+statusLabel.Position = UDim2.new(0, 15, 0, 38)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Font = Enum.Font.GothamMedium
+statusLabel.TextSize = 14
+statusLabel.TextColor3 = Color3.fromRGB(175, 195, 215)
+statusLabel.Text = "Statut : Prêt à lancer l'électro-aimant dans les profondeurs."
+statusLabel.Parent = controlPanel
+
+-- Bouton de largage de l'aimant
+local btnDropMagnet = Instance.new("TextButton")
+btnDropMagnet.Name = "BtnDropMagnet"
+btnDropMagnet.Size = UDim2.new(0, 320, 0, 48)
+btnDropMagnet.Position = UDim2.new(0, 15, 0, 75)
+btnDropMagnet.BackgroundColor3 = Color3.fromRGB(0, 175, 220)
+btnDropMagnet.Font = Enum.Font.GothamBlack
+btnDropMagnet.TextSize = 17
+btnDropMagnet.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnDropMagnet.Text = "⚓ LÂCHER L'ÉLECTRO-AIMANT"
+btnDropMagnet.Parent = controlPanel
+
+local dropCorner = Instance.new("UICorner")
+dropCorner.CornerRadius = UDim.new(0, 10)
+dropCorner.Parent = btnDropMagnet
+
+-- Bouton Quitter (Retour au Quai)
+local btnExit = Instance.new("TextButton")
+btnExit.Name = "BtnExit"
+btnExit.Size = UDim2.new(0, 185, 0, 48)
+btnExit.Position = UDim2.new(0, 350, 0, 75)
+btnExit.BackgroundColor3 = Color3.fromRGB(45, 50, 60)
+btnExit.Font = Enum.Font.GothamBold
+btnExit.TextSize = 14
+btnExit.TextColor3 = Color3.fromRGB(220, 225, 235)
+btnExit.Text = "✕ QUITTER LA GRUE"
+btnExit.Parent = controlPanel
+
+local exitCorner = Instance.new("UICorner")
+exitCorner.CornerRadius = UDim.new(0, 10)
+exitCorner.Parent = btnExit
+
+-- Carte Pop-up de Récompense (Centre écran)
+local rewardCard = Instance.new("Frame")
+rewardCard.Name = "RewardCard"
+rewardCard.Size = UDim2.new(0, 440, 0, 260)
+rewardCard.AnchorPoint = Vector2.new(0.5, 0.5)
+rewardCard.Position = UDim2.new(0.5, 0, 0.45, 0)
+rewardCard.BackgroundColor3 = Color3.fromRGB(14, 16, 22)
+rewardCard.BorderSizePixel = 0
+rewardCard.Visible = false
+rewardCard.Parent = screenGui
+
+local cardCorner = Instance.new("UICorner")
+cardCorner.CornerRadius = UDim.new(0, 18)
+cardCorner.Parent = rewardCard
+
+local cardStroke = Instance.new("UIStroke")
+cardStroke.Color = Color3.fromRGB(255, 215, 0)
+cardStroke.Thickness = 3
+cardStroke.Parent = rewardCard
+
+local rewardHeader = Instance.new("TextLabel")
+rewardHeader.Name = "Header"
+rewardHeader.Size = UDim2.new(1, 0, 0, 38)
+rewardHeader.Position = UDim2.new(0, 0, 0, 12)
+rewardHeader.BackgroundTransparency = 1
+rewardHeader.Font = Enum.Font.FredokaOne
+rewardHeader.TextSize = 24
+rewardHeader.TextColor3 = Color3.fromRGB(255, 215, 0)
+rewardHeader.Text = "🎉 VÉHICULE REPÊCHÉ !"
+rewardHeader.Parent = rewardCard
+
+local carNameLabel = Instance.new("TextLabel")
+carNameLabel.Name = "CarName"
+carNameLabel.Size = UDim2.new(1, -20, 0, 36)
+carNameLabel.Position = UDim2.new(0, 10, 0, 55)
+carNameLabel.BackgroundTransparency = 1
+carNameLabel.Font = Enum.Font.GothamBlack
+carNameLabel.TextSize = 26
+carNameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+carNameLabel.Text = "#6 Flash McQueen ⚡"
+carNameLabel.Parent = rewardCard
+
+local rarityBadge = Instance.new("TextLabel")
+rarityBadge.Name = "RarityBadge"
+rarityBadge.Size = UDim2.new(0, 180, 0, 28)
+rarityBadge.AnchorPoint = Vector2.new(0.5, 0)
+rarityBadge.Position = UDim2.new(0.5, 0, 0, 96)
+rarityBadge.BackgroundColor3 = Color3.fromRGB(255, 60, 40)
+rarityBadge.Font = Enum.Font.GothamBold
+rarityBadge.TextSize = 14
+rarityBadge.TextColor3 = Color3.fromRGB(255, 255, 255)
+rarityBadge.Text = "MYTHIQUE"
+rarityBadge.Parent = rewardCard
+local badgeCorner = Instance.new("UICorner")
+badgeCorner.CornerRadius = UDim.new(0, 8)
+badgeCorner.Parent = rarityBadge
+
+local descLabel = Instance.new("TextLabel")
+descLabel.Name = "Desc"
+descLabel.Size = UDim2.new(1, -30, 0, 44)
+descLabel.Position = UDim2.new(0, 15, 0, 136)
+descLabel.BackgroundTransparency = 1
+descLabel.Font = Enum.Font.GothamMedium
+descLabel.TextSize = 13
+descLabel.TextColor3 = Color3.fromRGB(180, 240, 200)
+descLabel.Text = "Ajouté à votre inventaire ! Vous pouvez désormais l'exposer dans votre Showroom pour générer du Cash passif."
+descLabel.TextWrapped = true
+descLabel.Parent = rewardCard
+
+local btnClaim = Instance.new("TextButton")
+btnClaim.Name = "BtnClaim"
+btnClaim.Size = UDim2.new(0, 220, 0, 42)
+btnClaim.AnchorPoint = Vector2.new(0.5, 1)
+btnClaim.Position = UDim2.new(0.5, 0, 1, -16)
+btnClaim.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+btnClaim.Font = Enum.Font.GothamBlack
+btnClaim.TextSize = 15
+btnClaim.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnClaim.Text = "RÉCUPÉRER"
+btnClaim.Parent = rewardCard
+local claimCorner = Instance.new("UICorner")
+claimCorner.CornerRadius = UDim.new(0, 10)
+claimCorner.Parent = btnClaim
+
+-- =============================================================================
+-- LOGIQUE ET ANIMATIONS DE PÊCHE
+-- =============================================================================
+local isFishing = false
+
+local function setMagnetY(y: number)
+    if craneMagnet then
+        craneMagnet.CFrame = CFrame.new(0, y, -165) * CFrame.Angles(0, 0, math.rad(90))
+    end
+    if winchCable then
+        local cableLength = 32 - y
+        winchCable.Size = Vector3.new(0.35, cableLength, 0.35)
+        winchCable.CFrame = CFrame.new(0, 32 - (cableLength / 2), -165)
+    end
+end
+
+local function runFishingSequence()
+    if isFishing then return end
+    isFishing = true
+    btnDropMagnet.Active = false
+    btnDropMagnet.BackgroundColor3 = Color3.fromRGB(80, 90, 100)
+    btnDropMagnet.Text = "⏳ PLONGÉE EN COURS..."
+    rewardCard.Visible = false
+
+    -- 1. Descente de l'aimant vers l'eau
+    statusLabel.Text = "Statut : Descente de l'aimant vers le bassin aquatique..."
+    soundWinch:Play()
+
+    local dropTime = 2.4
+    local startTime = os.clock()
+    while os.clock() - startTime < dropTime do
+        local alpha = (os.clock() - startTime) / dropTime
+        local currentY = MAGNET_REST_Y + alpha * (MAGNET_DEEP_Y - MAGNET_REST_Y)
+        setMagnetY(currentY)
+        local depthMeters = math.floor(math.max(0, -currentY) * 3)
+        statusLabel.Text = string.format("Statut : Profondeur atteinte : %d mètres...", depthMeters)
+        task.wait(0.03)
+    end
+    setMagnetY(MAGNET_DEEP_Y)
+
+    -- 2. Déclenchement de la détection magnétique
+    statusLabel.Text = "Statut : Détection électromagnétique... ACCROCHAGE !"
+    soundZap:Play()
+    task.wait(0.6)
+
+    -- Appel serveur pour roll le loot
+    if deployCraneEvent then
+        deployCraneEvent:FireServer(80) -- Profondeur cible
+    end
+end
+
+-- Réception du véhicule repêché par le serveur
+if craneHookedEvent then
+    craneHookedEvent.OnClientEvent:Connect(function(vehicleId: string, name: string, rarity: string, depth: number, isNew: boolean)
+        statusLabel.Text = string.format("Statut : Épave accrochée ! Remontée du câble (%s)...", name)
+
+        -- 3. Remontée du câble
+        local hookedModel: Model? = nil
+        pcall(function()
+            local cfg = CarBuilder.GetVehicleConfig(vehicleId)
+            hookedModel = cfg.Builder()
+            if hookedModel then
+                hookedModel.Parent = Workspace
+            end
+        end)
+
+        local riseTime = 2.8
+        local startRise = os.clock()
+        while os.clock() - startRise < riseTime do
+            local alpha = (os.clock() - startRise) / riseTime
+            local currentY = MAGNET_DEEP_Y + alpha * (MAGNET_REST_Y - MAGNET_DEEP_Y)
+            setMagnetY(currentY)
+
+            if hookedModel then
+                hookedModel:PivotTo(CFrame.new(0, currentY - 2.8, -165) * CFrame.Angles(math.rad(10), 0, 0))
+            end
+            task.wait(0.03)
+        end
+        setMagnetY(MAGNET_REST_Y)
+
+        soundCheer:Play()
+
+        -- 4. Affichage de la carte de récompense
+        carNameLabel.Text = name
+        rarityBadge.Text = string.upper(rarity)
+        if rarity == "Légendaire" or rarity == "Mythique" then
+            rarityBadge.BackgroundColor3 = Color3.fromRGB(255, 140, 0)
+        elseif rarity == "Épique" then
+            rarityBadge.BackgroundColor3 = Color3.fromRGB(160, 40, 220)
+        elseif rarity == "Rare" then
+            rarityBadge.BackgroundColor3 = Color3.fromRGB(40, 140, 240)
+        else
+            rarityBadge.BackgroundColor3 = Color3.fromRGB(80, 160, 80)
+        end
+
+        descLabel.Text = if isNew
+            then "Nouveau véhicule débloqué ! Il a été transféré à votre garage."
+            else "Véhicule déjà possédé ! Votre revenu passif du garage a été boosté."
+
+        rewardCard.Visible = true
+
+        -- Nettoyage du modèle temporaire accroché
+        task.delay(4, function()
+            if hookedModel then
+                hookedModel:Destroy()
+                hookedModel = nil
+            end
+        end)
+
+        isFishing = false
+        btnDropMagnet.Active = true
+        btnDropMagnet.BackgroundColor3 = Color3.fromRGB(0, 175, 220)
+        btnDropMagnet.Text = "⚓ LÂCHER L'ÉLECTRO-AIMANT"
+        statusLabel.Text = "Statut : Prêt pour un nouveau lancer !"
+    end)
+end
+
+btnDropMagnet.MouseButton1Click:Connect(runFishingSequence)
+
+btnClaim.MouseButton1Click:Connect(function()
+    rewardCard.Visible = false
+end)
+
+btnExit.MouseButton1Click:Connect(function()
+    rewardCard.Visible = false
+    player:SetAttribute("CurrentMode", "Hub")
+end)
+
+-- Activation / Désactivation du HUD selon le mode
+local function onModeChanged()
+    local mode = tostring(player:GetAttribute("CurrentMode") or "Hub")
+    screenGui.Enabled = (mode == "Crane")
+    if mode ~= "Crane" then
+        rewardCard.Visible = false
+    end
+end
+
+player:GetAttributeChangedSignal("CurrentMode"):Connect(onModeChanged)
+task.spawn(onModeChanged)
+
+print("[CraneController] Module client de contrôle de la Grue initialisé avec succès.")
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="LocalScript" referent="15">
+        <Properties>
+          <string name="Name">GameLoop</string>
+          <string name="Source">--!strict
+--[[
+    STOP AT THE FRAME - GAME LOOP &amp; FRAME GRADING (CLIENT SCRIPT)
     Gère la trajectoire parabolique avec saut cabré (+24° pitch) et alignement
     mathématique 100% parfait à t = T_TARGET avec TargetCFrame,
     le TargetFrame en boucle fermée extérieure unique sans clone fantôme ni lignes internes,
@@ -2081,6 +2740,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SoundService = game:GetService("SoundService")
 local ContentProvider = game:GetService("ContentProvider")
 local Debris = game:GetService("Debris")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 
 local CarBuilder = require(ReplicatedStorage:WaitForChild("CarBuilder") :: ModuleScript)
 
@@ -2089,7 +2749,7 @@ local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
 local camera = Workspace.CurrentCamera or Workspace:WaitForChild("Camera") :: Camera
 
 -- =============================================================================
--- 0. EFFETS SONORES (SFX) & MOTEURS PROCÉDURAUX ROBLOX
+-- 0. EFFETS SONORES (SFX) &amp; MOTEURS PROCÉDURAUX ROBLOX
 -- =============================================================================
 local sfxFolder = Instance.new("Folder")
 sfxFolder.Name = "GameSFX"
@@ -2432,6 +3092,92 @@ hintLabel.Text = "[ESPACE] ou [CLIC GAUCHE] pour figer • [Q / D] ou [← / →
 hintLabel.Parent = screenGui
 
 -- =============================================================================
+-- BOUTONS DE NAVIGATION INTER-MODES (HUB / PÊCHE / STOP THE FRAME)
+-- =============================================================================
+local hubNavCard = Instance.new("Frame")
+hubNavCard.Name = "HubNavCard"
+hubNavCard.Size = UDim2.new(0, 520, 0, 48)
+hubNavCard.AnchorPoint = Vector2.new(0.5, 0)
+hubNavCard.Position = UDim2.new(0.5, 0, 0, 22)
+hubNavCard.BackgroundColor3 = Color3.fromRGB(18, 22, 28)
+hubNavCard.Parent = screenGui
+
+local hubCorner = Instance.new("UICorner")
+hubCorner.CornerRadius = UDim.new(0, 14)
+hubCorner.Parent = hubNavCard
+
+local hubStroke = Instance.new("UIStroke")
+hubStroke.Color = Color3.fromRGB(255, 215, 0)
+hubStroke.Thickness = 2
+hubStroke.Parent = hubNavCard
+
+local btnNavRace = Instance.new("TextButton")
+btnNavRace.Name = "BtnNavRace"
+btnNavRace.Size = UDim2.new(0.5, -6, 1, -8)
+btnNavRace.Position = UDim2.new(0, 4, 0, 4)
+btnNavRace.BackgroundColor3 = Color3.fromRGB(240, 185, 20)
+btnNavRace.Font = Enum.Font.GothamBlack
+btnNavRace.TextSize = 14
+btnNavRace.TextColor3 = Color3.fromRGB(15, 18, 22)
+btnNavRace.Text = "⚡ JOUER : STOP THE FRAME (1v1)"
+btnNavRace.Parent = hubNavCard
+local raceBtnCorner = Instance.new("UICorner")
+raceBtnCorner.CornerRadius = UDim.new(0, 10)
+raceBtnCorner.Parent = btnNavRace
+
+local btnNavCrane = Instance.new("TextButton")
+btnNavCrane.Name = "BtnNavCrane"
+btnNavCrane.Size = UDim2.new(0.5, -6, 1, -8)
+btnNavCrane.Position = UDim2.new(0.5, 2, 0, 4)
+btnNavCrane.BackgroundColor3 = Color3.fromRGB(0, 180, 225)
+btnNavCrane.Font = Enum.Font.GothamBlack
+btnNavCrane.TextSize = 14
+btnNavCrane.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnNavCrane.Text = "🎣 MODE PÊCHE (GRUE)"
+btnNavCrane.Parent = hubNavCard
+local craneBtnCorner = Instance.new("UICorner")
+craneBtnCorner.CornerRadius = UDim.new(0, 10)
+craneBtnCorner.Parent = btnNavCrane
+
+btnNavRace.MouseButton1Click:Connect(function()
+    player:SetAttribute("CurrentMode", "StopTheFrame")
+end)
+btnNavCrane.MouseButton1Click:Connect(function()
+    player:SetAttribute("CurrentMode", "Crane")
+end)
+
+-- Bouton de retour au port (affiché pendant le mode StopTheFrame)
+local btnReturnToPort = Instance.new("TextButton")
+btnReturnToPort.Name = "BtnReturnToPort"
+btnReturnToPort.Size = UDim2.new(0, 210, 0, 38)
+btnReturnToPort.Position = UDim2.new(0, 24, 0, 150)
+btnReturnToPort.BackgroundColor3 = Color3.fromRGB(180, 40, 45)
+btnReturnToPort.Font = Enum.Font.GothamBold
+btnReturnToPort.TextSize = 13
+btnReturnToPort.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnReturnToPort.Text = "⬅ RETOUR AU PORT (HUB)"
+btnReturnToPort.Visible = false
+btnReturnToPort.Parent = screenGui
+local retCorner = Instance.new("UICorner")
+retCorner.CornerRadius = UDim.new(0, 10)
+retCorner.Parent = btnReturnToPort
+
+btnReturnToPort.MouseButton1Click:Connect(function()
+    player:SetAttribute("CurrentMode", "Hub")
+end)
+
+-- Écoute des ProximityPrompts physiques dans le monde (Portique de course et Grue)
+ProximityPromptService.PromptTriggered:Connect(function(prompt, triggeredPlayer)
+    if triggeredPlayer == player then
+        if prompt.Name == "StartRacePrompt" then
+            player:SetAttribute("CurrentMode", "StopTheFrame")
+        elseif prompt.Name == "CraneControlPrompt" then
+            player:SetAttribute("CurrentMode", "Crane")
+        end
+    end
+end)
+
+-- =============================================================================
 -- 4. BINDING EN TEMPS RÉEL DES LEADERSTATS
 -- =============================================================================
 local function bindLeaderstats()
@@ -2489,13 +3235,13 @@ end
 
 btnPrev.MouseButton1Click:Connect(function()
     local nextIdx = currentVehicleIndex - 1
-    if nextIdx < 1 then nextIdx = totalVehicles end
+    if nextIdx &lt; 1 then nextIdx = totalVehicles end
     applyVehicleChange(nextIdx)
 end)
 
 btnNext.MouseButton1Click:Connect(function()
     local nextIdx = currentVehicleIndex + 1
-    if nextIdx > totalVehicles then nextIdx = 1 end
+    if nextIdx &gt; totalVehicles then nextIdx = 1 end
     applyVehicleChange(nextIdx)
 end)
 
@@ -2505,7 +3251,7 @@ end)
 local function triggerScreenShake(intensity: number, duration: number)
     task.spawn(function()
         local startTime = os.clock()
-        while (os.clock() - startTime) < duration do
+        while (os.clock() - startTime) &lt; duration do
             local elapsed = os.clock() - startTime
             local decay = 1 - (elapsed / duration)
             local offset = Vector3.new(
@@ -2530,11 +3276,11 @@ local function triggerFlash(col: Color3?)
 end
 
 local function computeAccuracyPercentage(dist: number): number
-    if dist <= 0.8 then
+    if dist &lt;= 0.8 then
         return math.clamp(math.floor(98 + (1 - dist / 0.8) * 2), 98, 100)
-    elseif dist <= 2.5 then
+    elseif dist &lt;= 2.5 then
         return math.clamp(math.floor(90 + (1 - (dist - 0.8) / 1.7) * 7.9), 90, 97)
-    elseif dist <= 5.0 then
+    elseif dist &lt;= 5.0 then
         return math.clamp(math.floor(75 + (1 - (dist - 2.5) / 2.5) * 14.9), 75, 89)
     else
         return math.max(0, math.floor(70 - (dist - 5.0) * 3.5))
@@ -2579,7 +3325,7 @@ local function getJumpCFrame(tNorm: number): CFrame
     local yArc = 0
     local pitchDeg = 0
 
-    if tNorm <= T_TARGET then
+    if tNorm &lt;= T_TARGET then
         local arcProgress = tNorm / T_TARGET
         -- sin² annule la dérivée verticale à t = T_TARGET : la voiture atterrit tangentiellement
         -- sans décalage vertical résiduel même à 1 stud d'écart (zone PERFECT)
@@ -2596,7 +3342,7 @@ local function getJumpCFrame(tNorm: number): CFrame
     local currentPos = Vector3.new(0, yBase + yArc, z)
 
     -- Si tNorm est exactement à T_TARGET, renvoie strictement TargetCFrame
-    if math.abs(tNorm - T_TARGET) < 0.0005 then
+    if math.abs(tNorm - T_TARGET) &lt; 0.0005 then
         return TargetCFrame
     end
 
@@ -2605,14 +3351,14 @@ local function getJumpCFrame(tNorm: number): CFrame
     local nextZ = az * (nextT ^ 2) + bz * nextT + cz
     local nextYBase = ay * (nextT ^ 2) + by * nextT + cy
     local nextYArc = 0
-    if nextT <= T_TARGET then
+    if nextT &lt;= T_TARGET then
         nextYArc = 14.0 * math.sin(math.pi * (nextT / T_TARGET)) ^ 2
     end
     local nextPos = Vector3.new(0, nextYBase + nextYArc, nextZ)
 
     local moveDir = (nextPos - currentPos)
     local baseLookCF: CFrame
-    if moveDir.Magnitude > 0.001 then
+    if moveDir.Magnitude &gt; 0.001 then
         baseLookCF = CFrame.lookAt(currentPos, nextPos, normalVec)
     else
         baseLookCF = TargetCFrame - TargetCFrame.Position + currentPos
@@ -2625,9 +3371,9 @@ local function getJumpCFrame(tNorm: number): CFrame
     local flightCF = orientBase * pitchCF
 
     -- 4. Convergence SmoothStep vers TargetCFrame dans les 35% finaux de l'approche
-    if tNorm < T_TARGET then
+    if tNorm &lt; T_TARGET then
         local approachProgress = tNorm / T_TARGET
-        if approachProgress >= 0.65 then
+        if approachProgress &gt;= 0.65 then
             local alpha = (approachProgress - 0.65) / 0.35
             local smoothAlpha = alpha * alpha * (3 - 2 * alpha)
             local targetAtPos = TargetCFrame - TargetCFrame.Position + currentPos
@@ -2665,7 +3411,7 @@ local function onPlayerInput()
     local gradeColor = Color3.fromRGB(255, 55, 55)
     local rewardAmount = 0
 
-    if distance < 0.8 then
+    if distance &lt; 0.8 then
         gradeText = "FRAME PERFECT!"
         gradeColor = Color3.fromRGB(255, 215, 0)
         rewardAmount = currentConfig.RewardCash
@@ -2681,7 +3427,7 @@ local function onPlayerInput()
         triggerFlash(Color3.fromRGB(255, 235, 120))
         triggerScreenShake(0.9, 0.4)
         playSFX(soundHitClean, 1.25, 1.1)
-    elseif distance < 2.5 then
+    elseif distance &lt; 2.5 then
         gradeText = "PERFECT!"
         gradeColor = Color3.fromRGB(0, 255, 80)
         rewardAmount = math.floor(currentConfig.RewardCash * 0.75)
@@ -2695,7 +3441,7 @@ local function onPlayerInput()
         currentCar:PivotTo(CFrame.new(root.Position) * TargetCFrame.Rotation)
         triggerScreenShake(0.4, 0.2)
         playSFX(soundHitClean, 1.05, 1.0)
-    elseif distance < 5.0 then
+    elseif distance &lt; 5.0 then
         gradeText = "GOOD!"
         gradeColor = Color3.fromRGB(255, 215, 45)
         rewardAmount = math.floor(currentConfig.RewardCash * 0.40)
@@ -2741,7 +3487,7 @@ local function onPlayerInput()
     gradeLabel.TextColor3 = gradeColor
     accuracyLabel.Text = string.format("Précision : %d%% (%.2f studs)", accuracyPct, distance)
 
-    if rewardAmount > 0 then
+    if rewardAmount &gt; 0 then
         rewardPopupLabel.Text = string.format("+$%d (Prime %s)", rewardAmount, currentConfig.Name)
         rewardPopupLabel.Visible = true
     else
@@ -2766,11 +3512,11 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         onPlayerInput()
     elseif input.KeyCode == Enum.KeyCode.Left or input.KeyCode == Enum.KeyCode.Q or input.KeyCode == Enum.KeyCode.A then
         local nextIdx = currentVehicleIndex - 1
-        if nextIdx < 1 then nextIdx = totalVehicles end
+        if nextIdx &lt; 1 then nextIdx = totalVehicles end
         applyVehicleChange(nextIdx)
     elseif input.KeyCode == Enum.KeyCode.Right or input.KeyCode == Enum.KeyCode.D then
         local nextIdx = currentVehicleIndex + 1
-        if nextIdx > totalVehicles then nextIdx = 1 end
+        if nextIdx &gt; totalVehicles then nextIdx = 1 end
         applyVehicleChange(nextIdx)
     end
 end)
@@ -2831,10 +3577,34 @@ RunService.RenderStepped:Connect(function(dt)
     end
 
     -- Si le joueur ne clique pas, déclenche l'échec automatique dès qu'elle a dépassé le cadre (encore visible devant la caméra)
-    if tNorm >= 0.76 then
+    if tNorm &gt;= 0.76 then
         onPlayerInput()
     end
 end)
+
+
+local function updateModeVisibility()
+    local mode = tostring(player:GetAttribute("CurrentMode") or "Hub")
+    local inStopMode = (mode == "StopTheFrame")
+    titleBanner.Visible = inStopMode
+    selectorBar.Visible = inStopMode
+    hintLabel.Visible = inStopMode
+    btnReturnToPort.Visible = inStopMode
+    hubNavCard.Visible = (mode == "Hub")
+
+    if not inStopMode then
+        resultContainer.Visible = false
+        if currentCar then
+            currentCar:Destroy()
+            currentCar = nil
+        end
+        stopEngineSound()
+        isJumping = false
+        hasStopped = true
+    end
+end
+player:GetAttributeChangedSignal("CurrentMode"):Connect(updateModeVisibility)
+task.spawn(updateModeVisibility)
 
 task.spawn(function()
     task.wait(0.8)
@@ -2843,28 +3613,32 @@ task.spawn(function()
     updateVehicleUI()
 
     while true do
-        startNextJump()
+        local mode = tostring(player:GetAttribute("CurrentMode") or "Hub")
+        if mode == "StopTheFrame" then
+            startNextJump()
 
-        while isJumping and not hasStopped do
-            task.wait()
+            while isJumping and not hasStopped and player:GetAttribute("CurrentMode") == "StopTheFrame" do
+                task.wait()
+            end
+
+            task.wait(1.5)
+        else
+            task.wait(0.5)
         end
-
-        task.wait(1.5)
     end
 end)
 
-print("[GameLoop] Trajectoire, boucle fermée TargetFrame et système de grading opérationnels.")
-]]></string>
+print("[GameLoop] Trajectoire, boucle fermée TargetFrame et système de grading opérationnels.")</string>
         </Properties>
       </Item>
     </Item>
   </Item>
-  <Item class="Workspace" referent="15">
+  <Item class="Workspace" referent="16">
     <Properties>
       <string name="Name">Workspace</string>
       <bool name="NeedsPivotMigration">false</bool>
     </Properties>
-    <Item class="Part" referent="16">
+    <Item class="Part" referent="17">
       <Properties>
         <string name="Name">Baseplate</string>
         <bool name="Anchored">true</bool>

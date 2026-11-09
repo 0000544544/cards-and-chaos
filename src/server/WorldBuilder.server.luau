@@ -169,3 +169,262 @@ local frameBaseCF = CFrame.fromMatrix(frameCenterPos, rightVec, normalVec)
 CarBuilder.CreateTargetFrame("lotus_rally", frameCenterPos, frameBaseCF)
 
 print("[WorldBuilder] Rue San Francisco en pente et TargetFrame initialisés avec succès.")
+
+
+-- =============================================================================
+-- 7. LE PORT MARITIME, LE BASSIN AQUATIQUE & LA GRUE INDUSTRIELLE (MODE PÊCHE)
+-- =============================================================================
+local docksFolder = Instance.new("Folder")
+docksFolder.Name = "SanFranciscoDocks"
+docksFolder.Parent = Workspace
+
+-- A. Dalle principale du Quai (Béton industriel et pavés portuaires)
+local dockFloor = createPart(
+    "DockPlaza",
+    Vector3.new(140, 4, 105),
+    CFrame.new(0, -1, -90),
+    Enum.Material.Concrete,
+    Color3.fromRGB(90, 95, 102),
+    true,
+    docksFolder
+)
+
+-- Promenade en bois traité le long de la ligne d'eau
+local woodBoardwalk = createPart(
+    "WoodBoardwalk",
+    Vector3.new(140, 0.4, 18),
+    CFrame.new(0, 1.15, -133),
+    Enum.Material.WoodPlanks,
+    Color3.fromRGB(115, 85, 60),
+    true,
+    docksFolder
+)
+
+-- Bordure de quai en poutres massives d'amarrage
+local dockEdgeBeam = createPart(
+    "DockEdgeBeam",
+    Vector3.new(140, 1.6, 2.5),
+    CFrame.new(0, 1.6, -141),
+    Enum.Material.WoodPlanks,
+    Color3.fromRGB(65, 45, 30),
+    true,
+    docksFolder
+)
+
+-- Bollards d'amarrage maritimes en fonte noire le long du quai
+for x = -60, 60, 15 do
+    local bollard = Instance.new("Part")
+    bollard.Name = "Bollard_" .. x
+    bollard.Shape = Enum.PartType.Cylinder
+    bollard.Size = Vector3.new(2.4, 1.2, 1.2)
+    bollard.CFrame = CFrame.new(x, 2.2, -140) * CFrame.Angles(0, 0, math.rad(90))
+    bollard.Material = Enum.Material.Metal
+    bollard.Color = Color3.fromRGB(20, 22, 25)
+    bollard.Anchored = true
+    bollard.CanCollide = true
+    bollard.Parent = docksFolder
+end
+
+-- Conteneurs maritimes décoratifs empilés sur les côtés du port
+local containerColors = {
+    Color3.fromRGB(210, 45, 35),  -- Rouge brique
+    Color3.fromRGB(35, 110, 195), -- Bleu marine
+    Color3.fromRGB(225, 160, 20), -- Jaune cargo
+    Color3.fromRGB(35, 140, 65),  -- Vert industriel
+}
+
+local function buildCargoContainer(name: string, pos: Vector3, rotY: number, colorIdx: number)
+    local cont = createPart(
+        name,
+        Vector3.new(9, 9, 22),
+        CFrame.new(pos) * CFrame.Angles(0, math.rad(rotY), 0),
+        Enum.Material.CorrugatedMetal,
+        containerColors[colorIdx],
+        true,
+        docksFolder
+    )
+    -- Portes de conteneur
+    createPart(name .. "_Doors", Vector3.new(8.2, 8.2, 0.4), cont.CFrame * CFrame.new(0, 0, 11.1), Enum.Material.Metal, Color3.fromRGB(30, 32, 35), false, docksFolder)
+end
+
+buildCargoContainer("Container_L1", Vector3.new(-52, 5.5, -80), 12, 1)
+buildCargoContainer("Container_L2", Vector3.new(-53, 14.5, -80), 8, 2)
+buildCargoContainer("Container_L3", Vector3.new(-40, 5.5, -95), -5, 3)
+
+buildCargoContainer("Container_R1", Vector3.new(52, 5.5, -80), -10, 4)
+buildCargoContainer("Container_R2", Vector3.new(51, 14.5, -80), -12, 1)
+buildCargoContainer("Container_R3", Vector3.new(42, 5.5, -95), 4, 3)
+
+-- Point d'apparition principal (Spawn) au centre du Quai Maritime
+local spawnLocation = Instance.new("SpawnLocation")
+spawnLocation.Name = "DockSpawnPoint"
+spawnLocation.Size = Vector3.new(12, 0.5, 12)
+spawnLocation.CFrame = CFrame.new(0, 1.25, -75)
+spawnLocation.Material = Enum.Material.Concrete
+spawnLocation.Color = Color3.fromRGB(75, 80, 88)
+spawnLocation.Anchored = true
+spawnLocation.CanCollide = true
+spawnLocation.Neutral = true
+spawnLocation.Parent = docksFolder
+
+-- B. Le Grand Bassin Aquatique & Fonds Marins
+local waterBasin = createPart(
+    "WaterSurface",
+    Vector3.new(180, 1, 150),
+    CFrame.new(0, -0.2, -215),
+    Enum.Material.Glass,
+    Color3.fromRGB(25, 150, 215),
+    false,
+    docksFolder
+)
+waterBasin.Transparency = 0.42
+waterBasin.Reflectance = 0.35
+
+-- Fond marin sableux sous-marin
+local seaBed = createPart(
+    "SeaBed",
+    Vector3.new(180, 6, 150),
+    CFrame.new(0, -38, -215),
+    Enum.Material.Sand,
+    Color3.fromRGB(35, 45, 52),
+    true,
+    docksFolder
+)
+
+-- Épave sous-marine visible sous l'eau transparente
+local wreckRally = CarBuilder.CreateLotusRally()
+wreckRally.Name = "SunkenWreck_Lotus"
+wreckRally.Parent = docksFolder
+wreckRally:PivotTo(CFrame.new(0, -34, -165) * CFrame.Angles(math.rad(15), math.rad(45), math.rad(-10)))
+for _, p in ipairs(wreckRally:GetDescendants()) do
+    if p:IsA("BasePart") then
+        p.Material = Enum.Material.CorrodedMetal
+        p.Color = Color3.fromRGB(90, 60, 45)
+        p.Anchored = true
+        p.CanCollide = false
+    end
+end
+
+-- Bulles d'eau qui montent de l'épave vers la surface
+local bubbleEmitter = Instance.new("ParticleEmitter")
+bubbleEmitter.Name = "UnderwaterBubbles"
+bubbleEmitter.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+bubbleEmitter.Color = ColorSequence.new(Color3.fromRGB(180, 240, 255))
+bubbleEmitter.Size = NumberSequence.new(0.6, 1.4)
+bubbleEmitter.Transparency = NumberSequence.new(0.3, 0.7)
+bubbleEmitter.Rate = 12
+bubbleEmitter.Speed = NumberRange.new(4, 9)
+bubbleEmitter.SpreadAngle = Vector2.new(15, 15)
+local bubbleAnchor = Instance.new("Part")
+bubbleAnchor.Name = "BubbleAnchor"
+bubbleAnchor.Size = Vector3.new(1, 1, 1)
+bubbleAnchor.CFrame = CFrame.new(0, -32, -165)
+bubbleAnchor.Transparency = 1
+bubbleAnchor.Anchored = true
+bubbleAnchor.CanCollide = false
+bubbleAnchor.Parent = docksFolder
+bubbleEmitter.Parent = bubbleAnchor
+
+-- C. La Grande Grue Industrielle Jaune Caterpillar (Mode Pêche)
+local craneModel = Instance.new("Model")
+craneModel.Name = "IndustrialFishingCrane"
+craneModel.Parent = docksFolder
+
+local CRANE_YELLOW = Color3.fromRGB(240, 185, 20)
+local CRANE_DARK   = Color3.fromRGB(28, 30, 35)
+local CRANE_NEON   = Color3.fromRGB(0, 255, 200)
+
+-- Socle lourd cylindrique
+local craneBase = Instance.new("Part")
+craneBase.Name = "CraneBase"
+craneBase.Shape = Enum.PartType.Cylinder
+craneBase.Size = Vector3.new(3, 14, 14)
+craneBase.CFrame = CFrame.new(0, 2.5, -135) * CFrame.Angles(0, 0, math.rad(90))
+craneBase.Material = Enum.Material.Metal
+craneBase.Color = CRANE_DARK
+craneBase.Anchored = true
+craneBase.CanCollide = true
+craneBase.Parent = craneModel
+
+-- Mât vertical en treillis jaune
+local craneMast = createPart("CraneMast", Vector3.new(5, 30, 5), CFrame.new(0, 17, -135), Enum.Material.DiamondPlate, CRANE_YELLOW, true, craneModel)
+
+-- Cabine d'opérateur vitrée avec gyrophare orange
+local craneCabin = createPart("CraneCabin", Vector3.new(7, 6, 8), CFrame.new(4.5, 25, -135), Enum.Material.SmoothPlastic, CRANE_DARK, true, craneModel)
+local cabinGlass = createPart("CabinGlass", Vector3.new(0.3, 4.5, 6.5), craneCabin.CFrame * CFrame.new(3.5, 0.2, 0), Enum.Material.Glass, Color3.fromRGB(180, 225, 255), false, craneModel)
+cabinGlass.Transparency = 0.3
+
+local beaconLight = createPart("CraneBeacon", Vector3.new(1.2, 1.2, 1.2), craneCabin.CFrame * CFrame.new(0, 3.6, 0), Enum.Material.Neon, Color3.fromRGB(255, 140, 0), false, craneModel)
+
+-- Flèche horizontale (Boom) surplombant le bassin aquatique
+local craneBoom = createPart("CraneBoom", Vector3.new(4.5, 4.5, 50), CFrame.new(0, 32, -160), Enum.Material.DiamondPlate, CRANE_YELLOW, true, craneModel)
+
+-- Câble métallique et Tête d'électro-aimant suspendue
+local winchCable = createPart("WinchCable", Vector3.new(0.35, 24, 0.35), CFrame.new(0, 18, -165), Enum.Material.Metal, CRANE_DARK, false, craneModel)
+
+local craneMagnet = Instance.new("Part")
+craneMagnet.Name = "CraneMagnet"
+craneMagnet.Shape = Enum.PartType.Cylinder
+craneMagnet.Size = Vector3.new(2.5, 8, 8)
+craneMagnet.CFrame = CFrame.new(0, 5.5, -165) * CFrame.Angles(0, 0, math.rad(90))
+craneMagnet.Material = Enum.Material.Metal
+craneMagnet.Color = CRANE_DARK
+craneMagnet.Anchored = true
+craneMagnet.CanCollide = true
+craneMagnet.Parent = craneModel
+
+-- Anneau néon électromagnétique lumineux sous l'aimant
+local magnetRing = createPart("MagnetNeonRing", Vector3.new(7.2, 0.4, 7.2), craneMagnet.CFrame * CFrame.new(-1.1, 0, 0) * CFrame.Angles(0, 0, math.rad(90)), Enum.Material.Neon, CRANE_NEON, false, craneModel)
+
+local magnetLight = Instance.new("PointLight")
+magnetLight.Name = "MagnetLight"
+magnetLight.Color = CRANE_NEON
+magnetLight.Brightness = 3.5
+magnetLight.Range = 25
+magnetLight.Parent = craneMagnet
+
+-- Pupitre de commande au sol avec ProximityPrompt pour piloter la Grue
+local craneConsole = createPart("CraneControlConsole", Vector3.new(3, 3.5, 2), CFrame.new(0, 2.75, -126), Enum.Material.Metal, CRANE_DARK, true, craneModel)
+local consoleScreen = createPart("ConsoleScreen", Vector3.new(2.2, 1.4, 0.2), craneConsole.CFrame * CFrame.new(0, 0.6, 1.0), Enum.Material.Neon, Color3.fromRGB(0, 230, 255), false, craneModel)
+
+local cranePrompt = Instance.new("ProximityPrompt")
+cranePrompt.Name = "CraneControlPrompt"
+cranePrompt.ActionText = "Contrôler la Grue"
+cranePrompt.ObjectText = "Mode Pêche Sous-Marine 🎣"
+cranePrompt.KeyboardKeyCode = Enum.KeyCode.E
+cranePrompt.MaxActivationDistance = 14
+cranePrompt.HoldDuration = 0
+cranePrompt.Parent = craneConsole
+
+-- D. Portique Lumineux d'Entrée vers la Pente 1v1 (Stop the Frame)
+local gateModel = Instance.new("Model")
+gateModel.Name = "StopTheFrameEntryGate"
+gateModel.Parent = docksFolder
+
+local GATE_POS_Z = -38
+local pillarL = createPart("GatePillar_L", Vector3.new(2.5, 18, 2.5), CFrame.new(-18, 9, GATE_POS_Z), Enum.Material.Metal, Color3.fromRGB(35, 38, 42), true, gateModel)
+local pillarR = createPart("GatePillar_R", Vector3.new(2.5, 18, 2.5), CFrame.new(18, 9, GATE_POS_Z), Enum.Material.Metal, Color3.fromRGB(35, 38, 42), true, gateModel)
+local crossbeam = createPart("GateCrossbeam", Vector3.new(38, 3, 2.5), CFrame.new(0, 17, GATE_POS_Z), Enum.Material.Metal, Color3.fromRGB(35, 38, 42), true, gateModel)
+
+-- Enseigne Néon de Course
+local neonSign = createPart("NeonSign_StopTheFrame", Vector3.new(32, 2.2, 0.5), CFrame.new(0, 17, GATE_POS_Z + 1.4), Enum.Material.Neon, Color3.fromRGB(255, 225, 0), false, gateModel)
+
+-- Feux de départ de course (Vert, Orange, Rouge)
+local lightGreen  = createPart("LightGreen", Vector3.new(1.2, 1.2, 0.6), CFrame.new(-6, 14, GATE_POS_Z + 1.3), Enum.Material.Neon, Color3.fromRGB(0, 255, 60), false, gateModel)
+local lightYellow = createPart("LightYellow", Vector3.new(1.2, 1.2, 0.6), CFrame.new(0, 14, GATE_POS_Z + 1.3), Enum.Material.Neon, Color3.fromRGB(255, 190, 0), false, gateModel)
+local lightRed    = createPart("LightRed", Vector3.new(1.2, 1.2, 0.6), CFrame.new(6, 14, GATE_POS_Z + 1.3), Enum.Material.Neon, Color3.fromRGB(255, 30, 30), false, gateModel)
+
+-- Borne d'enregistrement Stop The Frame avec ProximityPrompt
+local raceTerminal = createPart("RaceTerminal", Vector3.new(3, 3.5, 2), CFrame.new(-12, 2.75, GATE_POS_Z - 5), Enum.Material.Metal, Color3.fromRGB(25, 28, 32), true, gateModel)
+createPart("TerminalScreen", Vector3.new(2.2, 1.4, 0.2), raceTerminal.CFrame * CFrame.new(0, 0.6, -1.0), Enum.Material.Neon, Color3.fromRGB(255, 230, 60), false, gateModel)
+
+local racePrompt = Instance.new("ProximityPrompt")
+racePrompt.Name = "StartRacePrompt"
+racePrompt.ActionText = "Lancer le Défi"
+racePrompt.ObjectText = "Pente 1v1 Stop the Frame ⚡"
+racePrompt.KeyboardKeyCode = Enum.KeyCode.E
+racePrompt.MaxActivationDistance = 14
+racePrompt.HoldDuration = 0
+racePrompt.Parent = raceTerminal
+
+print("[WorldBuilder] Quai Maritime, Bassin Aquatique et Grue Industrielle initialisés avec succès.")

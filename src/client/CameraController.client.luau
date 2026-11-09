@@ -1,10 +1,10 @@
 --!strict
 --[[
-    STOP AT THE FRAME - CAMERA CONTROLLER (CLIENT SCRIPT)
-    Verrouille la caméra en mode Scriptable en bas de la colline,
-    orientée vers le haut pour cadrer le "TargetFrame" vert au premier plan
-    avec la pente raide et les immeubles pastel en arrière-plan.
-    Désactive également les contrôles du joueur.
+    STOP AT THE FRAME - MULTI-MODE CAMERA CONTROLLER (CLIENT SCRIPT)
+    Gère la caméra selon le mode de jeu actuel :
+    - "Hub" (Quai / Port) : Caméra libre à la 3e personne (Custom) sur l'avatar du joueur.
+    - "StopTheFrame" (Pari 1v1) : Caméra fixe Scriptable en contre-plongée vers le cadre vert.
+    - "Crane" (Mode Pêche) : Caméra aérienne Scriptable surplombant la grue et le bassin aquatique.
 ]]
 
 local Players = game:GetService("Players")
@@ -14,11 +14,38 @@ local Workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 local camera = Workspace.CurrentCamera or Workspace:WaitForChild("Camera") :: Camera
 
--- 1. Verrouillage initial de la caméra
-camera.CameraType = Enum.CameraType.Scriptable
+-- Mode par défaut : Hub (Marche libre sur le quai)
+if not player:GetAttribute("CurrentMode") then
+    player:SetAttribute("CurrentMode", "Hub")
+end
 
--- 2. Désactivation des contrôles du joueur
-local function disablePlayerControls()
+-- Paramètres géométriques de la pente San Francisco
+local slopeVector = Vector3.new(0, 120, 400)
+local uDir = slopeVector.Unit
+local rightVec = Vector3.new(1, 0, 0)
+local normalVec = uDir:Cross(rightVec)
+
+-- Calcul de la CFrame de caméra fixe pour le mode "StopTheFrame"
+local fixedSlopeCameraCFrame: CFrame? = nil
+
+local function computeSlopeCameraCFrame(): CFrame
+    local currentTarget = Workspace:FindFirstChild("TargetFrame")
+    local cp = currentTarget and currentTarget:FindFirstChild("CenterPoint") :: BasePart?
+    local targetPos = (cp and cp.Position) or Vector3.new(0, 66.84, 158.22)
+
+    local roadBasePos = targetPos - (uDir * 20)
+    local eyePos = roadBasePos - (normalVec * 0.4)
+    local lookTarget = targetPos + (normalVec * 0.3)
+
+    return CFrame.lookAt(eyePos, lookTarget)
+end
+
+-- CFrame de la caméra pour le Mode Pêche (vue haute derrière la grue)
+local craneCameraCFrame = CFrame.lookAt(Vector3.new(0, 42, -105), Vector3.new(0, 8, -165))
+
+-- Gestion des contrôles du joueur
+local playerControls: any = nil
+local function setupPlayerControls()
     local playerScripts = player:WaitForChild("PlayerScripts")
     local playerModule = playerScripts:WaitForChild("PlayerModule", 5)
     if playerModule then
@@ -26,81 +53,79 @@ local function disablePlayerControls()
             local module = require(playerModule) :: any
             return module:GetControls()
         end)
-        if success and controls and controls.Disable then
-            controls:Disable()
-            print("[CameraController] Contrôles joueur désactivés.")
+        if success and controls then
+            playerControls = controls
         end
     end
 end
-task.spawn(disablePlayerControls)
+task.spawn(setupPlayerControls)
 
--- 3. Masquer le personnage du joueur pour ne pas gêner la vue
-local function setupCharacter(char: Model)
-    for _, part in ipairs(char:GetDescendants()) do
-        if part:IsA("BasePart") then
-            part.LocalTransparencyModifier = 1
-        elseif part:IsA("Decal") then
-            part.Transparency = 1
+local function setPlayerControlsEnabled(enabled: boolean)
+    if playerControls then
+        if enabled and playerControls.Enable then
+            playerControls:Enable()
+        elseif not enabled and playerControls.Disable then
+            playerControls:Disable()
         end
     end
+end
 
-    local hrp = char:WaitForChild("HumanoidRootPart", 5) :: BasePart?
-    if hrp then
-        hrp.Anchored = true
-        hrp.CFrame = CFrame.new(0, -50, 0) -- Placé sous la scène
+-- Mise à jour du mode de caméra
+local function onModeChanged()
+    local mode = tostring(player:GetAttribute("CurrentMode") or "Hub")
+
+    if mode == "Hub" then
+        camera.CameraType = Enum.CameraType.Custom
+        local char = player.Character
+        if char then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then
+                camera.CameraSubject = hum
+            end
+        end
+        setPlayerControlsEnabled(true)
+        print("[CameraController] Mode Hub actif (Caméra libre 3e personne).")
+
+    elseif mode == "StopTheFrame" then
+        camera.CameraType = Enum.CameraType.Scriptable
+        fixedSlopeCameraCFrame = computeSlopeCameraCFrame()
+        setPlayerControlsEnabled(false)
+        print("[CameraController] Mode StopTheFrame actif (Caméra fixe sur la pente).")
+
+    elseif mode == "Crane" then
+        camera.CameraType = Enum.CameraType.Scriptable
+        camera.CFrame = craneCameraCFrame
+        setPlayerControlsEnabled(false)
+        print("[CameraController] Mode Pêche / Grue actif (Caméra aérienne bassin).")
     end
 end
 
-if player.Character then
-    setupCharacter(player.Character)
-end
-player.CharacterAdded:Connect(setupCharacter)
+player:GetAttributeChangedSignal("CurrentMode"):Connect(onModeChanged)
+task.spawn(onModeChanged)
 
--- 4. Recherche du TargetFrame et calcul de la position idéale de caméra
-local targetFrame = Workspace:WaitForChild("TargetFrame", 15) :: Model?
-local centerPoint = (targetFrame and targetFrame:WaitForChild("CenterPoint", 10)) :: BasePart?
-
--- Paramètres géométriques de la pente
-local slopeVector = Vector3.new(0, 120, 400)
-local uDir = slopeVector.Unit -- Monte vers le sommet
-local rightVec = Vector3.new(1, 0, 0)
-local normalVec = uDir:Cross(rightVec) -- Perpendiculaire au sol vers le haut
-
--- Position fixe de la caméra : rapprochée à ~20 studs du cadre vert (en contre-plongée légère)
--- Le TargetFrame occupe ainsi une place imposante et majestueuse au premier plan de l'écran.
-local fixedCameraCFrame: CFrame? = nil
-
-local function computeCameraCFrame(): CFrame
-    local currentTarget = Workspace:FindFirstChild("TargetFrame")
-    local cp = currentTarget and currentTarget:FindFirstChild("CenterPoint") :: BasePart?
-    local targetPos = (cp and cp.Position) or (centerPoint and centerPoint.Position) or Vector3.new(0, 66.84, 158.22)
-
-    -- Rapprochement à 20 studs devant le TargetFrame le long de la pente
-    local roadBasePos = targetPos - (uDir * 20)
-    -- Contre-plongée légère : caméra placée sous le centre pour une visée ascendante dynamique
-    local eyePos = roadBasePos - (normalVec * 0.4)
-    local lookTarget = targetPos + (normalVec * 0.3)
-
-    return CFrame.lookAt(eyePos, lookTarget)
-end
-
-fixedCameraCFrame = computeCameraCFrame()
-
--- 5. Maintien strict de la caméra à chaque frame de rendu
+-- Maintien de la caméra Scriptable pendant les modes actifs
 local function onRenderStep()
-    camera.CameraType = Enum.CameraType.Scriptable
-    if not fixedCameraCFrame or (centerPoint and not fixedCameraCFrame) then
-        fixedCameraCFrame = computeCameraCFrame()
-    end
-    if fixedCameraCFrame then
-        local shake = camera:GetAttribute("ShakeOffset")
-        if shake and typeof(shake) == "Vector3" then
-            camera.CFrame = fixedCameraCFrame * CFrame.new(shake)
-        else
-            camera.CFrame = fixedCameraCFrame
+    local mode = tostring(player:GetAttribute("CurrentMode") or "Hub")
+
+    if mode == "StopTheFrame" then
+        camera.CameraType = Enum.CameraType.Scriptable
+        if not fixedSlopeCameraCFrame then
+            fixedSlopeCameraCFrame = computeSlopeCameraCFrame()
         end
+        if fixedSlopeCameraCFrame then
+            local shake = camera:GetAttribute("ShakeOffset")
+            if shake and typeof(shake) == "Vector3" then
+                camera.CFrame = fixedSlopeCameraCFrame * CFrame.new(shake)
+            else
+                camera.CFrame = fixedSlopeCameraCFrame
+            end
+        end
+
+    elseif mode == "Crane" then
+        camera.CameraType = Enum.CameraType.Scriptable
+        camera.CFrame = craneCameraCFrame
     end
 end
 
 RunService.RenderStepped:Connect(onRenderStep)
-print("[CameraController] Caméra fixe Scriptable initialisée avec succès.")
+print("[CameraController] Multi-mode Camera Controller initialisé avec succès.")

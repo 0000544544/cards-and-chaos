@@ -16,6 +16,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SoundService = game:GetService("SoundService")
 local ContentProvider = game:GetService("ContentProvider")
 local Debris = game:GetService("Debris")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 
 local CarBuilder = require(ReplicatedStorage:WaitForChild("CarBuilder") :: ModuleScript)
 
@@ -365,6 +366,92 @@ hintLabel.TextStrokeColor3 = Color3.fromRGB(10, 15, 20)
 hintLabel.TextStrokeTransparency = 0.4
 hintLabel.Text = "[ESPACE] ou [CLIC GAUCHE] pour figer • [Q / D] ou [← / →] Changer de véhicule"
 hintLabel.Parent = screenGui
+
+-- =============================================================================
+-- BOUTONS DE NAVIGATION INTER-MODES (HUB / PÊCHE / STOP THE FRAME)
+-- =============================================================================
+local hubNavCard = Instance.new("Frame")
+hubNavCard.Name = "HubNavCard"
+hubNavCard.Size = UDim2.new(0, 520, 0, 48)
+hubNavCard.AnchorPoint = Vector2.new(0.5, 0)
+hubNavCard.Position = UDim2.new(0.5, 0, 0, 22)
+hubNavCard.BackgroundColor3 = Color3.fromRGB(18, 22, 28)
+hubNavCard.Parent = screenGui
+
+local hubCorner = Instance.new("UICorner")
+hubCorner.CornerRadius = UDim.new(0, 14)
+hubCorner.Parent = hubNavCard
+
+local hubStroke = Instance.new("UIStroke")
+hubStroke.Color = Color3.fromRGB(255, 215, 0)
+hubStroke.Thickness = 2
+hubStroke.Parent = hubNavCard
+
+local btnNavRace = Instance.new("TextButton")
+btnNavRace.Name = "BtnNavRace"
+btnNavRace.Size = UDim2.new(0.5, -6, 1, -8)
+btnNavRace.Position = UDim2.new(0, 4, 0, 4)
+btnNavRace.BackgroundColor3 = Color3.fromRGB(240, 185, 20)
+btnNavRace.Font = Enum.Font.GothamBlack
+btnNavRace.TextSize = 14
+btnNavRace.TextColor3 = Color3.fromRGB(15, 18, 22)
+btnNavRace.Text = "⚡ JOUER : STOP THE FRAME (1v1)"
+btnNavRace.Parent = hubNavCard
+local raceBtnCorner = Instance.new("UICorner")
+raceBtnCorner.CornerRadius = UDim.new(0, 10)
+raceBtnCorner.Parent = btnNavRace
+
+local btnNavCrane = Instance.new("TextButton")
+btnNavCrane.Name = "BtnNavCrane"
+btnNavCrane.Size = UDim2.new(0.5, -6, 1, -8)
+btnNavCrane.Position = UDim2.new(0.5, 2, 0, 4)
+btnNavCrane.BackgroundColor3 = Color3.fromRGB(0, 180, 225)
+btnNavCrane.Font = Enum.Font.GothamBlack
+btnNavCrane.TextSize = 14
+btnNavCrane.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnNavCrane.Text = "🎣 MODE PÊCHE (GRUE)"
+btnNavCrane.Parent = hubNavCard
+local craneBtnCorner = Instance.new("UICorner")
+craneBtnCorner.CornerRadius = UDim.new(0, 10)
+craneBtnCorner.Parent = btnNavCrane
+
+btnNavRace.MouseButton1Click:Connect(function()
+    player:SetAttribute("CurrentMode", "StopTheFrame")
+end)
+btnNavCrane.MouseButton1Click:Connect(function()
+    player:SetAttribute("CurrentMode", "Crane")
+end)
+
+-- Bouton de retour au port (affiché pendant le mode StopTheFrame)
+local btnReturnToPort = Instance.new("TextButton")
+btnReturnToPort.Name = "BtnReturnToPort"
+btnReturnToPort.Size = UDim2.new(0, 210, 0, 38)
+btnReturnToPort.Position = UDim2.new(0, 24, 0, 150)
+btnReturnToPort.BackgroundColor3 = Color3.fromRGB(180, 40, 45)
+btnReturnToPort.Font = Enum.Font.GothamBold
+btnReturnToPort.TextSize = 13
+btnReturnToPort.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnReturnToPort.Text = "⬅ RETOUR AU PORT (HUB)"
+btnReturnToPort.Visible = false
+btnReturnToPort.Parent = screenGui
+local retCorner = Instance.new("UICorner")
+retCorner.CornerRadius = UDim.new(0, 10)
+retCorner.Parent = btnReturnToPort
+
+btnReturnToPort.MouseButton1Click:Connect(function()
+    player:SetAttribute("CurrentMode", "Hub")
+end)
+
+-- Écoute des ProximityPrompts physiques dans le monde (Portique de course et Grue)
+ProximityPromptService.PromptTriggered:Connect(function(prompt, triggeredPlayer)
+    if triggeredPlayer == player then
+        if prompt.Name == "StartRacePrompt" then
+            player:SetAttribute("CurrentMode", "StopTheFrame")
+        elseif prompt.Name == "CraneControlPrompt" then
+            player:SetAttribute("CurrentMode", "Crane")
+        end
+    end
+end)
 
 -- =============================================================================
 -- 4. BINDING EN TEMPS RÉEL DES LEADERSTATS
@@ -771,6 +858,30 @@ RunService.RenderStepped:Connect(function(dt)
     end
 end)
 
+
+local function updateModeVisibility()
+    local mode = tostring(player:GetAttribute("CurrentMode") or "Hub")
+    local inStopMode = (mode == "StopTheFrame")
+    titleBanner.Visible = inStopMode
+    selectorBar.Visible = inStopMode
+    hintLabel.Visible = inStopMode
+    btnReturnToPort.Visible = inStopMode
+    hubNavCard.Visible = (mode == "Hub")
+
+    if not inStopMode then
+        resultContainer.Visible = false
+        if currentCar then
+            currentCar:Destroy()
+            currentCar = nil
+        end
+        stopEngineSound()
+        isJumping = false
+        hasStopped = true
+    end
+end
+player:GetAttributeChangedSignal("CurrentMode"):Connect(updateModeVisibility)
+task.spawn(updateModeVisibility)
+
 task.spawn(function()
     task.wait(0.8)
     -- Initialisation du TargetFrame pour le véhicule sélectionné par défaut
@@ -778,13 +889,18 @@ task.spawn(function()
     updateVehicleUI()
 
     while true do
-        startNextJump()
+        local mode = tostring(player:GetAttribute("CurrentMode") or "Hub")
+        if mode == "StopTheFrame" then
+            startNextJump()
 
-        while isJumping and not hasStopped do
-            task.wait()
+            while isJumping and not hasStopped and player:GetAttribute("CurrentMode") == "StopTheFrame" do
+                task.wait()
+            end
+
+            task.wait(1.5)
+        else
+            task.wait(0.5)
         end
-
-        task.wait(1.5)
     end
 end)
 
