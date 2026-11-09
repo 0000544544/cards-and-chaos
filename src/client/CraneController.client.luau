@@ -68,6 +68,7 @@ local soundHit   = createSound("SFX_Hit", "rbxasset://sounds/bell.wav", 0.85)
 local function styleFigmaCard(frame: Frame, topColor: Color3, bottomColor: Color3, strokeColor: Color3, cornerRadius: number)
     frame.BorderSizePixel = 0
     frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    frame.ZIndex = math.max(2, frame.ZIndex)
 
     local shadowName = frame.Name .. "_Shadow"
     local shadow = frame.Parent and frame.Parent:FindFirstChild(shadowName) :: Frame?
@@ -76,11 +77,11 @@ local function styleFigmaCard(frame: Frame, topColor: Color3, bottomColor: Color
         shadow.Name = shadowName
         shadow.AnchorPoint = frame.AnchorPoint
         shadow.Size = frame.Size
-        shadow.Position = frame.Position + UDim2.new(0, 0, 0, 6)
+        shadow.Position = frame.Position + UDim2.new(0, 0, 0, 5)
         shadow.BackgroundColor3 = Color3.fromRGB(6, 8, 12)
-        shadow.BackgroundTransparency = 0.45
+        shadow.BackgroundTransparency = 0.5
         shadow.BorderSizePixel = 0
-        shadow.ZIndex = math.max(1, frame.ZIndex - 1)
+        shadow.ZIndex = 1
         shadow.Visible = frame.Visible
         shadow.Parent = frame.Parent
 
@@ -89,7 +90,7 @@ local function styleFigmaCard(frame: Frame, topColor: Color3, bottomColor: Color
         shadowCorner.Parent = shadow
 
         frame:GetPropertyChangedSignal("Position"):Connect(function()
-            if shadow then shadow.Position = frame.Position + UDim2.new(0, 0, 0, 6) end
+            if shadow then shadow.Position = frame.Position + UDim2.new(0, 0, 0, 5) end
         end)
         frame:GetPropertyChangedSignal("Size"):Connect(function()
             if shadow then shadow.Size = frame.Size end
@@ -145,6 +146,7 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "CraneHUD"
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Enabled = false
 screenGui.Parent = playerGui
 
@@ -445,7 +447,7 @@ animateFigmaButton(btnClaim)
 -- GÉOMÉTRIE & LASER DE VISÉE DYNAMIQUE DANS LE BASSIN
 -- =============================================================================
 local magnetX = 0
-local magnetZ = -165
+local magnetZ = -125
 local magnetY = MAGNET_REST_Y
 
 local laserBeam = Instance.new("Part")
@@ -471,16 +473,16 @@ laserReticle.Anchored = true
 laserReticle.CanCollide = false
 laserReticle.CanQuery = false
 laserReticle.CastShadow = false
-laserReticle.Size = Vector3.new(0.2, 9, 9)
+laserReticle.Size = Vector3.new(0.2, 8.5, 8.5)
 laserReticle.Parent = Workspace
 
 local SPOT_TARGETS = {
-    { Pos = Vector3.new(-42, -37, -158), Color = Color3.fromRGB(40, 230, 90),   Rarity = "Commune",    Depth = 20,  Label = "Lotus Rally" },
-    { Pos = Vector3.new(38, -37, -162),  Color = Color3.fromRGB(0, 220, 255),   Rarity = "Peu Commune",Depth = 40,  Label = "Cyber Truck" },
-    { Pos = Vector3.new(-22, -37, -182), Color = Color3.fromRGB(30, 120, 255),  Rarity = "Rare",       Depth = 65,  Label = "Drift Supra" },
-    { Pos = Vector3.new(26, -37, -192),  Color = Color3.fromRGB(175, 45, 255),  Rarity = "Épique",     Depth = 90,  Label = "Police Interceptor" },
-    { Pos = Vector3.new(-34, -37, -215), Color = Color3.fromRGB(255, 130, 20),  Rarity = "Légendaire", Depth = 120, Label = "Hyperion JetCar" },
-    { Pos = Vector3.new(12, -37, -208),  Color = Color3.fromRGB(255, 215, 0),   Rarity = "Mythique",   Depth = 150, Label = "Flash McQueen ⚡" },
+    { Pos = Vector3.new(-24, -37, -118), Color = Color3.fromRGB(40, 230, 90),   Rarity = "Commune",    Depth = 20,  Label = "Lotus Rally" },
+    { Pos = Vector3.new(24, -37, -120),  Color = Color3.fromRGB(0, 220, 255),   Rarity = "Peu Commune",Depth = 40,  Label = "Cyber Truck" },
+    { Pos = Vector3.new(-14, -37, -132), Color = Color3.fromRGB(30, 120, 255),  Rarity = "Rare",       Depth = 65,  Label = "Drift Supra" },
+    { Pos = Vector3.new(16, -37, -134),  Color = Color3.fromRGB(175, 45, 255),  Rarity = "Épique",     Depth = 90,  Label = "Police Interceptor" },
+    { Pos = Vector3.new(-20, -37, -145), Color = Color3.fromRGB(255, 130, 20),  Rarity = "Légendaire", Depth = 120, Label = "Hyperion JetCar" },
+    { Pos = Vector3.new(10, -37, -144),  Color = Color3.fromRGB(255, 215, 0),   Rarity = "Mythique",   Depth = 150, Label = "Flash McQueen ⚡" },
 }
 
 local currentLockedSpot: any = nil
@@ -539,8 +541,8 @@ RunService.RenderStepped:Connect(function(dt)
         end
 
         if dx ~= 0 or dz ~= 0 then
-            local nextX = math.clamp(magnetX + dx * MOVE_SPEED * dt, -46, 46)
-            local nextZ = math.clamp(magnetZ + dz * MOVE_SPEED * dt, -218, -145)
+            local nextX = math.clamp(magnetX + dx * MOVE_SPEED * dt, -32, 32)
+            local nextZ = math.clamp(magnetZ + dz * MOVE_SPEED * dt, -155, -112)
             setMagnetPos(nextX, MAGNET_REST_Y, nextZ)
         end
     else

@@ -147,6 +147,7 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "GameHUD"
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = playerGui
 
 -- Flash néon plein écran (FRAME PERFECT)
@@ -179,6 +180,7 @@ titleBanner.Parent = screenGui
 local function styleFigmaCard(frame: Frame, topColor: Color3, bottomColor: Color3, strokeColor: Color3, cornerRadius: number)
     frame.BorderSizePixel = 0
     frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    frame.ZIndex = math.max(2, frame.ZIndex)
 
     local shadowName = frame.Name .. "_Shadow"
     local shadow = frame.Parent and frame.Parent:FindFirstChild(shadowName) :: Frame?
@@ -187,11 +189,11 @@ local function styleFigmaCard(frame: Frame, topColor: Color3, bottomColor: Color
         shadow.Name = shadowName
         shadow.AnchorPoint = frame.AnchorPoint
         shadow.Size = frame.Size
-        shadow.Position = frame.Position + UDim2.new(0, 0, 0, 6)
+        shadow.Position = frame.Position + UDim2.new(0, 0, 0, 5)
         shadow.BackgroundColor3 = Color3.fromRGB(6, 8, 12)
-        shadow.BackgroundTransparency = 0.45
+        shadow.BackgroundTransparency = 0.5
         shadow.BorderSizePixel = 0
-        shadow.ZIndex = math.max(1, frame.ZIndex - 1)
+        shadow.ZIndex = 1
         shadow.Visible = frame.Visible
         shadow.Parent = frame.Parent
 
@@ -200,7 +202,7 @@ local function styleFigmaCard(frame: Frame, topColor: Color3, bottomColor: Color
         shadowCorner.Parent = shadow
 
         frame:GetPropertyChangedSignal("Position"):Connect(function()
-            if shadow then shadow.Position = frame.Position + UDim2.new(0, 0, 0, 6) end
+            if shadow then shadow.Position = frame.Position + UDim2.new(0, 0, 0, 5) end
         end)
         frame:GetPropertyChangedSignal("Size"):Connect(function()
             if shadow then shadow.Size = frame.Size end

@@ -41,7 +41,7 @@ local function computeSlopeCameraCFrame(): CFrame
 end
 
 -- CFrame de la caméra pour le Mode Pêche (vue haute derrière la grue)
-local craneCameraCFrame = CFrame.lookAt(Vector3.new(0, 42, -105), Vector3.new(0, 8, -165))
+local craneCameraCFrame = CFrame.lookAt(Vector3.new(0, 38, -78), Vector3.new(0, 6, -125))
 
 -- Gestion des contrôles du joueur
 local playerControls: any = nil

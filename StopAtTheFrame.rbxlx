@@ -1554,12 +1554,19 @@ end
 local sessionCache: { [Player]: PlayerData } = {}
 
 local DEFAULT_DATA: PlayerData = {
-    Cash = 100,
+    Cash = 1000,
     Streak = 0,
     TotalFramePerfects = 0,
     Title = "Réflexes de Tortue",
-    Inventory = { "lotus_rally" },
-    Showroom = { [1] = "lotus_rally" },
+    Inventory = { "lotus_rally", "cyber_truck", "drift_supra", "police_interceptor", "hyperion_jetcar", "flash_mcqueen" },
+    Showroom = {
+        [1] = "lotus_rally",
+        [2] = "cyber_truck",
+        [3] = "drift_supra",
+        [4] = "police_interceptor",
+        [5] = "hyperion_jetcar",
+        [6] = "flash_mcqueen",
+    },
     Crane = {
         CableLengthLevel = 1,
         MagneticPowerLevel = 1,
@@ -1614,6 +1621,17 @@ function DataManager.LoadData(player: Player): PlayerData
                 loadedData.Crane.WinchSpeedLevel = result.Crane.WinchSpeedLevel or 1
             end
         end
+    end
+
+    -- Garantit que les 6 véhicules sont toujours disponibles pour le joueur dès le départ
+    local allVehicles = { "lotus_rally", "cyber_truck", "drift_supra", "police_interceptor", "hyperion_jetcar", "flash_mcqueen" }
+    for _, vId in ipairs(allVehicles) do
+        if not table.find(loadedData.Inventory, vId) then
+            table.insert(loadedData.Inventory, vId)
+        end
+    end
+    for i, vId in ipairs(allVehicles) do
+        loadedData.Showroom[i] = vId
     end
 
     sessionCache[player] = loadedData
@@ -1770,7 +1788,7 @@ return GarageService
     STOP AT THE FRAME - WORLD BUILDER (SERVER SCRIPT)
     Génère procéduralement la rue en pente raide style San Francisco,
     les immeubles pastel, le cadre cible vert néon "TargetFrame",
-    et le Hub Portuaire Simulator chaleureux (Quai en bois, Grue 3D, Podiums Showroom, Spots sous-marins).
+    et le Hub Portuaire Simulator compact et chaleureux (Quai 80x70, Grue 3D, 6 Podiums Showroom, Spots sous-marins).
 ]]
 
 local Workspace = game:GetService("Workspace")
@@ -1858,11 +1876,11 @@ createPart("Curb_Right", Vector3.new(0.6, 2.7, lineLength), CFrame.fromMatrix(ri
 
 -- 5. Immeubles pastel style San Francisco avec fenêtres des deux côtés
 local pastelColors = {
-    Color3.fromRGB(168, 218, 185), -- Vert clair pastel
-    Color3.fromRGB(245, 230, 205), -- Beige / Crème pastel
-    Color3.fromRGB(165, 200, 235), -- Bleu ciel pastel
-    Color3.fromRGB(245, 202, 188), -- Pêche pastel
-    Color3.fromRGB(215, 202, 235), -- Lilas doux
+    Color3.fromRGB(168, 218, 185),
+    Color3.fromRGB(245, 230, 205),
+    Color3.fromRGB(165, 200, 235),
+    Color3.fromRGB(245, 202, 188),
+    Color3.fromRGB(215, 202, 235),
 }
 
 local buildingFolder = Instance.new("Folder")
@@ -1883,21 +1901,15 @@ local function buildTownhouse(xOffset: number, zPos: number, colorIndex: number,
     bModel.Name = "Townhouse_" .. math.floor(zPos)
     bModel.Parent = buildingFolder
 
-    -- Corps principal de l'immeuble
     createPart("MainBody", Vector3.new(bWidth, bHeight, bDepth), CFrame.new(bCenterPos), Enum.Material.SmoothPlastic, buildingColor, true, bModel)
-
-    -- Corniche de toit (Style victorien)
     createPart("Cornice", Vector3.new(bWidth + 1.2, 1.8, bDepth + 1.2), CFrame.new(bCenterPos + Vector3.new(0, bHeight / 2 + 0.9, 0)), Enum.Material.SmoothPlastic, Color3.fromRGB(250, 250, 252), true, bModel)
 
-    -- Façade orientée vers la rue
     local facadeX = if isLeftSide then (bCenterPos.X + bWidth / 2 + 0.1) else (bCenterPos.X - bWidth / 2 - 0.1)
 
-    -- Porte d'entrée
     local doorY = groundY + 3.5
     local doorZ = zPos - 5
     createPart("Door", Vector3.new(0.3, 7, 3.5), CFrame.new(facadeX, doorY, doorZ), Enum.Material.WoodPlanks, Color3.fromRGB(75, 50, 40), false, bModel)
 
-    -- Fenêtres sur 3 étages (2 fenêtres par étage)
     for floor = 1, 3 do
         local windowY = groundY + 5 + (floor * 8)
         for _, zOffset in ipairs({ -3, 4 }) do
@@ -1911,8 +1923,8 @@ end
 local stepZ = 24
 local colorIdx = 1
 for z = ROAD_START_Z + 10, ROAD_END_Z - 10, stepZ do
-    buildTownhouse(-35, z, colorIdx, true) -- Côté gauche
-    buildTownhouse(35, z, colorIdx + 2, false) -- Côté droit
+    buildTownhouse(-35, z, colorIdx, true)
+    buildTownhouse(35, z, colorIdx + 2, false)
     colorIdx += 1
 end
 
@@ -1934,64 +1946,61 @@ CarBuilder.CreateTargetFrame("lotus_rally", frameCenterPos)
 print("[WorldBuilder] Rue San Francisco en pente et TargetFrame initialisés avec succès.")
 
 -- =============================================================================
--- 7. LE HUB SIMULATOR CHALEUREUX : QUAI EN BOIS, ZONES NÉON & SPOTS SOUS-MARINS
+-- 7. LE HUB SIMULATOR COMPACT (80 x 70) : QUAI EN BOIS, 6 PODIUMS & GRUE
 -- =============================================================================
 local docksFolder = Instance.new("Folder")
 docksFolder.Name = "SanFranciscoDocks"
 docksFolder.Parent = Workspace
 
--- A. Grand Ponton en Bois Clair Chaleureux
+-- A. Ponton en Bois Clair Chaleureux Compact (80 x 70) centré en (0, -1, -75)
 local dockFloor = createPart(
     "DockPlaza",
-    Vector3.new(140, 4, 105),
-    CFrame.new(0, -1, -90),
+    Vector3.new(80, 4, 70),
+    CFrame.new(0, -1, -75),
     Enum.Material.WoodPlanks,
-    Color3.fromRGB(195, 150, 105), -- Bois clair chaleureux
+    Color3.fromRGB(195, 150, 105),
     true,
     docksFolder
 )
 
--- Promenade en bois traité le long de la ligne d'eau
+-- Promenade en bois le long de l'eau
 local woodBoardwalk = createPart(
     "WoodBoardwalk",
-    Vector3.new(140, 0.5, 18),
-    CFrame.new(0, 1.25, -133),
+    Vector3.new(80, 0.5, 8),
+    CFrame.new(0, 1.25, -105),
     Enum.Material.WoodPlanks,
     Color3.fromRGB(165, 120, 80),
     true,
     docksFolder
 )
 
--- Bordure de quai en poutres massives d'amarrage
+-- Bordure de quai
 local dockEdgeBeam = createPart(
     "DockEdgeBeam",
-    Vector3.new(140, 1.6, 2.5),
-    CFrame.new(0, 1.8, -141),
+    Vector3.new(80, 1.6, 2.5),
+    CFrame.new(0, 1.8, -109.5),
     Enum.Material.WoodPlanks,
     Color3.fromRGB(110, 75, 45),
     true,
     docksFolder
 )
 
--- Barrières portuaires de sécurité en bois le long des côtés
+-- Garde-corps latéraux en bois
 local function buildRailing(startPos: Vector3, endPos: Vector3)
     local length = (endPos - startPos).Magnitude
     local cf = CFrame.lookAt((startPos + endPos) / 2, endPos)
-    -- Lisse supérieure
     createPart("Rail_Top", Vector3.new(0.6, 0.4, length), cf * CFrame.new(0, 3.2, 0), Enum.Material.WoodPlanks, Color3.fromRGB(120, 80, 50), true, docksFolder)
-    -- Lisse médiane
     createPart("Rail_Mid", Vector3.new(0.4, 0.3, length), cf * CFrame.new(0, 1.8, 0), Enum.Material.WoodPlanks, Color3.fromRGB(120, 80, 50), true, docksFolder)
-    -- Poteaux verticaux réguliers
     for dist = 0, length, 8 do
         local postPos = startPos:Lerp(endPos, dist / length) + Vector3.new(0, 1.7, 0)
         createPart("Rail_Post", Vector3.new(0.8, 3.4, 0.8), CFrame.new(postPos), Enum.Material.WoodPlanks, Color3.fromRGB(90, 60, 38), true, docksFolder)
     end
 end
 
-buildRailing(Vector3.new(-68, 1, -40), Vector3.new(-68, 1, -140))
-buildRailing(Vector3.new(68, 1, -40), Vector3.new(68, 1, -140))
+buildRailing(Vector3.new(-39, 1, -40), Vector3.new(-39, 1, -109))
+buildRailing(Vector3.new(39, 1, -40), Vector3.new(39, 1, -109))
 
--- Lampadaires portuaires chaleureux avec globes lumineux
+-- Lampadaires portuaires chaleureux
 local function buildStreetlamp(pos: Vector3)
     local post = createPart("LampPost", Vector3.new(1.2, 12, 1.2), CFrame.new(pos + Vector3.new(0, 6, 0)), Enum.Material.Metal, Color3.fromRGB(45, 50, 55), true, docksFolder)
     local lantern = createPart("LampLantern", Vector3.new(2.4, 2.8, 2.4), CFrame.new(pos + Vector3.new(0, 13, 0)), Enum.Material.Neon, Color3.fromRGB(255, 235, 160), false, docksFolder)
@@ -1999,90 +2008,52 @@ local function buildStreetlamp(pos: Vector3)
     light.Name = "LampLight"
     light.Color = Color3.fromRGB(255, 225, 140)
     light.Brightness = 2.5
-    light.Range = 28
+    light.Range = 26
     light.Parent = lantern
 end
 
-buildStreetlamp(Vector3.new(-60, 1, -55))
-buildStreetlamp(Vector3.new(-60, 1, -115))
-buildStreetlamp(Vector3.new(60, 1, -55))
-buildStreetlamp(Vector3.new(60, 1, -115))
-buildStreetlamp(Vector3.new(-25, 1, -136))
-buildStreetlamp(Vector3.new(25, 1, -136))
-
--- Palmiers décoratifs style Simulator
-local function buildPalmTree(pos: Vector3)
-    local trunk = Instance.new("Part")
-    trunk.Name = "PalmTrunk"
-    trunk.Shape = Enum.PartType.Cylinder
-    trunk.Size = Vector3.new(14, 2.2, 2.2)
-    trunk.CFrame = CFrame.new(pos + Vector3.new(0, 7, 0)) * CFrame.Angles(0, 0, math.rad(84))
-    trunk.Material = Enum.Material.Wood
-    trunk.Color = Color3.fromRGB(120, 85, 55)
-    trunk.Anchored = true
-    trunk.CanCollide = false
-    trunk.Parent = docksFolder
-
-    local leafCenter = pos + Vector3.new(1.5, 14.5, 0)
-    for angle = 0, 300, 60 do
-        local leaf = Instance.new("Part")
-        leaf.Name = "PalmLeaf"
-        leaf.Size = Vector3.new(3, 0.4, 9)
-        leaf.CFrame = CFrame.new(leafCenter) * CFrame.Angles(math.rad(-20), math.rad(angle), 0) * CFrame.new(0, 0, 4.2)
-        leaf.Material = Enum.Material.Grass
-        leaf.Color = Color3.fromRGB(45, 180, 65)
-        leaf.Anchored = true
-        leaf.CanCollide = false
-        leaf.Parent = docksFolder
-    end
-end
-
-buildPalmTree(Vector3.new(-62, 1, -45))
-buildPalmTree(Vector3.new(62, 1, -45))
-buildPalmTree(Vector3.new(-62, 1, -130))
-buildPalmTree(Vector3.new(62, 1, -130))
+buildStreetlamp(Vector3.new(-36, 1, -45))
+buildStreetlamp(Vector3.new(36, 1, -45))
+buildStreetlamp(Vector3.new(-36, 1, -105))
+buildStreetlamp(Vector3.new(36, 1, -105))
 
 -- Caisses de bois décoratives
 local function buildCrate(pos: Vector3, size: Vector3, rotY: number)
     createPart("DockCrate", size, CFrame.new(pos) * CFrame.Angles(0, math.rad(rotY), 0), Enum.Material.WoodPlanks, Color3.fromRGB(170, 125, 80), true, docksFolder)
 end
 
-buildCrate(Vector3.new(-54, 2.5, -60), Vector3.new(3.5, 3.5, 3.5), 15)
-buildCrate(Vector3.new(-51, 2.5, -62), Vector3.new(3, 3, 3), -10)
-buildCrate(Vector3.new(-53, 5.8, -61), Vector3.new(2.8, 2.8, 2.8), 5)
-buildCrate(Vector3.new(53, 2.5, -60), Vector3.new(3.5, 3.5, 3.5), -20)
-buildCrate(Vector3.new(55, 2.5, -64), Vector3.new(3, 3, 3), 12)
+buildCrate(Vector3.new(31, 2.5, -65), Vector3.new(3.5, 3.5, 3.5), 15)
+buildCrate(Vector3.new(34, 2.5, -68), Vector3.new(3, 3, 3), -10)
+buildCrate(Vector3.new(32, 5.8, -66), Vector3.new(2.8, 2.8, 2.8), 5)
 
--- Conteneurs maritimes stylisés sur les côtés du port
+-- Conteneurs maritimes stylisés sur le côté droit
 local containerColors = {
-    Color3.fromRGB(225, 50, 40),  -- Rouge écarlate
-    Color3.fromRGB(35, 125, 215), -- Bleu cyan vif
-    Color3.fromRGB(245, 175, 25), -- Jaune doré
-    Color3.fromRGB(40, 165, 75),  -- Vert émeraude
+    Color3.fromRGB(225, 50, 40),
+    Color3.fromRGB(35, 125, 215),
+    Color3.fromRGB(245, 175, 25),
+    Color3.fromRGB(40, 165, 75),
 }
 
 local function buildCargoContainer(name: string, pos: Vector3, rotY: number, colorIdx: number)
     local cont = createPart(
         name,
-        Vector3.new(9, 9, 22),
+        Vector3.new(8, 8, 20),
         CFrame.new(pos) * CFrame.Angles(0, math.rad(rotY), 0),
         Enum.Material.CorrugatedMetal,
         containerColors[colorIdx],
         true,
         docksFolder
     )
-    createPart(name .. "_Doors", Vector3.new(8.2, 8.2, 0.4), cont.CFrame * CFrame.new(0, 0, 11.1), Enum.Material.Metal, Color3.fromRGB(30, 32, 35), false, docksFolder)
+    createPart(name .. "_Doors", Vector3.new(7.2, 7.2, 0.4), cont.CFrame * CFrame.new(0, 0, 10.1), Enum.Material.Metal, Color3.fromRGB(30, 32, 35), false, docksFolder)
 end
 
-buildCargoContainer("Container_L1", Vector3.new(-52, 5.5, -80), 12, 1)
-buildCargoContainer("Container_L2", Vector3.new(-53, 14.5, -80), 8, 2)
-buildCargoContainer("Container_R1", Vector3.new(52, 5.5, -80), -10, 4)
-buildCargoContainer("Container_R2", Vector3.new(51, 14.5, -80), -12, 1)
+buildCargoContainer("Container_R1", Vector3.new(32, 5.0, -85), -5, 2)
+buildCargoContainer("Container_R2", Vector3.new(32, 13.0, -85), -8, 1)
 
 -- Point d'apparition principal (Spawn) au centre du Quai Maritime
 local spawnLocation = Instance.new("SpawnLocation")
 spawnLocation.Name = "DockSpawnPoint"
-spawnLocation.Size = Vector3.new(12, 0.5, 12)
+spawnLocation.Size = Vector3.new(10, 0.5, 10)
 spawnLocation.CFrame = CFrame.new(0, 1.25, -75)
 spawnLocation.Material = Enum.Material.WoodPlanks
 spawnLocation.Color = Color3.fromRGB(210, 165, 115)
@@ -2091,11 +2062,11 @@ spawnLocation.CanCollide = true
 spawnLocation.Neutral = true
 spawnLocation.Parent = docksFolder
 
--- B. Le Grand Bassin Aquatique & Fonds Marins
+-- B. Le Grand Bassin Aquatique & Fonds Marins (Rapproché à Z = -155)
 local waterBasin = createPart(
     "WaterSurface",
-    Vector3.new(180, 1, 150),
-    CFrame.new(0, -0.2, -215),
+    Vector3.new(100, 1, 90),
+    CFrame.new(0, -0.2, -155),
     Enum.Material.Glass,
     Color3.fromRGB(25, 150, 215),
     false,
@@ -2104,22 +2075,20 @@ local waterBasin = createPart(
 waterBasin.Transparency = 0.40
 waterBasin.Reflectance = 0.35
 
--- Fond marin sableux sous-marin
 local seaBed = createPart(
     "SeaBed",
-    Vector3.new(180, 6, 150),
-    CFrame.new(0, -38, -215),
+    Vector3.new(100, 6, 90),
+    CFrame.new(0, -38, -155),
     Enum.Material.Sand,
     Color3.fromRGB(35, 45, 52),
     true,
     docksFolder
 )
 
--- Épave sous-marine visible sous l'eau transparente
 local wreckRally = CarBuilder.CreateLotusRally()
 wreckRally.Name = "SunkenWreck_Lotus"
 wreckRally.Parent = docksFolder
-wreckRally:PivotTo(CFrame.new(0, -34, -165) * CFrame.Angles(math.rad(15), math.rad(45), math.rad(-10)))
+wreckRally:PivotTo(CFrame.new(0, -34, -125) * CFrame.Angles(math.rad(15), math.rad(45), math.rad(-10)))
 for _, p in ipairs(wreckRally:GetDescendants()) do
     if p:IsA("BasePart") then
         p.Material = Enum.Material.CorrodedMetal
@@ -2129,7 +2098,6 @@ for _, p in ipairs(wreckRally:GetDescendants()) do
     end
 end
 
--- Bulles d'eau (CORRECTION DU BUG NumberSequence.new)
 local bubbleEmitter = Instance.new("ParticleEmitter")
 bubbleEmitter.Name = "UnderwaterBubbles"
 bubbleEmitter.Texture = "rbxasset://textures/particles/sparkles_main.dds"
@@ -2142,7 +2110,7 @@ bubbleEmitter.SpreadAngle = Vector2.new(15, 15)
 local bubbleAnchor = Instance.new("Part")
 bubbleAnchor.Name = "BubbleAnchor"
 bubbleAnchor.Size = Vector3.new(1, 1, 1)
-bubbleAnchor.CFrame = CFrame.new(0, -32, -165)
+bubbleAnchor.CFrame = CFrame.new(0, -32, -125)
 bubbleAnchor.Transparency = 1
 bubbleAnchor.Anchored = true
 bubbleAnchor.CanCollide = false
@@ -2157,12 +2125,12 @@ underwaterSpotsFolder.Name = "UnderwaterSpots"
 underwaterSpotsFolder.Parent = docksFolder
 
 local SPOT_DEFS = {
-    { Pos = Vector3.new(-42, -37, -158), Color = Color3.fromRGB(40, 230, 90),   Rarity = "Commune",    Label = "🟢 Lotus Rally" },
-    { Pos = Vector3.new(38, -37, -162),  Color = Color3.fromRGB(0, 220, 255),   Rarity = "Peu Commune",Label = "🔷 Cyber Truck" },
-    { Pos = Vector3.new(-22, -37, -182), Color = Color3.fromRGB(30, 120, 255),  Rarity = "Rare",       Label = "🔵 Drift Supra" },
-    { Pos = Vector3.new(26, -37, -192),  Color = Color3.fromRGB(175, 45, 255),  Rarity = "Épique",     Label = "🟣 Police Interceptor" },
-    { Pos = Vector3.new(-34, -37, -215), Color = Color3.fromRGB(255, 130, 20),  Rarity = "Légendaire", Label = "🟠 Hyperion JetCar" },
-    { Pos = Vector3.new(12, -37, -208),  Color = Color3.fromRGB(255, 215, 0),   Rarity = "Mythique",   Label = "⭐ Flash McQueen ⚡" },
+    { Pos = Vector3.new(-24, -37, -118), Color = Color3.fromRGB(40, 230, 90),   Rarity = "Commune",    Label = "🟢 Lotus Rally" },
+    { Pos = Vector3.new(24, -37, -120),  Color = Color3.fromRGB(0, 220, 255),   Rarity = "Peu Commune",Label = "🔷 Cyber Truck" },
+    { Pos = Vector3.new(-14, -37, -132), Color = Color3.fromRGB(30, 120, 255),  Rarity = "Rare",       Label = "🔵 Drift Supra" },
+    { Pos = Vector3.new(16, -37, -134),  Color = Color3.fromRGB(175, 45, 255),  Rarity = "Épique",     Label = "🟣 Police Interceptor" },
+    { Pos = Vector3.new(-20, -37, -145), Color = Color3.fromRGB(255, 130, 20),  Rarity = "Légendaire", Label = "🟠 Hyperion JetCar" },
+    { Pos = Vector3.new(10, -37, -144),  Color = Color3.fromRGB(255, 215, 0),   Rarity = "Mythique",   Label = "⭐ Flash McQueen ⚡" },
 }
 
 for i, spot in ipairs(SPOT_DEFS) do
@@ -2170,11 +2138,10 @@ for i, spot in ipairs(SPOT_DEFS) do
     spotModel.Name = "UnderwaterSpot_" .. i
     spotModel.Parent = underwaterSpotsFolder
 
-    -- Socle néon circulaire au fond marin
     local baseDisc = Instance.new("Part")
     baseDisc.Name = "BaseGlow"
     baseDisc.Shape = Enum.PartType.Cylinder
-    baseDisc.Size = Vector3.new(0.8, 12, 12)
+    baseDisc.Size = Vector3.new(0.8, 10, 10)
     baseDisc.CFrame = CFrame.new(spot.Pos) * CFrame.Angles(0, 0, math.rad(90))
     baseDisc.Material = Enum.Material.Neon
     baseDisc.Color = spot.Color
@@ -2182,12 +2149,11 @@ for i, spot in ipairs(SPOT_DEFS) do
     baseDisc.CanCollide = false
     baseDisc.Parent = spotModel
 
-    -- Colonne de faisceau lumineux vertical montant du fond marin à la surface
     local beamHeight = 36
     local lightBeam = Instance.new("Part")
     lightBeam.Name = "LightColumn"
     lightBeam.Shape = Enum.PartType.Cylinder
-    lightBeam.Size = Vector3.new(beamHeight, 8, 8)
+    lightBeam.Size = Vector3.new(beamHeight, 7, 7)
     lightBeam.CFrame = CFrame.new(spot.Pos.X, spot.Pos.Y + (beamHeight / 2), spot.Pos.Z) * CFrame.Angles(0, 0, math.rad(90))
     lightBeam.Material = Enum.Material.Neon
     lightBeam.Color = spot.Color
@@ -2196,11 +2162,10 @@ for i, spot in ipairs(SPOT_DEFS) do
     lightBeam.CanCollide = false
     lightBeam.Parent = spotModel
 
-    -- Anneau de surface flottant visible depuis le quai
     local surfaceRing = Instance.new("Part")
     surfaceRing.Name = "SurfaceRing"
     surfaceRing.Shape = Enum.PartType.Cylinder
-    surfaceRing.Size = Vector3.new(0.3, 10, 10)
+    surfaceRing.Size = Vector3.new(0.3, 8.5, 8.5)
     surfaceRing.CFrame = CFrame.new(spot.Pos.X, 0.2, spot.Pos.Z) * CFrame.Angles(0, 0, math.rad(90))
     surfaceRing.Material = Enum.Material.Neon
     surfaceRing.Color = spot.Color
@@ -2209,11 +2174,10 @@ for i, spot in ipairs(SPOT_DEFS) do
     surfaceRing.CanCollide = false
     surfaceRing.Parent = spotModel
 
-    -- Lumière sous-marine
     local pLight = Instance.new("PointLight")
     pLight.Color = spot.Color
     pLight.Brightness = 3.0
-    pLight.Range = 28
+    pLight.Range = 26
     pLight.Parent = surfaceRing
 end
 
@@ -2237,11 +2201,10 @@ local function createNeonZonePad(name: string, pos: Vector3, radius: number, pad
     pad.CanCollide = false
     pad.Parent = zonesFolder
 
-    -- Anneau extérieur d'accent
     local outerRing = Instance.new("Part")
     outerRing.Name = name .. "_Ring"
     outerRing.Shape = Enum.PartType.Cylinder
-    outerRing.Size = Vector3.new(0.3, (radius + 1.6) * 2, (radius + 1.6) * 2)
+    outerRing.Size = Vector3.new(0.3, (radius + 1.4) * 2, (radius + 1.4) * 2)
     outerRing.CFrame = CFrame.new(pos - Vector3.new(0, 0.05, 0)) * CFrame.Angles(0, 0, math.rad(90))
     outerRing.Material = Enum.Material.SmoothPlastic
     outerRing.Color = Color3.fromRGB(25, 28, 35)
@@ -2249,13 +2212,12 @@ local function createNeonZonePad(name: string, pos: Vector3, radius: number, pad
     outerRing.CanCollide = false
     outerRing.Parent = zonesFolder
 
-    -- Grand BillboardGui flottant dans l'air
     local bb = Instance.new("BillboardGui")
     bb.Name = name .. "_Billboard"
-    bb.Size = UDim2.new(0, 320, 0, 85)
-    bb.StudsOffset = Vector3.new(0, 8.5, 0)
+    bb.Size = UDim2.new(0, 300, 0, 80)
+    bb.StudsOffset = Vector3.new(0, 8.0, 0)
     bb.AlwaysOnTop = true
-    bb.MaxDistance = 160
+    bb.MaxDistance = 140
     bb.Parent = pad
 
     local card = Instance.new("Frame")
@@ -2282,11 +2244,11 @@ local function createNeonZonePad(name: string, pos: Vector3, radius: number, pad
 
     local titleLbl = Instance.new("TextLabel")
     titleLbl.Name = "Title"
-    titleLbl.Size = UDim2.new(1, -20, 0, 42)
-    titleLbl.Position = UDim2.new(0, 10, 0, 8)
+    titleLbl.Size = UDim2.new(1, -20, 0, 40)
+    titleLbl.Position = UDim2.new(0, 10, 0, 6)
     titleLbl.BackgroundTransparency = 1
     titleLbl.Font = Enum.Font.FredokaOne
-    titleLbl.TextSize = 21
+    titleLbl.TextSize = 20
     titleLbl.TextColor3 = padColor
     titleLbl.TextStrokeColor3 = Color3.fromRGB(10, 12, 16)
     titleLbl.TextStrokeTransparency = 0
@@ -2296,7 +2258,7 @@ local function createNeonZonePad(name: string, pos: Vector3, radius: number, pad
     local subLbl = Instance.new("TextLabel")
     subLbl.Name = "Subtitle"
     subLbl.Size = UDim2.new(1, -20, 0, 24)
-    subLbl.Position = UDim2.new(0, 10, 0, 50)
+    subLbl.Position = UDim2.new(0, 10, 0, 46)
     subLbl.BackgroundTransparency = 1
     subLbl.Font = Enum.Font.GothamBold
     subLbl.TextSize = 13
@@ -2309,25 +2271,25 @@ local function createNeonZonePad(name: string, pos: Vector3, radius: number, pad
     return pad
 end
 
--- 1. Zone Cyan : "🎣 PILOTER LA GRUE [E]"
-createNeonZonePad("CraneZone", Vector3.new(0, 1.25, -125), 6.5, Color3.fromRGB(0, 240, 255), "🎣 PILOTER LA GRUE [E]", "PÊCHE D'ÉPAVES 3D & LOOT MYTHIQUE")
+-- 1. Zone Cyan : "🎣 PILOTER LA GRUE [E]" (à Z = -96)
+createNeonZonePad("CraneZone", Vector3.new(0, 1.25, -96), 5.5, Color3.fromRGB(0, 240, 255), "🎣 PILOTER LA GRUE [E]", "PÊCHE D'ÉPAVES 3D & LOOT MYTHIQUE")
 
--- 2. Zone Verte : "🏎️ GARAGE SHOWROOM ($/sec)"
-createNeonZonePad("GarageZone", Vector3.new(-38, 1.25, -85), 18, Color3.fromRGB(40, 230, 90), "🏎️ GARAGE SHOWROOM ($/sec)", "REVENU PASSIF AUTOMATIQUE")
+-- 2. Zone Verte : "🏎️ GARAGE SHOWROOM ($/sec)" (resserrée à gauche à X = -20, Z = -75)
+createNeonZonePad("GarageZone", Vector3.new(-20, 1.25, -75), 14, Color3.fromRGB(40, 230, 90), "🏎️ GARAGE SHOWROOM ($/sec)", "REVENU PASSIF AUTOMATIQUE")
 
--- 3. Zone Or/Rouge : "⚡ STOP THE FRAME [E]"
-createNeonZonePad("RaceZone", Vector3.new(0, 1.25, -42), 8.5, Color3.fromRGB(255, 205, 30), "⚡ STOP THE FRAME [E]", "DÉFI DE PRÉCISION 1v1 EN PENTE")
+-- 3. Zone Or/Rouge : "⚡ STOP THE FRAME [E]" (juste devant à Z = -45)
+createNeonZonePad("RaceZone", Vector3.new(0, 1.25, -45), 7.5, Color3.fromRGB(255, 205, 30), "⚡ STOP THE FRAME [E]", "DÉFI DE PRÉCISION 1v1 EN PENTE")
 
--- Damier de départ de course au sol devant l'arche
-local checkerZStart = -48
-local checkerZEnd = -38
+-- Damier de départ de course au sol
+local checkerZStart = -46
+local checkerZEnd = -40
 local tileIdx = 0
-for z = checkerZStart, checkerZEnd, 2.5 do
-    for x = -14, 14, 2.5 do
+for z = checkerZStart, checkerZEnd, 2.0 do
+    for x = -10, 10, 2.0 do
         local isWhite = (tileIdx % 2 == 0)
         local tile = createPart(
             "CheckeredTile",
-            Vector3.new(2.4, 0.1, 2.4),
+            Vector3.new(1.9, 0.1, 1.9),
             CFrame.new(x, 1.25, z),
             Enum.Material.SmoothPlastic,
             isWhite and Color3.fromRGB(245, 245, 250) or Color3.fromRGB(25, 28, 32),
@@ -2340,19 +2302,19 @@ for z = checkerZStart, checkerZEnd, 2.5 do
 end
 
 -- =============================================================================
--- E. SHOWROOM GARAGE : LES 6 PODIUMS AVEC VOITURES 3D EXPOSÉES PHYSIQUEMENT
+-- E. SHOWROOM GARAGE : LES 6 PODIUMS COMPACTS RESSERRÉS SUR LE CÔTÉ GAUCHE
 -- =============================================================================
 local showroomFolder = Instance.new("Folder")
 showroomFolder.Name = "ShowroomPodiums"
 showroomFolder.Parent = docksFolder
 
 local PODIUM_CONFIGS = {
-    { Pos = Vector3.new(-52, 2.0, -74),  VehId = "lotus_rally",        Rate = "$2/s",   Color = Color3.fromRGB(40, 230, 90),   Rarity = "COMMUNE" },
-    { Pos = Vector3.new(-38, 2.0, -74),  VehId = "cyber_truck",        Rate = "$5/s",   Color = Color3.fromRGB(0, 220, 255),   Rarity = "PEU COMMUNE" },
-    { Pos = Vector3.new(-24, 2.0, -74),  VehId = "drift_supra",        Rate = "$12/s",  Color = Color3.fromRGB(30, 120, 255),  Rarity = "RARE" },
-    { Pos = Vector3.new(-52, 2.0, -96),  VehId = "police_interceptor", Rate = "$25/s",  Color = Color3.fromRGB(175, 45, 255),  Rarity = "ÉPIQUE" },
-    { Pos = Vector3.new(-38, 2.0, -96),  VehId = "hyperion_jetcar",    Rate = "$60/s",  Color = Color3.fromRGB(255, 130, 20),  Rarity = "LÉGENDAIRE" },
-    { Pos = Vector3.new(-24, 2.0, -96),  VehId = "flash_mcqueen",      Rate = "$150/s", Color = Color3.fromRGB(255, 215, 0),   Rarity = "MYTHIQUE" },
+    { Pos = Vector3.new(-26, 1.8, -62),  VehId = "lotus_rally",        Rate = "$2/s",   Color = Color3.fromRGB(40, 230, 90),   Rarity = "COMMUNE" },
+    { Pos = Vector3.new(-14, 1.8, -62),  VehId = "cyber_truck",        Rate = "$5/s",   Color = Color3.fromRGB(0, 220, 255),   Rarity = "PEU COMMUNE" },
+    { Pos = Vector3.new(-26, 1.8, -75),  VehId = "drift_supra",        Rate = "$12/s",  Color = Color3.fromRGB(30, 120, 255),  Rarity = "RARE" },
+    { Pos = Vector3.new(-14, 1.8, -75),  VehId = "police_interceptor", Rate = "$25/s",  Color = Color3.fromRGB(175, 45, 255),  Rarity = "ÉPIQUE" },
+    { Pos = Vector3.new(-26, 1.8, -88),  VehId = "hyperion_jetcar",    Rate = "$60/s",  Color = Color3.fromRGB(255, 130, 20),  Rarity = "LÉGENDAIRE" },
+    { Pos = Vector3.new(-14, 1.8, -88),  VehId = "flash_mcqueen",      Rate = "$150/s", Color = Color3.fromRGB(255, 215, 0),   Rarity = "MYTHIQUE" },
 }
 
 for i, pcfg in ipairs(PODIUM_CONFIGS) do
@@ -2360,11 +2322,10 @@ for i, pcfg in ipairs(PODIUM_CONFIGS) do
     pModel.Name = "Podium_" .. pcfg.VehId
     pModel.Parent = showroomFolder
 
-    -- Socle cylindrique surélevé
     local stand = Instance.new("Part")
     stand.Name = "PodiumStand"
     stand.Shape = Enum.PartType.Cylinder
-    stand.Size = Vector3.new(1.8, 12, 12)
+    stand.Size = Vector3.new(1.4, 9, 9)
     stand.CFrame = CFrame.new(pcfg.Pos) * CFrame.Angles(0, 0, math.rad(90))
     stand.Material = Enum.Material.Metal
     stand.Color = Color3.fromRGB(32, 35, 42)
@@ -2372,19 +2333,17 @@ for i, pcfg in ipairs(PODIUM_CONFIGS) do
     stand.CanCollide = true
     stand.Parent = pModel
 
-    -- Anneau néon brillant de rareté
     local glowRing = Instance.new("Part")
     glowRing.Name = "GlowRing"
     glowRing.Shape = Enum.PartType.Cylinder
-    glowRing.Size = Vector3.new(0.3, 12.6, 12.6)
-    glowRing.CFrame = CFrame.new(pcfg.Pos + Vector3.new(0, 0.8, 0)) * CFrame.Angles(0, 0, math.rad(90))
+    glowRing.Size = Vector3.new(0.3, 9.6, 9.6)
+    glowRing.CFrame = CFrame.new(pcfg.Pos + Vector3.new(0, 0.6, 0)) * CFrame.Angles(0, 0, math.rad(90))
     glowRing.Material = Enum.Material.Neon
     glowRing.Color = pcfg.Color
     glowRing.Anchored = true
     glowRing.CanCollide = false
     glowRing.Parent = pModel
 
-    -- Instanciation de la vraie voiture 3D posée fièrement sur le podium
     local carModel: Model? = nil
     pcall(function()
         local vcfg = CarBuilder.GetVehicleConfig(pcfg.VehId)
@@ -2392,7 +2351,7 @@ for i, pcfg in ipairs(PODIUM_CONFIGS) do
         if carModel then
             carModel.Name = "ExhibitionCar_" .. pcfg.VehId
             carModel.Parent = pModel
-            carModel:PivotTo(CFrame.new(pcfg.Pos + Vector3.new(0, 1.9, 0)) * CFrame.Angles(0, math.rad(180), 0))
+            carModel:PivotTo(CFrame.new(pcfg.Pos + Vector3.new(0, 1.5, 0)) * CFrame.Angles(0, math.rad(180), 0))
             for _, bp in ipairs(carModel:GetDescendants()) do
                 if bp:IsA("BasePart") then
                     bp.Anchored = true
@@ -2402,13 +2361,12 @@ for i, pcfg in ipairs(PODIUM_CONFIGS) do
         end
     end)
 
-    -- Étiquette flottante de stats du véhicule
     local statBb = Instance.new("BillboardGui")
     statBb.Name = "VehicleTag"
-    statBb.Size = UDim2.new(0, 200, 0, 52)
-    statBb.StudsOffset = Vector3.new(0, 5.2, 0)
+    statBb.Size = UDim2.new(0, 190, 0, 48)
+    statBb.StudsOffset = Vector3.new(0, 4.8, 0)
     statBb.AlwaysOnTop = true
-    statBb.MaxDistance = 90
+    statBb.MaxDistance = 80
     statBb.Parent = stand
 
     local tagFrame = Instance.new("Frame")
@@ -2418,7 +2376,7 @@ for i, pcfg in ipairs(PODIUM_CONFIGS) do
     tagFrame.Parent = statBb
 
     local tagCorner = Instance.new("UICorner")
-    tagCorner.CornerRadius = UDim.new(0, 10)
+    tagCorner.CornerRadius = UDim.new(0, 8)
     tagCorner.Parent = tagFrame
 
     local tagStroke = Instance.new("UIStroke")
@@ -2427,18 +2385,18 @@ for i, pcfg in ipairs(PODIUM_CONFIGS) do
     tagStroke.Parent = tagFrame
 
     local nameLabel = Instance.new("TextLabel")
-    nameLabel.Size = UDim2.new(1, -10, 0, 24)
-    nameLabel.Position = UDim2.new(0, 5, 0, 3)
+    nameLabel.Size = UDim2.new(1, -10, 0, 22)
+    nameLabel.Position = UDim2.new(0, 5, 0, 2)
     nameLabel.BackgroundTransparency = 1
     nameLabel.Font = Enum.Font.FredokaOne
-    nameLabel.TextSize = 14
+    nameLabel.TextSize = 13
     nameLabel.TextColor3 = pcfg.Color
     nameLabel.Text = pcfg.Rarity .. " • " .. pcfg.Rate
     nameLabel.Parent = tagFrame
 
     local idLabel = Instance.new("TextLabel")
     idLabel.Size = UDim2.new(1, -10, 0, 20)
-    idLabel.Position = UDim2.new(0, 5, 0, 26)
+    idLabel.Position = UDim2.new(0, 5, 0, 24)
     idLabel.BackgroundTransparency = 1
     idLabel.Font = Enum.Font.GothamBlack
     idLabel.TextSize = 12
@@ -2448,7 +2406,7 @@ for i, pcfg in ipairs(PODIUM_CONFIGS) do
 end
 
 -- =============================================================================
--- F. LA GRANDE GRUE INDUSTRIELLE JAUNE (MODE PÊCHE)
+-- F. LA GRANDE GRUE INDUSTRIELLE JAUNE (RAPPROCHÉE À Z = -104)
 -- =============================================================================
 local craneModel = Instance.new("Model")
 craneModel.Name = "IndustrialFishingCrane"
@@ -2458,47 +2416,42 @@ local CRANE_YELLOW = Color3.fromRGB(240, 185, 20)
 local CRANE_DARK   = Color3.fromRGB(28, 30, 35)
 local CRANE_NEON   = Color3.fromRGB(0, 255, 200)
 
--- Socle lourd cylindrique
 local craneBase = Instance.new("Part")
 craneBase.Name = "CraneBase"
 craneBase.Shape = Enum.PartType.Cylinder
-craneBase.Size = Vector3.new(3, 14, 14)
-craneBase.CFrame = CFrame.new(0, 2.5, -135) * CFrame.Angles(0, 0, math.rad(90))
+craneBase.Size = Vector3.new(3, 12, 12)
+craneBase.CFrame = CFrame.new(0, 2.5, -104) * CFrame.Angles(0, 0, math.rad(90))
 craneBase.Material = Enum.Material.Metal
 craneBase.Color = CRANE_DARK
 craneBase.Anchored = true
 craneBase.CanCollide = true
 craneBase.Parent = craneModel
 
--- Mât vertical en treillis jaune
-local craneMast = createPart("CraneMast", Vector3.new(5, 30, 5), CFrame.new(0, 17, -135), Enum.Material.DiamondPlate, CRANE_YELLOW, true, craneModel)
-
--- Cabine d'opérateur vitrée avec gyrophare orange
-local craneCabin = createPart("CraneCabin", Vector3.new(7, 6, 8), CFrame.new(4.5, 25, -135), Enum.Material.SmoothPlastic, CRANE_DARK, true, craneModel)
-local cabinGlass = createPart("CabinGlass", Vector3.new(0.3, 4.5, 6.5), craneCabin.CFrame * CFrame.new(3.5, 0.2, 0), Enum.Material.Glass, Color3.fromRGB(180, 225, 255), false, craneModel)
+local craneMast = createPart("CraneMast", Vector3.new(4.5, 30, 4.5), CFrame.new(0, 17, -104), Enum.Material.DiamondPlate, CRANE_YELLOW, true, craneModel)
+local craneCabin = createPart("CraneCabin", Vector3.new(6.5, 5.5, 7.5), CFrame.new(4.2, 25, -104), Enum.Material.SmoothPlastic, CRANE_DARK, true, craneModel)
+local cabinGlass = createPart("CabinGlass", Vector3.new(0.3, 4.2, 6.0), craneCabin.CFrame * CFrame.new(3.2, 0.2, 0), Enum.Material.Glass, Color3.fromRGB(180, 225, 255), false, craneModel)
 cabinGlass.Transparency = 0.3
 
-local beaconLight = createPart("CraneBeacon", Vector3.new(1.2, 1.2, 1.2), craneCabin.CFrame * CFrame.new(0, 3.6, 0), Enum.Material.Neon, Color3.fromRGB(255, 140, 0), false, craneModel)
+local beaconLight = createPart("CraneBeacon", Vector3.new(1.2, 1.2, 1.2), craneCabin.CFrame * CFrame.new(0, 3.4, 0), Enum.Material.Neon, Color3.fromRGB(255, 140, 0), false, craneModel)
 
--- Flèche horizontale (Boom) surplombant le bassin aquatique
-local craneBoom = createPart("CraneBoom", Vector3.new(4.5, 4.5, 50), CFrame.new(0, 32, -160), Enum.Material.DiamondPlate, CRANE_YELLOW, true, craneModel)
+-- Flèche horizontale (Boom) surplombant l'eau de Z = -104 à Z = -146
+local craneBoom = createPart("CraneBoom", Vector3.new(4, 4, 45), CFrame.new(0, 32, -125), Enum.Material.DiamondPlate, CRANE_YELLOW, true, craneModel)
 
--- Câble métallique et Tête d'électro-aimant suspendue
-local winchCable = createPart("WinchCable", Vector3.new(0.35, 24, 0.35), CFrame.new(0, 18, -165), Enum.Material.Metal, CRANE_DARK, false, craneModel)
+-- Câble et Aimant
+local winchCable = createPart("WinchCable", Vector3.new(0.35, 24, 0.35), CFrame.new(0, 18, -125), Enum.Material.Metal, CRANE_DARK, false, craneModel)
 
 local craneMagnet = Instance.new("Part")
 craneMagnet.Name = "CraneMagnet"
 craneMagnet.Shape = Enum.PartType.Cylinder
-craneMagnet.Size = Vector3.new(2.5, 8, 8)
-craneMagnet.CFrame = CFrame.new(0, 5.5, -165) * CFrame.Angles(0, 0, math.rad(90))
+craneMagnet.Size = Vector3.new(2.5, 7.5, 7.5)
+craneMagnet.CFrame = CFrame.new(0, 5.5, -125) * CFrame.Angles(0, 0, math.rad(90))
 craneMagnet.Material = Enum.Material.Metal
 craneMagnet.Color = CRANE_DARK
 craneMagnet.Anchored = true
 craneMagnet.CanCollide = true
 craneMagnet.Parent = craneModel
 
--- Anneau néon électromagnétique lumineux sous l'aimant
-local magnetRing = createPart("MagnetNeonRing", Vector3.new(7.2, 0.4, 7.2), craneMagnet.CFrame * CFrame.new(-1.1, 0, 0) * CFrame.Angles(0, 0, math.rad(90)), Enum.Material.Neon, CRANE_NEON, false, craneModel)
+local magnetRing = createPart("MagnetNeonRing", Vector3.new(6.8, 0.4, 6.8), craneMagnet.CFrame * CFrame.new(-1.1, 0, 0) * CFrame.Angles(0, 0, math.rad(90)), Enum.Material.Neon, CRANE_NEON, false, craneModel)
 
 local magnetLight = Instance.new("PointLight")
 magnetLight.Name = "MagnetLight"
@@ -2508,7 +2461,7 @@ magnetLight.Range = 25
 magnetLight.Parent = craneMagnet
 
 -- Pupitre de commande au sol avec ProximityPrompt pour piloter la Grue
-local craneConsole = createPart("CraneControlConsole", Vector3.new(3, 3.5, 2), CFrame.new(0, 2.75, -126), Enum.Material.Metal, CRANE_DARK, true, craneModel)
+local craneConsole = createPart("CraneControlConsole", Vector3.new(3, 3.5, 2), CFrame.new(0, 2.75, -96), Enum.Material.Metal, CRANE_DARK, true, craneModel)
 local consoleScreen = createPart("ConsoleScreen", Vector3.new(2.2, 1.4, 0.2), craneConsole.CFrame * CFrame.new(0, 0.6, 1.0), Enum.Material.Neon, Color3.fromRGB(0, 230, 255), false, craneModel)
 
 local cranePrompt = Instance.new("ProximityPrompt")
@@ -2521,27 +2474,24 @@ cranePrompt.HoldDuration = 0
 cranePrompt.Parent = craneConsole
 
 -- =============================================================================
--- G. PORTIQUE D'ENTRÉE VERS LA PENTE 1v1 (STOP THE FRAME)
+-- G. PORTIQUE D'ENTRÉE VERS LA PENTE 1v1 (JUSTE DEVANT À Z = -42)
 -- =============================================================================
 local gateModel = Instance.new("Model")
 gateModel.Name = "StopTheFrameEntryGate"
 gateModel.Parent = docksFolder
 
-local GATE_POS_Z = -38
-local pillarL = createPart("GatePillar_L", Vector3.new(2.5, 18, 2.5), CFrame.new(-18, 9, GATE_POS_Z), Enum.Material.Metal, Color3.fromRGB(35, 38, 42), true, gateModel)
-local pillarR = createPart("GatePillar_R", Vector3.new(2.5, 18, 2.5), CFrame.new(18, 9, GATE_POS_Z), Enum.Material.Metal, Color3.fromRGB(35, 38, 42), true, gateModel)
-local crossbeam = createPart("GateCrossbeam", Vector3.new(38, 3, 2.5), CFrame.new(0, 17, GATE_POS_Z), Enum.Material.Metal, Color3.fromRGB(35, 38, 42), true, gateModel)
+local GATE_POS_Z = -42
+local pillarL = createPart("GatePillar_L", Vector3.new(2.5, 18, 2.5), CFrame.new(-16, 9, GATE_POS_Z), Enum.Material.Metal, Color3.fromRGB(35, 38, 42), true, gateModel)
+local pillarR = createPart("GatePillar_R", Vector3.new(2.5, 18, 2.5), CFrame.new(16, 9, GATE_POS_Z), Enum.Material.Metal, Color3.fromRGB(35, 38, 42), true, gateModel)
+local crossbeam = createPart("GateCrossbeam", Vector3.new(34, 3, 2.5), CFrame.new(0, 17, GATE_POS_Z), Enum.Material.Metal, Color3.fromRGB(35, 38, 42), true, gateModel)
 
--- Enseigne Néon de Course
-local neonSign = createPart("NeonSign_StopTheFrame", Vector3.new(32, 2.2, 0.5), CFrame.new(0, 17, GATE_POS_Z + 1.4), Enum.Material.Neon, Color3.fromRGB(255, 225, 0), false, gateModel)
+local neonSign = createPart("NeonSign_StopTheFrame", Vector3.new(30, 2.2, 0.5), CFrame.new(0, 17, GATE_POS_Z + 1.4), Enum.Material.Neon, Color3.fromRGB(255, 225, 0), false, gateModel)
 
--- Feux de départ de course (Vert, Orange, Rouge)
-local lightGreen  = createPart("LightGreen", Vector3.new(1.2, 1.2, 0.6), CFrame.new(-6, 14, GATE_POS_Z + 1.3), Enum.Material.Neon, Color3.fromRGB(0, 255, 60), false, gateModel)
+local lightGreen  = createPart("LightGreen", Vector3.new(1.2, 1.2, 0.6), CFrame.new(-5, 14, GATE_POS_Z + 1.3), Enum.Material.Neon, Color3.fromRGB(0, 255, 60), false, gateModel)
 local lightYellow = createPart("LightYellow", Vector3.new(1.2, 1.2, 0.6), CFrame.new(0, 14, GATE_POS_Z + 1.3), Enum.Material.Neon, Color3.fromRGB(255, 190, 0), false, gateModel)
-local lightRed    = createPart("LightRed", Vector3.new(1.2, 1.2, 0.6), CFrame.new(6, 14, GATE_POS_Z + 1.3), Enum.Material.Neon, Color3.fromRGB(255, 30, 30), false, gateModel)
+local lightRed    = createPart("LightRed", Vector3.new(1.2, 1.2, 0.6), CFrame.new(5, 14, GATE_POS_Z + 1.3), Enum.Material.Neon, Color3.fromRGB(255, 30, 30), false, gateModel)
 
--- Borne d'enregistrement Stop The Frame avec ProximityPrompt
-local raceTerminal = createPart("RaceTerminal", Vector3.new(3, 3.5, 2), CFrame.new(-12, 2.75, GATE_POS_Z - 5), Enum.Material.Metal, Color3.fromRGB(25, 28, 32), true, gateModel)
+local raceTerminal = createPart("RaceTerminal", Vector3.new(3, 3.5, 2), CFrame.new(-10, 2.75, GATE_POS_Z - 4), Enum.Material.Metal, Color3.fromRGB(25, 28, 32), true, gateModel)
 createPart("TerminalScreen", Vector3.new(2.2, 1.4, 0.2), raceTerminal.CFrame * CFrame.new(0, 0.6, -1.0), Enum.Material.Neon, Color3.fromRGB(255, 230, 60), false, gateModel)
 
 local racePrompt = Instance.new("ProximityPrompt")
@@ -2553,7 +2503,7 @@ racePrompt.MaxActivationDistance = 14
 racePrompt.HoldDuration = 0
 racePrompt.Parent = raceTerminal
 
-print("[WorldBuilder] Quai Maritime, Bassin Aquatique, 6 Podiums Showroom et Grue Industrielle initialisés avec succès.")
+print("[WorldBuilder] Quai Compact (80x70), 6 Podiums Showroom, Grue et Portique initialisés avec succès.")
 ]]></string>
       </Properties>
     </Item>
@@ -2612,7 +2562,7 @@ local function computeSlopeCameraCFrame(): CFrame
 end
 
 -- CFrame de la caméra pour le Mode Pêche (vue haute derrière la grue)
-local craneCameraCFrame = CFrame.lookAt(Vector3.new(0, 42, -105), Vector3.new(0, 8, -165))
+local craneCameraCFrame = CFrame.lookAt(Vector3.new(0, 38, -78), Vector3.new(0, 6, -125))
 
 -- Gestion des contrôles du joueur
 local playerControls: any = nil
@@ -2776,6 +2726,7 @@ local soundHit   = createSound("SFX_Hit", "rbxasset://sounds/bell.wav", 0.85)
 local function styleFigmaCard(frame: Frame, topColor: Color3, bottomColor: Color3, strokeColor: Color3, cornerRadius: number)
     frame.BorderSizePixel = 0
     frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    frame.ZIndex = math.max(2, frame.ZIndex)
 
     local shadowName = frame.Name .. "_Shadow"
     local shadow = frame.Parent and frame.Parent:FindFirstChild(shadowName) :: Frame?
@@ -2784,11 +2735,11 @@ local function styleFigmaCard(frame: Frame, topColor: Color3, bottomColor: Color
         shadow.Name = shadowName
         shadow.AnchorPoint = frame.AnchorPoint
         shadow.Size = frame.Size
-        shadow.Position = frame.Position + UDim2.new(0, 0, 0, 6)
+        shadow.Position = frame.Position + UDim2.new(0, 0, 0, 5)
         shadow.BackgroundColor3 = Color3.fromRGB(6, 8, 12)
-        shadow.BackgroundTransparency = 0.45
+        shadow.BackgroundTransparency = 0.5
         shadow.BorderSizePixel = 0
-        shadow.ZIndex = math.max(1, frame.ZIndex - 1)
+        shadow.ZIndex = 1
         shadow.Visible = frame.Visible
         shadow.Parent = frame.Parent
 
@@ -2797,7 +2748,7 @@ local function styleFigmaCard(frame: Frame, topColor: Color3, bottomColor: Color
         shadowCorner.Parent = shadow
 
         frame:GetPropertyChangedSignal("Position"):Connect(function()
-            if shadow then shadow.Position = frame.Position + UDim2.new(0, 0, 0, 6) end
+            if shadow then shadow.Position = frame.Position + UDim2.new(0, 0, 0, 5) end
         end)
         frame:GetPropertyChangedSignal("Size"):Connect(function()
             if shadow then shadow.Size = frame.Size end
@@ -2853,6 +2804,7 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "CraneHUD"
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Enabled = false
 screenGui.Parent = playerGui
 
@@ -3153,7 +3105,7 @@ animateFigmaButton(btnClaim)
 -- GÉOMÉTRIE & LASER DE VISÉE DYNAMIQUE DANS LE BASSIN
 -- =============================================================================
 local magnetX = 0
-local magnetZ = -165
+local magnetZ = -125
 local magnetY = MAGNET_REST_Y
 
 local laserBeam = Instance.new("Part")
@@ -3179,16 +3131,16 @@ laserReticle.Anchored = true
 laserReticle.CanCollide = false
 laserReticle.CanQuery = false
 laserReticle.CastShadow = false
-laserReticle.Size = Vector3.new(0.2, 9, 9)
+laserReticle.Size = Vector3.new(0.2, 8.5, 8.5)
 laserReticle.Parent = Workspace
 
 local SPOT_TARGETS = {
-    { Pos = Vector3.new(-42, -37, -158), Color = Color3.fromRGB(40, 230, 90),   Rarity = "Commune",    Depth = 20,  Label = "Lotus Rally" },
-    { Pos = Vector3.new(38, -37, -162),  Color = Color3.fromRGB(0, 220, 255),   Rarity = "Peu Commune",Depth = 40,  Label = "Cyber Truck" },
-    { Pos = Vector3.new(-22, -37, -182), Color = Color3.fromRGB(30, 120, 255),  Rarity = "Rare",       Depth = 65,  Label = "Drift Supra" },
-    { Pos = Vector3.new(26, -37, -192),  Color = Color3.fromRGB(175, 45, 255),  Rarity = "Épique",     Depth = 90,  Label = "Police Interceptor" },
-    { Pos = Vector3.new(-34, -37, -215), Color = Color3.fromRGB(255, 130, 20),  Rarity = "Légendaire", Depth = 120, Label = "Hyperion JetCar" },
-    { Pos = Vector3.new(12, -37, -208),  Color = Color3.fromRGB(255, 215, 0),   Rarity = "Mythique",   Depth = 150, Label = "Flash McQueen ⚡" },
+    { Pos = Vector3.new(-24, -37, -118), Color = Color3.fromRGB(40, 230, 90),   Rarity = "Commune",    Depth = 20,  Label = "Lotus Rally" },
+    { Pos = Vector3.new(24, -37, -120),  Color = Color3.fromRGB(0, 220, 255),   Rarity = "Peu Commune",Depth = 40,  Label = "Cyber Truck" },
+    { Pos = Vector3.new(-14, -37, -132), Color = Color3.fromRGB(30, 120, 255),  Rarity = "Rare",       Depth = 65,  Label = "Drift Supra" },
+    { Pos = Vector3.new(16, -37, -134),  Color = Color3.fromRGB(175, 45, 255),  Rarity = "Épique",     Depth = 90,  Label = "Police Interceptor" },
+    { Pos = Vector3.new(-20, -37, -145), Color = Color3.fromRGB(255, 130, 20),  Rarity = "Légendaire", Depth = 120, Label = "Hyperion JetCar" },
+    { Pos = Vector3.new(10, -37, -144),  Color = Color3.fromRGB(255, 215, 0),   Rarity = "Mythique",   Depth = 150, Label = "Flash McQueen ⚡" },
 }
 
 local currentLockedSpot: any = nil
@@ -3247,8 +3199,8 @@ RunService.RenderStepped:Connect(function(dt)
         end
 
         if dx ~= 0 or dz ~= 0 then
-            local nextX = math.clamp(magnetX + dx * MOVE_SPEED * dt, -46, 46)
-            local nextZ = math.clamp(magnetZ + dz * MOVE_SPEED * dt, -218, -145)
+            local nextX = math.clamp(magnetX + dx * MOVE_SPEED * dt, -32, 32)
+            local nextZ = math.clamp(magnetZ + dz * MOVE_SPEED * dt, -155, -112)
             setMagnetPos(nextX, MAGNET_REST_Y, nextZ)
         end
     else
@@ -3670,6 +3622,7 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "GameHUD"
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = playerGui
 
 -- Flash néon plein écran (FRAME PERFECT)
@@ -3702,6 +3655,7 @@ titleBanner.Parent = screenGui
 local function styleFigmaCard(frame: Frame, topColor: Color3, bottomColor: Color3, strokeColor: Color3, cornerRadius: number)
     frame.BorderSizePixel = 0
     frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    frame.ZIndex = math.max(2, frame.ZIndex)
 
     local shadowName = frame.Name .. "_Shadow"
     local shadow = frame.Parent and frame.Parent:FindFirstChild(shadowName) :: Frame?
@@ -3710,11 +3664,11 @@ local function styleFigmaCard(frame: Frame, topColor: Color3, bottomColor: Color
         shadow.Name = shadowName
         shadow.AnchorPoint = frame.AnchorPoint
         shadow.Size = frame.Size
-        shadow.Position = frame.Position + UDim2.new(0, 0, 0, 6)
+        shadow.Position = frame.Position + UDim2.new(0, 0, 0, 5)
         shadow.BackgroundColor3 = Color3.fromRGB(6, 8, 12)
-        shadow.BackgroundTransparency = 0.45
+        shadow.BackgroundTransparency = 0.5
         shadow.BorderSizePixel = 0
-        shadow.ZIndex = math.max(1, frame.ZIndex - 1)
+        shadow.ZIndex = 1
         shadow.Visible = frame.Visible
         shadow.Parent = frame.Parent
 
@@ -3723,7 +3677,7 @@ local function styleFigmaCard(frame: Frame, topColor: Color3, bottomColor: Color
         shadowCorner.Parent = shadow
 
         frame:GetPropertyChangedSignal("Position"):Connect(function()
-            if shadow then shadow.Position = frame.Position + UDim2.new(0, 0, 0, 6) end
+            if shadow then shadow.Position = frame.Position + UDim2.new(0, 0, 0, 5) end
         end)
         frame:GetPropertyChangedSignal("Size"):Connect(function()
             if shadow then shadow.Size = frame.Size end

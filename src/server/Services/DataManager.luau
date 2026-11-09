@@ -42,12 +42,19 @@ end
 local sessionCache: { [Player]: PlayerData } = {}
 
 local DEFAULT_DATA: PlayerData = {
-    Cash = 100,
+    Cash = 1000,
     Streak = 0,
     TotalFramePerfects = 0,
     Title = "Réflexes de Tortue",
-    Inventory = { "lotus_rally" },
-    Showroom = { [1] = "lotus_rally" },
+    Inventory = { "lotus_rally", "cyber_truck", "drift_supra", "police_interceptor", "hyperion_jetcar", "flash_mcqueen" },
+    Showroom = {
+        [1] = "lotus_rally",
+        [2] = "cyber_truck",
+        [3] = "drift_supra",
+        [4] = "police_interceptor",
+        [5] = "hyperion_jetcar",
+        [6] = "flash_mcqueen",
+    },
     Crane = {
         CableLengthLevel = 1,
         MagneticPowerLevel = 1,
@@ -102,6 +109,17 @@ function DataManager.LoadData(player: Player): PlayerData
                 loadedData.Crane.WinchSpeedLevel = result.Crane.WinchSpeedLevel or 1
             end
         end
+    end
+
+    -- Garantit que les 6 véhicules sont toujours disponibles pour le joueur dès le départ
+    local allVehicles = { "lotus_rally", "cyber_truck", "drift_supra", "police_interceptor", "hyperion_jetcar", "flash_mcqueen" }
+    for _, vId in ipairs(allVehicles) do
+        if not table.find(loadedData.Inventory, vId) then
+            table.insert(loadedData.Inventory, vId)
+        end
+    end
+    for i, vId in ipairs(allVehicles) do
+        loadedData.Showroom[i] = vId
     end
 
     sessionCache[player] = loadedData
