@@ -173,25 +173,97 @@ titleBanner.TextStrokeTransparency = 0
 titleBanner.Text = "⚡ STOP AT THE FRAME ⚡"
 titleBanner.Parent = screenGui
 
+-- =============================================================================
+-- FIGMA SIMULATOR UI DESIGN SYSTEM HELPERS
+-- =============================================================================
+local function styleFigmaCard(frame: Frame, topColor: Color3, bottomColor: Color3, strokeColor: Color3, cornerRadius: number)
+    frame.BorderSizePixel = 0
+    frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+    local shadowName = frame.Name .. "_Shadow"
+    local shadow = frame.Parent and frame.Parent:FindFirstChild(shadowName) :: Frame?
+    if not shadow and frame.Parent then
+        shadow = Instance.new("Frame")
+        shadow.Name = shadowName
+        shadow.AnchorPoint = frame.AnchorPoint
+        shadow.Size = frame.Size
+        shadow.Position = frame.Position + UDim2.new(0, 0, 0, 6)
+        shadow.BackgroundColor3 = Color3.fromRGB(6, 8, 12)
+        shadow.BackgroundTransparency = 0.45
+        shadow.BorderSizePixel = 0
+        shadow.ZIndex = math.max(1, frame.ZIndex - 1)
+        shadow.Visible = frame.Visible
+        shadow.Parent = frame.Parent
+
+        local shadowCorner = Instance.new("UICorner")
+        shadowCorner.CornerRadius = UDim.new(0, cornerRadius)
+        shadowCorner.Parent = shadow
+
+        frame:GetPropertyChangedSignal("Position"):Connect(function()
+            if shadow then shadow.Position = frame.Position + UDim2.new(0, 0, 0, 6) end
+        end)
+        frame:GetPropertyChangedSignal("Size"):Connect(function()
+            if shadow then shadow.Size = frame.Size end
+        end)
+        frame:GetPropertyChangedSignal("Visible"):Connect(function()
+            if shadow then shadow.Visible = frame.Visible end
+        end)
+    end
+
+    local corner = frame:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, cornerRadius)
+    corner.Parent = frame
+
+    local stroke = frame:FindFirstChildOfClass("UIStroke") or Instance.new("UIStroke")
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    stroke.Color = strokeColor
+    stroke.Thickness = 3
+    stroke.Transparency = 0
+    stroke.Parent = frame
+
+    local gradient = frame:FindFirstChildOfClass("UIGradient") or Instance.new("UIGradient")
+    gradient.Rotation = 90
+    gradient.Color = ColorSequence.new(topColor, bottomColor)
+    gradient.Parent = frame
+end
+
+local function animateFigmaButton(button: TextButton | ImageButton)
+    local scale = button:FindFirstChildOfClass("UIScale") or Instance.new("UIScale")
+    scale.Parent = button
+
+    local tweenInfoHover = TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    local tweenInfoLeave = TweenInfo.new(0.14, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local tweenInfoPress = TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+    button.MouseEnter:Connect(function()
+        TweenService:Create(scale, tweenInfoHover, { Scale = 1.07 }):Play()
+    end)
+    button.MouseLeave:Connect(function()
+        TweenService:Create(scale, tweenInfoLeave, { Scale = 1.0 }):Play()
+    end)
+    button.MouseButton1Down:Connect(function()
+        TweenService:Create(scale, tweenInfoPress, { Scale = 0.92 }):Play()
+    end)
+    button.MouseButton1Up:Connect(function()
+        TweenService:Create(scale, tweenInfoHover, { Scale = 1.07 }):Play()
+    end)
+end
+
 -- Card d'état joueur (Haut Gauche) : Cash, Streak, Titre
 local statsCard = Instance.new("Frame")
 statsCard.Name = "StatsCard"
-statsCard.Size = UDim2.new(0, 230, 0, 115)
+statsCard.Size = UDim2.new(0, 240, 0, 118)
 statsCard.Position = UDim2.new(0, 24, 0, 24)
-statsCard.BackgroundColor3 = Color3.fromRGB(18, 20, 26)
-statsCard.BackgroundTransparency = 0.25
-statsCard.BorderSizePixel = 0
+statsCard.ZIndex = 5
 statsCard.Parent = screenGui
 
-local statsCorner = Instance.new("UICorner")
-statsCorner.CornerRadius = UDim.new(0, 12)
-statsCorner.Parent = statsCard
-
-local statsStroke = Instance.new("UIStroke")
-statsStroke.Color = Color3.fromRGB(50, 60, 75)
-statsStroke.Thickness = 1.5
-statsStroke.Transparency = 0.3
-statsStroke.Parent = statsCard
+styleFigmaCard(
+    statsCard,
+    Color3.fromRGB(24, 28, 38),
+    Color3.fromRGB(12, 14, 20),
+    Color3.fromRGB(45, 220, 120),
+    14
+)
 
 local cashLabel = Instance.new("TextLabel")
 cashLabel.Name = "CashLabel"
@@ -282,28 +354,24 @@ rewardPopupLabel.Parent = resultContainer
 -- Barre de sélection de véhicule en bas
 local selectorBar = Instance.new("Frame")
 selectorBar.Name = "VehicleSelectorBar"
-selectorBar.Size = UDim2.new(0, 480, 0, 60)
+selectorBar.Size = UDim2.new(0, 500, 0, 68)
 selectorBar.AnchorPoint = Vector2.new(0.5, 1)
 selectorBar.Position = UDim2.new(0.5, 0, 1, -44)
-selectorBar.BackgroundColor3 = Color3.fromRGB(18, 20, 26)
-selectorBar.BackgroundTransparency = 0.25
-selectorBar.BorderSizePixel = 0
+selectorBar.ZIndex = 5
 selectorBar.Parent = screenGui
 
-local selectorCorner = Instance.new("UICorner")
-selectorCorner.CornerRadius = UDim.new(0, 14)
-selectorCorner.Parent = selectorBar
-
-local selectorStroke = Instance.new("UIStroke")
-selectorStroke.Color = Color3.fromRGB(50, 60, 75)
-selectorStroke.Thickness = 1.5
-selectorStroke.Transparency = 0.3
-selectorStroke.Parent = selectorBar
+styleFigmaCard(
+    selectorBar,
+    Color3.fromRGB(24, 28, 38),
+    Color3.fromRGB(12, 14, 20),
+    Color3.fromRGB(50, 140, 255),
+    16
+)
 
 local btnPrev = Instance.new("TextButton")
 btnPrev.Name = "BtnPrev"
-btnPrev.Size = UDim2.new(0, 46, 0, 46)
-btnPrev.Position = UDim2.new(0, 8, 0.5, -23)
+btnPrev.Size = UDim2.new(0, 48, 0, 48)
+btnPrev.Position = UDim2.new(0, 10, 0.5, -24)
 btnPrev.BackgroundColor3 = Color3.fromRGB(34, 38, 48)
 btnPrev.Font = Enum.Font.GothamBlack
 btnPrev.TextSize = 22
@@ -314,11 +382,12 @@ btnPrev.Parent = selectorBar
 local prevCorner = Instance.new("UICorner")
 prevCorner.CornerRadius = UDim.new(0, 10)
 prevCorner.Parent = btnPrev
+animateFigmaButton(btnPrev)
 
 local btnNext = Instance.new("TextButton")
 btnNext.Name = "BtnNext"
-btnNext.Size = UDim2.new(0, 46, 0, 46)
-btnNext.Position = UDim2.new(1, -54, 0.5, -23)
+btnNext.Size = UDim2.new(0, 48, 0, 48)
+btnNext.Position = UDim2.new(1, -58, 0.5, -24)
 btnNext.BackgroundColor3 = Color3.fromRGB(34, 38, 48)
 btnNext.Font = Enum.Font.GothamBlack
 btnNext.TextSize = 22
@@ -329,26 +398,27 @@ btnNext.Parent = selectorBar
 local nextCorner = Instance.new("UICorner")
 nextCorner.CornerRadius = UDim.new(0, 10)
 nextCorner.Parent = btnNext
+animateFigmaButton(btnNext)
 
 local vehicleTitleLabel = Instance.new("TextLabel")
 vehicleTitleLabel.Name = "VehicleTitleLabel"
-vehicleTitleLabel.Size = UDim2.new(1, -120, 0, 26)
-vehicleTitleLabel.Position = UDim2.new(0, 60, 0, 7)
+vehicleTitleLabel.Size = UDim2.new(1, -130, 0, 28)
+vehicleTitleLabel.Position = UDim2.new(0, 65, 0, 8)
 vehicleTitleLabel.BackgroundTransparency = 1
-vehicleTitleLabel.Font = Enum.Font.GothamBlack
-vehicleTitleLabel.TextSize = 20
+vehicleTitleLabel.Font = Enum.Font.FredokaOne
+vehicleTitleLabel.TextSize = 21
 vehicleTitleLabel.TextColor3 = Color3.fromRGB(250, 250, 255)
 vehicleTitleLabel.Text = "#1 Lotus Rally"
 vehicleTitleLabel.Parent = selectorBar
 
 local vehicleSubLabel = Instance.new("TextLabel")
 vehicleSubLabel.Name = "VehicleSubLabel"
-vehicleSubLabel.Size = UDim2.new(1, -120, 0, 20)
-vehicleSubLabel.Position = UDim2.new(0, 60, 0, 33)
+vehicleSubLabel.Size = UDim2.new(1, -130, 0, 22)
+vehicleSubLabel.Position = UDim2.new(0, 65, 0, 36)
 vehicleSubLabel.BackgroundTransparency = 1
 vehicleSubLabel.Font = Enum.Font.GothamBold
 vehicleSubLabel.TextSize = 13
-vehicleSubLabel.TextColor3 = Color3.fromRGB(160, 175, 195)
+vehicleSubLabel.TextColor3 = Color3.fromRGB(160, 205, 255)
 vehicleSubLabel.Text = "Vitesse: x1.0 • Prime: $50"
 vehicleSubLabel.Parent = selectorBar
 
@@ -372,48 +442,49 @@ hintLabel.Parent = screenGui
 -- =============================================================================
 local hubNavCard = Instance.new("Frame")
 hubNavCard.Name = "HubNavCard"
-hubNavCard.Size = UDim2.new(0, 520, 0, 48)
+hubNavCard.Size = UDim2.new(0, 540, 0, 54)
 hubNavCard.AnchorPoint = Vector2.new(0.5, 0)
 hubNavCard.Position = UDim2.new(0.5, 0, 0, 22)
-hubNavCard.BackgroundColor3 = Color3.fromRGB(18, 22, 28)
+hubNavCard.ZIndex = 5
 hubNavCard.Parent = screenGui
 
-local hubCorner = Instance.new("UICorner")
-hubCorner.CornerRadius = UDim.new(0, 14)
-hubCorner.Parent = hubNavCard
-
-local hubStroke = Instance.new("UIStroke")
-hubStroke.Color = Color3.fromRGB(255, 215, 0)
-hubStroke.Thickness = 2
-hubStroke.Parent = hubNavCard
+styleFigmaCard(
+    hubNavCard,
+    Color3.fromRGB(24, 28, 38),
+    Color3.fromRGB(12, 14, 20),
+    Color3.fromRGB(255, 215, 0),
+    16
+)
 
 local btnNavRace = Instance.new("TextButton")
 btnNavRace.Name = "BtnNavRace"
-btnNavRace.Size = UDim2.new(0.5, -6, 1, -8)
-btnNavRace.Position = UDim2.new(0, 4, 0, 4)
+btnNavRace.Size = UDim2.new(0.5, -8, 1, -10)
+btnNavRace.Position = UDim2.new(0, 5, 0, 5)
 btnNavRace.BackgroundColor3 = Color3.fromRGB(240, 185, 20)
-btnNavRace.Font = Enum.Font.GothamBlack
-btnNavRace.TextSize = 14
+btnNavRace.Font = Enum.Font.FredokaOne
+btnNavRace.TextSize = 15
 btnNavRace.TextColor3 = Color3.fromRGB(15, 18, 22)
-btnNavRace.Text = "⚡ JOUER : STOP THE FRAME (1v1)"
+btnNavRace.Text = "⚡ JOUER : STOP THE FRAME"
 btnNavRace.Parent = hubNavCard
 local raceBtnCorner = Instance.new("UICorner")
 raceBtnCorner.CornerRadius = UDim.new(0, 10)
 raceBtnCorner.Parent = btnNavRace
+animateFigmaButton(btnNavRace)
 
 local btnNavCrane = Instance.new("TextButton")
 btnNavCrane.Name = "BtnNavCrane"
-btnNavCrane.Size = UDim2.new(0.5, -6, 1, -8)
-btnNavCrane.Position = UDim2.new(0.5, 2, 0, 4)
-btnNavCrane.BackgroundColor3 = Color3.fromRGB(0, 180, 225)
-btnNavCrane.Font = Enum.Font.GothamBlack
-btnNavCrane.TextSize = 14
+btnNavCrane.Size = UDim2.new(0.5, -8, 1, -10)
+btnNavCrane.Position = UDim2.new(0.5, 3, 0, 5)
+btnNavCrane.BackgroundColor3 = Color3.fromRGB(0, 185, 235)
+btnNavCrane.Font = Enum.Font.FredokaOne
+btnNavCrane.TextSize = 15
 btnNavCrane.TextColor3 = Color3.fromRGB(255, 255, 255)
 btnNavCrane.Text = "🎣 MODE PÊCHE (GRUE)"
 btnNavCrane.Parent = hubNavCard
 local craneBtnCorner = Instance.new("UICorner")
 craneBtnCorner.CornerRadius = UDim.new(0, 10)
 craneBtnCorner.Parent = btnNavCrane
+animateFigmaButton(btnNavCrane)
 
 btnNavRace.MouseButton1Click:Connect(function()
     player:SetAttribute("CurrentMode", "StopTheFrame")
@@ -425,9 +496,9 @@ end)
 -- Bouton de retour au port (affiché pendant le mode StopTheFrame)
 local btnReturnToPort = Instance.new("TextButton")
 btnReturnToPort.Name = "BtnReturnToPort"
-btnReturnToPort.Size = UDim2.new(0, 210, 0, 38)
-btnReturnToPort.Position = UDim2.new(0, 24, 0, 150)
-btnReturnToPort.BackgroundColor3 = Color3.fromRGB(180, 40, 45)
+btnReturnToPort.Size = UDim2.new(0, 220, 0, 42)
+btnReturnToPort.Position = UDim2.new(0, 24, 0, 155)
+btnReturnToPort.BackgroundColor3 = Color3.fromRGB(190, 45, 50)
 btnReturnToPort.Font = Enum.Font.GothamBold
 btnReturnToPort.TextSize = 13
 btnReturnToPort.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -437,6 +508,7 @@ btnReturnToPort.Parent = screenGui
 local retCorner = Instance.new("UICorner")
 retCorner.CornerRadius = UDim.new(0, 10)
 retCorner.Parent = btnReturnToPort
+animateFigmaButton(btnReturnToPort)
 
 btnReturnToPort.MouseButton1Click:Connect(function()
     player:SetAttribute("CurrentMode", "Hub")
