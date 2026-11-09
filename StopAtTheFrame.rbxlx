@@ -179,7 +179,7 @@ function CarBuilder.CreateLotusRally(): Model
         tire.Shape = Enum.PartType.Cylinder
         tire.Size = Vector3.new(1.0, 2.1, 2.1)
         tire.CFrame = root.CFrame * CFrame.new(offset)
-        tire.Material = Enum.Material.Rubber
+        tire.Material = Enum.Material.SmoothPlastic
         tire.Color = Color3.fromRGB(20, 20, 22)
         tire.Anchored = false
         tire.CanCollide = false
@@ -279,7 +279,7 @@ function CarBuilder.CreateCyberTruck(): Model
         tire.Shape = Enum.PartType.Cylinder
         tire.Size = Vector3.new(1.0, 2.1, 2.1)
         tire.CFrame = root.CFrame * CFrame.new(offset)
-        tire.Material = Enum.Material.Rubber
+        tire.Material = Enum.Material.SmoothPlastic
         tire.Color = BLACK_ARMOR
         tire.Anchored = false
         tire.CanCollide = false
@@ -364,7 +364,7 @@ function CarBuilder.CreateDriftSupra(): Model
         tire.Shape = Enum.PartType.Cylinder
         tire.Size = Vector3.new(1.0, 2.1, 2.1)
         tire.CFrame = root.CFrame * CFrame.new(offset)
-        tire.Material = Enum.Material.Rubber
+        tire.Material = Enum.Material.SmoothPlastic
         tire.Color = Color3.fromRGB(20, 20, 22)
         tire.Anchored = false
         tire.CanCollide = false
@@ -451,7 +451,7 @@ function CarBuilder.CreatePoliceInterceptor(): Model
         tire.Shape = Enum.PartType.Cylinder
         tire.Size = Vector3.new(1.0, 2.1, 2.1)
         tire.CFrame = root.CFrame * CFrame.new(offset)
-        tire.Material = Enum.Material.Rubber
+        tire.Material = Enum.Material.SmoothPlastic
         tire.Color = Color3.fromRGB(20, 20, 22)
         tire.Anchored = false
         tire.CanCollide = false
@@ -546,7 +546,7 @@ function CarBuilder.CreateHyperionJetCar(): Model
         tire.Shape = Enum.PartType.Cylinder
         tire.Size = Vector3.new(1.0, 2.1, 2.1)
         tire.CFrame = root.CFrame * CFrame.new(offset)
-        tire.Material = Enum.Material.Rubber
+        tire.Material = Enum.Material.SmoothPlastic
         tire.Color = DARK_CARBON
         tire.Anchored = false
         tire.CanCollide = false
@@ -843,7 +843,7 @@ function CarBuilder.CreateFlashMcQueen(): Model
         tire.Shape = Enum.PartType.Cylinder
         tire.Size = Vector3.new(1.0, 2.1, 2.1)
         tire.CFrame = root.CFrame * CFrame.new(offset)
-        tire.Material = Enum.Material.Rubber
+        tire.Material = Enum.Material.SmoothPlastic
         tire.Color = Color3.fromRGB(20, 20, 22)
         tire.Anchored = false
         tire.CanCollide = false
@@ -2039,7 +2039,7 @@ local function buildCargoContainer(name: string, pos: Vector3, rotY: number, col
         name,
         Vector3.new(8, 8, 20),
         CFrame.new(pos) * CFrame.Angles(0, math.rad(rotY), 0),
-        Enum.Material.CorrugatedMetal,
+        Enum.Material.DiamondPlate,
         containerColors[colorIdx],
         true,
         docksFolder
@@ -2879,8 +2879,9 @@ local dropCorner = Instance.new("UICorner")
 dropCorner.CornerRadius = UDim.new(0, 12)
 dropCorner.Parent = btnDropMagnet
 local dropStroke = Instance.new("UIStroke")
-dropStroke.Color = Color3.fromRGB(255, 255, 255)
-dropStroke.Thickness = 2
+dropStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+dropStroke.Color = Color3.fromRGB(0, 240, 255)
+dropStroke.Thickness = 2.5
 dropStroke.Parent = btnDropMagnet
 animateFigmaButton(btnDropMagnet)
 
@@ -3065,6 +3066,7 @@ local badgeCorner = Instance.new("UICorner")
 badgeCorner.CornerRadius = UDim.new(0, 10)
 badgeCorner.Parent = rarityBadge
 local badgeStroke = Instance.new("UIStroke")
+badgeStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 badgeStroke.Color = Color3.fromRGB(255, 255, 255)
 badgeStroke.Thickness = 2
 badgeStroke.Parent = rarityBadge
@@ -3096,6 +3098,7 @@ local claimCorner = Instance.new("UICorner")
 claimCorner.CornerRadius = UDim.new(0, 12)
 claimCorner.Parent = btnClaim
 local claimStroke = Instance.new("UIStroke")
+claimStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 claimStroke.Color = Color3.fromRGB(255, 255, 255)
 claimStroke.Thickness = 2
 claimStroke.Parent = btnClaim
@@ -3726,11 +3729,11 @@ local function animateFigmaButton(button: TextButton | ImageButton)
     end)
 end
 
--- Card d'état joueur (Haut Gauche) : Cash, Streak, Titre
+-- Card d'état joueur (Haut Gauche) : Cash, Streak, Titre (Décalé sous la barre supérieure Roblox)
 local statsCard = Instance.new("Frame")
 statsCard.Name = "StatsCard"
 statsCard.Size = UDim2.new(0, 240, 0, 118)
-statsCard.Position = UDim2.new(0, 24, 0, 24)
+statsCard.Position = UDim2.new(0, 24, 0, 56)
 statsCard.ZIndex = 5
 statsCard.Parent = screenGui
 
@@ -4025,6 +4028,22 @@ local function bindLeaderstats()
     updateStats()
 end
 task.spawn(bindLeaderstats)
+
+-- Écoute du revenu passif du Showroom (consomme les RemoteEvents et évite la saturation de file)
+task.spawn(function()
+    if remotesFolder then
+        local garageTickEvent = remotesFolder:WaitForChild("GaragePassiveTick", 10) :: RemoteEvent?
+        if garageTickEvent then
+            garageTickEvent.OnClientEvent:Connect(function(gained: number, incomeRate: number)
+                local leaderstats = player:FindFirstChild("leaderstats")
+                local cash = leaderstats and leaderstats:FindFirstChild("Cash") :: IntValue?
+                if cash then
+                    cashLabel.Text = string.format("💰 Cash : $%d (+$%d/s)", cash.Value, incomeRate)
+                end
+            end)
+        end
+    end
+end)
 
 -- =============================================================================
 -- 5. ÉTAT DES VÉHICULES ET SÉLECTION DYNAMIQUE

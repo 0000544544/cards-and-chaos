@@ -254,7 +254,7 @@ local function buildCargoContainer(name: string, pos: Vector3, rotY: number, col
         name,
         Vector3.new(8, 8, 20),
         CFrame.new(pos) * CFrame.Angles(0, math.rad(rotY), 0),
-        Enum.Material.CorrugatedMetal,
+        Enum.Material.DiamondPlate,
         containerColors[colorIdx],
         true,
         docksFolder

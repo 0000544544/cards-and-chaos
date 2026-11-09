@@ -251,11 +251,11 @@ local function animateFigmaButton(button: TextButton | ImageButton)
     end)
 end
 
--- Card d'état joueur (Haut Gauche) : Cash, Streak, Titre
+-- Card d'état joueur (Haut Gauche) : Cash, Streak, Titre (Décalé sous la barre supérieure Roblox)
 local statsCard = Instance.new("Frame")
 statsCard.Name = "StatsCard"
 statsCard.Size = UDim2.new(0, 240, 0, 118)
-statsCard.Position = UDim2.new(0, 24, 0, 24)
+statsCard.Position = UDim2.new(0, 24, 0, 56)
 statsCard.ZIndex = 5
 statsCard.Parent = screenGui
 
@@ -550,6 +550,22 @@ local function bindLeaderstats()
     updateStats()
 end
 task.spawn(bindLeaderstats)
+
+-- Écoute du revenu passif du Showroom (consomme les RemoteEvents et évite la saturation de file)
+task.spawn(function()
+    if remotesFolder then
+        local garageTickEvent = remotesFolder:WaitForChild("GaragePassiveTick", 10) :: RemoteEvent?
+        if garageTickEvent then
+            garageTickEvent.OnClientEvent:Connect(function(gained: number, incomeRate: number)
+                local leaderstats = player:FindFirstChild("leaderstats")
+                local cash = leaderstats and leaderstats:FindFirstChild("Cash") :: IntValue?
+                if cash then
+                    cashLabel.Text = string.format("💰 Cash : $%d (+$%d/s)", cash.Value, incomeRate)
+                end
+            end)
+        end
+    end
+end)
 
 -- =============================================================================
 -- 5. ÉTAT DES VÉHICULES ET SÉLECTION DYNAMIQUE

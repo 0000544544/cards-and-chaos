@@ -221,8 +221,9 @@ local dropCorner = Instance.new("UICorner")
 dropCorner.CornerRadius = UDim.new(0, 12)
 dropCorner.Parent = btnDropMagnet
 local dropStroke = Instance.new("UIStroke")
-dropStroke.Color = Color3.fromRGB(255, 255, 255)
-dropStroke.Thickness = 2
+dropStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+dropStroke.Color = Color3.fromRGB(0, 240, 255)
+dropStroke.Thickness = 2.5
 dropStroke.Parent = btnDropMagnet
 animateFigmaButton(btnDropMagnet)
 
@@ -407,6 +408,7 @@ local badgeCorner = Instance.new("UICorner")
 badgeCorner.CornerRadius = UDim.new(0, 10)
 badgeCorner.Parent = rarityBadge
 local badgeStroke = Instance.new("UIStroke")
+badgeStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 badgeStroke.Color = Color3.fromRGB(255, 255, 255)
 badgeStroke.Thickness = 2
 badgeStroke.Parent = rarityBadge
@@ -438,6 +440,7 @@ local claimCorner = Instance.new("UICorner")
 claimCorner.CornerRadius = UDim.new(0, 12)
 claimCorner.Parent = btnClaim
 local claimStroke = Instance.new("UIStroke")
+claimStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 claimStroke.Color = Color3.fromRGB(255, 255, 255)
 claimStroke.Thickness = 2
 claimStroke.Parent = btnClaim

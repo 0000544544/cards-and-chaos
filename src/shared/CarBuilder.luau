@@ -152,7 +152,7 @@ function CarBuilder.CreateLotusRally(): Model
         tire.Shape = Enum.PartType.Cylinder
         tire.Size = Vector3.new(1.0, 2.1, 2.1)
         tire.CFrame = root.CFrame * CFrame.new(offset)
-        tire.Material = Enum.Material.Rubber
+        tire.Material = Enum.Material.SmoothPlastic
         tire.Color = Color3.fromRGB(20, 20, 22)
         tire.Anchored = false
         tire.CanCollide = false
@@ -252,7 +252,7 @@ function CarBuilder.CreateCyberTruck(): Model
         tire.Shape = Enum.PartType.Cylinder
         tire.Size = Vector3.new(1.0, 2.1, 2.1)
         tire.CFrame = root.CFrame * CFrame.new(offset)
-        tire.Material = Enum.Material.Rubber
+        tire.Material = Enum.Material.SmoothPlastic
         tire.Color = BLACK_ARMOR
         tire.Anchored = false
         tire.CanCollide = false
@@ -337,7 +337,7 @@ function CarBuilder.CreateDriftSupra(): Model
         tire.Shape = Enum.PartType.Cylinder
         tire.Size = Vector3.new(1.0, 2.1, 2.1)
         tire.CFrame = root.CFrame * CFrame.new(offset)
-        tire.Material = Enum.Material.Rubber
+        tire.Material = Enum.Material.SmoothPlastic
         tire.Color = Color3.fromRGB(20, 20, 22)
         tire.Anchored = false
         tire.CanCollide = false
@@ -424,7 +424,7 @@ function CarBuilder.CreatePoliceInterceptor(): Model
         tire.Shape = Enum.PartType.Cylinder
         tire.Size = Vector3.new(1.0, 2.1, 2.1)
         tire.CFrame = root.CFrame * CFrame.new(offset)
-        tire.Material = Enum.Material.Rubber
+        tire.Material = Enum.Material.SmoothPlastic
         tire.Color = Color3.fromRGB(20, 20, 22)
         tire.Anchored = false
         tire.CanCollide = false
@@ -519,7 +519,7 @@ function CarBuilder.CreateHyperionJetCar(): Model
         tire.Shape = Enum.PartType.Cylinder
         tire.Size = Vector3.new(1.0, 2.1, 2.1)
         tire.CFrame = root.CFrame * CFrame.new(offset)
-        tire.Material = Enum.Material.Rubber
+        tire.Material = Enum.Material.SmoothPlastic
         tire.Color = DARK_CARBON
         tire.Anchored = false
         tire.CanCollide = false
@@ -816,7 +816,7 @@ function CarBuilder.CreateFlashMcQueen(): Model
         tire.Shape = Enum.PartType.Cylinder
         tire.Size = Vector3.new(1.0, 2.1, 2.1)
         tire.CFrame = root.CFrame * CFrame.new(offset)
-        tire.Material = Enum.Material.Rubber
+        tire.Material = Enum.Material.SmoothPlastic
         tire.Color = Color3.fromRGB(20, 20, 22)
         tire.Anchored = false
         tire.CanCollide = false
