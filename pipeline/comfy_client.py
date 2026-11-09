@@ -336,7 +336,10 @@ if __name__ == "__main__":
         print(f"[ComfyUI] Connecte au serveur {args.url}. Generation pour : '{args.prompt}'...")
         try:
             res = client.generate(prompt=args.prompt)
-            print(f"[ComfyUI] Generation terminee avec succes ({len(res)} octets).")
+            output_dir = os.path.dirname(os.path.abspath(__file__))
+            out_path = os.path.join(output_dir, "generated_vehicle.png")
+            res.save(out_path)
+            print(f"[ComfyUI] Generation terminee avec succes (Image {res.size[0]}x{res.size[1]} sauvegardee sous {out_path}).")
         except Exception as e:
             print(f"[ComfyUI] Erreur lors de la generation : {e}")
     else:

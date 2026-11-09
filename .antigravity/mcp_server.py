@@ -14,21 +14,33 @@ mcp = MCPServer("Roblox VibeStarter")
 
 # Chemin absolu de base du projet roblox-card-dominion
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+COMFY_PYTHON = r"C:\Users\AymaneELHOMAIDI\ComfyUI\venv\Scripts\python.exe"
 
 # --- OUTIL 1 : GÉNÉRATION 3D ---
 @mcp.tool()
 def generate_3d_car(prompt: str) -> str:
     """
-    Génère un véhicule en 3D via ComfyUI sur la RTX 5070 locale.
-    À utiliser quand le joueur demande à créer une nouvelle voiture (ex: Batmobile).
+    Génère un véhicule en 3D via ComfyUI et TripoSR sur la RTX 5070 locale.
+    Produit une image conceptuelle et extrait un véritable modèle 3D .glb en moins de 3s.
     """
     try:
-        script_path = os.path.join(BASE_DIR, "pipeline", "comfy_client.py")
-        result = subprocess.run(
-            [sys.executable, script_path, "--prompt", prompt],
+        # Étape 1 : Image conceptuelle via ComfyUI
+        comfy_script = os.path.join(BASE_DIR, "pipeline", "comfy_client.py")
+        res_comfy = subprocess.run(
+            [sys.executable, comfy_script, "--prompt", prompt],
             capture_output=True, text=True, check=True, cwd=BASE_DIR
         )
-        return f"Succès : Véhicule généré.\nLogs: {result.stdout}"
+        logs = res_comfy.stdout
+
+        # Étape 2 : Extraction du maillage 3D .glb via TripoSR sur RTX 5070
+        tripo_script = os.path.join(BASE_DIR, "pipeline", "triposr_generator.py")
+        res_tripo = subprocess.run(
+            [COMFY_PYTHON, tripo_script],
+            capture_output=True, text=True, check=True, cwd=BASE_DIR
+        )
+        logs += "\n" + res_tripo.stdout
+
+        return f"Succès : Véhicule 3D (.glb) généré avec succès sur RTX 5070 !\nLogs:\n{logs}"
     except subprocess.CalledProcessError as e:
         return f"Erreur lors de la génération 3D : {e.stderr or e.stdout}"
     except Exception as e:
