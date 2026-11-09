@@ -19,6 +19,7 @@ local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
+local camera = Workspace.CurrentCamera or Workspace:WaitForChild("Camera") :: Camera
 
 local CarBuilder = require(ReplicatedStorage:WaitForChild("CarBuilder") :: ModuleScript)
 
@@ -801,10 +802,19 @@ end)
 
 local function onModeChanged()
     local mode = tostring(player:GetAttribute("CurrentMode") or "Hub")
-    screenGui.Enabled = (mode == "Crane")
-    if mode ~= "Crane" then
+    local inCrane = (mode == "Crane")
+    screenGui.Enabled = inCrane
+    if not inCrane then
         rewardCard.Visible = false
         fishingGaugeFrame.Visible = false
+        camera.CameraType = Enum.CameraType.Custom
+    else
+        -- Vue aérienne cinématographique plongeant sur l'océan et les 6 spots néon
+        camera.CameraType = Enum.CameraType.Scriptable
+        local targetCamCF = CFrame.lookAt(Vector3.new(0, 24, -108), Vector3.new(0, 0, -138))
+        TweenService:Create(camera, TweenInfo.new(0.8, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out), {
+            CFrame = targetCamCF
+        }):Play()
     end
 end
 

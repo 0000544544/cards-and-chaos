@@ -251,11 +251,12 @@ local function animateFigmaButton(button: TextButton | ImageButton)
     end)
 end
 
--- Card d'état joueur (Haut Gauche) : Cash, Streak, Titre (Décalé sous la barre supérieure Roblox)
+-- Card d'état joueur (Bas Gauche style Simulator Image 5) : Cash géant, Revenu $/s, Titre
 local statsCard = Instance.new("Frame")
 statsCard.Name = "StatsCard"
-statsCard.Size = UDim2.new(0, 240, 0, 118)
-statsCard.Position = UDim2.new(0, 24, 0, 56)
+statsCard.Size = UDim2.new(0, 240, 0, 84)
+statsCard.AnchorPoint = Vector2.new(0, 1)
+statsCard.Position = UDim2.new(0, 24, 1, -24)
 statsCard.ZIndex = 5
 statsCard.Parent = screenGui
 
@@ -264,44 +265,44 @@ styleFigmaCard(
     Color3.fromRGB(24, 28, 38),
     Color3.fromRGB(12, 14, 20),
     Color3.fromRGB(45, 220, 120),
-    14
+    16
 )
 
 local cashLabel = Instance.new("TextLabel")
 cashLabel.Name = "CashLabel"
-cashLabel.Size = UDim2.new(1, -24, 0, 28)
-cashLabel.Position = UDim2.new(0, 12, 0, 10)
+cashLabel.Size = UDim2.new(1, -24, 0, 32)
+cashLabel.Position = UDim2.new(0, 12, 0, 8)
 cashLabel.BackgroundTransparency = 1
-cashLabel.Font = Enum.Font.GothamBlack
-cashLabel.TextSize = 18
-cashLabel.TextColor3 = Color3.fromRGB(120, 255, 140)
+cashLabel.Font = Enum.Font.FredokaOne
+cashLabel.TextSize = 22
+cashLabel.TextColor3 = Color3.fromRGB(255, 225, 60)
 cashLabel.TextXAlignment = Enum.TextXAlignment.Left
-cashLabel.Text = "💰 Cash : $100"
+cashLabel.Text = "💰 $100"
 cashLabel.Parent = statsCard
+
+local rateLabel = Instance.new("TextLabel")
+rateLabel.Name = "RateLabel"
+rateLabel.Size = UDim2.new(1, -24, 0, 20)
+rateLabel.Position = UDim2.new(0, 12, 0, 38)
+rateLabel.BackgroundTransparency = 1
+rateLabel.Font = Enum.Font.GothamBlack
+rateLabel.TextSize = 13
+rateLabel.TextColor3 = Color3.fromRGB(60, 255, 140)
+rateLabel.TextXAlignment = Enum.TextXAlignment.Left
+rateLabel.Text = "+$254 / seconde"
+rateLabel.Parent = statsCard
 
 local streakLabel = Instance.new("TextLabel")
 streakLabel.Name = "StreakLabel"
-streakLabel.Size = UDim2.new(1, -24, 0, 26)
-streakLabel.Position = UDim2.new(0, 12, 0, 42)
+streakLabel.Size = UDim2.new(1, -24, 0, 18)
+streakLabel.Position = UDim2.new(0, 12, 0, 58)
 streakLabel.BackgroundTransparency = 1
 streakLabel.Font = Enum.Font.GothamBold
-streakLabel.TextSize = 16
-streakLabel.TextColor3 = Color3.fromRGB(255, 160, 50)
+streakLabel.TextSize = 11
+streakLabel.TextColor3 = Color3.fromRGB(255, 170, 60)
 streakLabel.TextXAlignment = Enum.TextXAlignment.Left
-streakLabel.Text = "🔥 Série : 0"
+streakLabel.Text = "🔥 Série : 0 • 🎖️ Débutant"
 streakLabel.Parent = statsCard
-
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Name = "TitleLabel"
-titleLabel.Size = UDim2.new(1, -24, 0, 26)
-titleLabel.Position = UDim2.new(0, 12, 0, 74)
-titleLabel.BackgroundTransparency = 1
-titleLabel.Font = Enum.Font.GothamMedium
-titleLabel.TextSize = 14
-titleLabel.TextColor3 = Color3.fromRGB(190, 220, 255)
-titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-titleLabel.Text = "🎖️ Titre : Réflexes de Tortue"
-titleLabel.Parent = statsCard
 
 -- Conteneur central pour le résultat géant
 local resultContainer = Instance.new("Frame")
@@ -442,11 +443,40 @@ hintLabel.Parent = screenGui
 -- =============================================================================
 -- BOUTONS DE NAVIGATION INTER-MODES (HUB / PÊCHE / STOP THE FRAME)
 -- =============================================================================
+-- Bouton d'action centrale en bas de l'écran (Exactement comme dans l'Image 5 : [E] Lancer le filet)
+local btnCastPrompt = Instance.new("TextButton")
+btnCastPrompt.Name = "BtnCastPrompt"
+btnCastPrompt.Size = UDim2.new(0, 260, 0, 52)
+btnCastPrompt.AnchorPoint = Vector2.new(0.5, 1)
+btnCastPrompt.Position = UDim2.new(0.5, 0, 1, -24)
+btnCastPrompt.BackgroundColor3 = Color3.fromRGB(0, 185, 235)
+btnCastPrompt.Font = Enum.Font.FredokaOne
+btnCastPrompt.TextSize = 16
+btnCastPrompt.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnCastPrompt.Text = "🎣 [E] PÊCHER DES VOITURES"
+btnCastPrompt.ZIndex = 8
+btnCastPrompt.Parent = screenGui
+
+local castCorner = Instance.new("UICorner")
+castCorner.CornerRadius = UDim.new(0, 14)
+castCorner.Parent = btnCastPrompt
+local castStroke = Instance.new("UIStroke")
+castStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+castStroke.Color = Color3.fromRGB(255, 255, 255)
+castStroke.Thickness = 2.5
+castStroke.Parent = btnCastPrompt
+animateFigmaButton(btnCastPrompt)
+
+btnCastPrompt.MouseButton1Click:Connect(function()
+    player:SetAttribute("CurrentMode", "Crane")
+end)
+
+-- Navigation supérieure discrète (Pill Tabs)
 local hubNavCard = Instance.new("Frame")
 hubNavCard.Name = "HubNavCard"
-hubNavCard.Size = UDim2.new(0, 540, 0, 54)
+hubNavCard.Size = UDim2.new(0, 360, 0, 44)
 hubNavCard.AnchorPoint = Vector2.new(0.5, 0)
-hubNavCard.Position = UDim2.new(0.5, 0, 0, 22)
+hubNavCard.Position = UDim2.new(0.5, 0, 0, 16)
 hubNavCard.ZIndex = 5
 hubNavCard.Parent = screenGui
 
@@ -454,19 +484,19 @@ styleFigmaCard(
     hubNavCard,
     Color3.fromRGB(24, 28, 38),
     Color3.fromRGB(12, 14, 20),
-    Color3.fromRGB(255, 215, 0),
-    16
+    Color3.fromRGB(0, 230, 255),
+    14
 )
 
 local btnNavRace = Instance.new("TextButton")
 btnNavRace.Name = "BtnNavRace"
-btnNavRace.Size = UDim2.new(0.5, -8, 1, -10)
-btnNavRace.Position = UDim2.new(0, 5, 0, 5)
+btnNavRace.Size = UDim2.new(0.5, -6, 1, -8)
+btnNavRace.Position = UDim2.new(0, 4, 0, 4)
 btnNavRace.BackgroundColor3 = Color3.fromRGB(240, 185, 20)
 btnNavRace.Font = Enum.Font.FredokaOne
-btnNavRace.TextSize = 15
+btnNavRace.TextSize = 13
 btnNavRace.TextColor3 = Color3.fromRGB(15, 18, 22)
-btnNavRace.Text = "⚡ JOUER : STOP THE FRAME"
+btnNavRace.Text = "⚡ DÉFI PENTE 1v1"
 btnNavRace.Parent = hubNavCard
 local raceBtnCorner = Instance.new("UICorner")
 raceBtnCorner.CornerRadius = UDim.new(0, 10)
@@ -475,13 +505,13 @@ animateFigmaButton(btnNavRace)
 
 local btnNavCrane = Instance.new("TextButton")
 btnNavCrane.Name = "BtnNavCrane"
-btnNavCrane.Size = UDim2.new(0.5, -8, 1, -10)
-btnNavCrane.Position = UDim2.new(0.5, 3, 0, 5)
+btnNavCrane.Size = UDim2.new(0.5, -6, 1, -8)
+btnNavCrane.Position = UDim2.new(0.5, 2, 0, 4)
 btnNavCrane.BackgroundColor3 = Color3.fromRGB(0, 185, 235)
 btnNavCrane.Font = Enum.Font.FredokaOne
-btnNavCrane.TextSize = 15
+btnNavCrane.TextSize = 13
 btnNavCrane.TextColor3 = Color3.fromRGB(255, 255, 255)
-btnNavCrane.Text = "🎣 MODE PÊCHE (GRUE)"
+btnNavCrane.Text = "🎣 JETÉE & PÊCHE"
 btnNavCrane.Parent = hubNavCard
 local craneBtnCorner = Instance.new("UICorner")
 craneBtnCorner.CornerRadius = UDim.new(0, 10)
@@ -872,6 +902,13 @@ end
 -- Écoute Clavier, Souris et Tactile
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.E then
+        local mode = tostring(player:GetAttribute("CurrentMode") or "Hub")
+        if mode == "Hub" then
+            player:SetAttribute("CurrentMode", "Crane")
+            return
+        end
+    end
     if input.KeyCode == Enum.KeyCode.Space
         or input.UserInputType == Enum.UserInputType.MouseButton1
         or input.UserInputType == Enum.UserInputType.Touch then
@@ -957,6 +994,7 @@ local function updateModeVisibility()
     hintLabel.Visible = inStopMode
     btnReturnToPort.Visible = inStopMode
     hubNavCard.Visible = (mode == "Hub")
+    btnCastPrompt.Visible = (mode == "Hub")
 
     if not inStopMode then
         resultContainer.Visible = false
