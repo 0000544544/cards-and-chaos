@@ -9,6 +9,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local CarBuilder = require(ReplicatedStorage:WaitForChild("CarBuilder") :: ModuleScript)
+local SystemCheck = require(ReplicatedStorage:WaitForChild("SystemCheck") :: ModuleScript)
 
 -- Services Serveur
 local DataManager = require(script.Parent.Services.DataManager)
@@ -123,4 +124,10 @@ submitEvent.OnServerEvent:Connect(function(player: Player, vehicleId: any, grade
     titleVal.Value = newTitle
 end)
 
-print("[GameServer] Services initialisés : DataManager, GarageService (Revenu passif), CraneService (Pêche).")
+print("[GameServer] Services initialises : DataManager, GarageService, CraneService.")
+
+-- Execution du diagnostic systeme complet
+task.spawn(function()
+    task.wait(0.5)
+    SystemCheck.RunDiagnostic()
+end)
