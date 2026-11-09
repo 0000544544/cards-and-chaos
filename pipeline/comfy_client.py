@@ -322,3 +322,22 @@ class ComfyUIClient:
             results.append(img)
 
         return results
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="ComfyUI Vehicle Generation Client")
+    parser.add_argument("--prompt", type=str, default="sports car, racing aerodynamic vehicle, high quality 3d model render", help="Prompt text")
+    parser.add_argument("--url", type=str, default=DEFAULT_COMFYUI_URL, help="ComfyUI server URL")
+    args = parser.parse_args()
+
+    client = ComfyUIClient(args.url)
+    if client.check_connection():
+        print(f"[ComfyUI] Connecte au serveur {args.url}. Generation pour : '{args.prompt}'...")
+        try:
+            res = client.generate(prompt=args.prompt)
+            print(f"[ComfyUI] Generation terminee avec succes ({len(res)} octets).")
+        except Exception as e:
+            print(f"[ComfyUI] Erreur lors de la generation : {e}")
+    else:
+        print(f"[ComfyUI] Serveur non joignable sur {args.url}. Veuillez demarrer ComfyUI sur votre machine.")

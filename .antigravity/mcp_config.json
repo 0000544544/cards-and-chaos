@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "roblox_vibestarter": {
+      "command": "python",
+      "args": ["-u", "C:/Users/AymaneELHOMAIDI/Desktop/Projects/WadWAd/roblox-card-dominion/.antigravity/mcp_server.py"],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}
